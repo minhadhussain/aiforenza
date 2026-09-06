@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     api_host: str = Field(default="0.0.0.0", alias="API_HOST")
     api_port: int = Field(default=8000, alias="API_PORT")
     api_cors_origins: str = Field(default="http://localhost:3000", alias="API_CORS_ORIGINS")
+    api_key_pepper: str = Field(default="", alias="API_KEY_PEPPER")
     database_url: str = Field(default="", alias="DATABASE_URL")
     redis_url: str = Field(default="redis://redis:6379/0", alias="REDIS_URL")
     supabase_url: str = Field(default="", alias="SUPABASE_URL")

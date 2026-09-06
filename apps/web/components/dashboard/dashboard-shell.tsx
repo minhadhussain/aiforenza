@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 type DashboardShellProps = {
@@ -21,6 +22,15 @@ export function DashboardShell({ email, children }: DashboardShellProps) {
           </button>
         </form>
       </header>
+
+      <nav className="mb-8 flex flex-wrap gap-3">
+        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard">
+          Overview
+        </Link>
+        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/api-keys">
+          API Keys
+        </Link>
+      </nav>
 
       {children}
     </main>

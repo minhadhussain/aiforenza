@@ -4,7 +4,7 @@ This repository contains the MVP foundation for a prepaid, OpenAI-compatible AI 
 
 ## Current Status
 
-Phase 1 and the Phase 2 auth foundation are in place:
+Phase 1 through Phase 4 foundations are in place:
 
 - monorepo structure
 - Next.js web foundation
@@ -14,6 +14,9 @@ Phase 1 and the Phase 2 auth foundation are in place:
 - Redis, LiteLLM, and Caddy infrastructure wiring
 - Supabase auth client utilities and protected dashboard scaffolding
 - backend token validation wiring for dashboard APIs
+- wallet and transaction schema with idempotent signup credit bootstrapping
+- dashboard overview backed by wallet and transaction data
+- API key schema, hashing flow, dashboard management, and auth dependency wiring
 
 ## Repository Layout
 
