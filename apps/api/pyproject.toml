@@ -1,0 +1,24 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "FastAPI application for the AI model credit platform"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.116.1",
+  "pydantic-settings==2.10.1",
+  "uvicorn[standard]==0.35.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx==0.28.1",
+  "pytest==8.4.1"
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
