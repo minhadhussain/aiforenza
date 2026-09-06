@@ -4,7 +4,7 @@ This repository contains the MVP foundation for a prepaid, OpenAI-compatible AI 
 
 ## Current Status
 
-Phase 1 is in place:
+Phase 1 and the Phase 2 auth foundation are in place:
 
 - monorepo structure
 - Next.js web foundation
@@ -12,6 +12,8 @@ Phase 1 is in place:
 - Docker and Docker Compose scaffolding
 - environment variable template
 - Redis, LiteLLM, and Caddy infrastructure wiring
+- Supabase auth client utilities and protected dashboard scaffolding
+- backend token validation wiring for dashboard APIs
 
 ## Repository Layout
 
@@ -29,6 +31,13 @@ Phase 1 is in place:
 3. Start services with `docker compose up --build`
 4. Open `http://localhost:3000` for the web app
 5. Open `http://localhost:8000/docs` for the API docs
+
+## Authentication Foundation
+
+- Web auth uses Supabase browser, server, and middleware clients.
+- `/login` and `/signup` provide the initial account entry flow.
+- `/dashboard` is protected through server checks and middleware refresh.
+- Backend dashboard APIs validate Supabase bearer tokens before returning user data.
 
 ## Notes
 

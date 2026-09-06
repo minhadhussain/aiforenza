@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const stats = [
   { label: "Trial credit", value: "$5", detail: "Granted automatically on signup" },
   { label: "Primary API", value: "/v1/chat/completions", detail: "OpenAI-compatible request format" },
@@ -32,6 +34,7 @@ export default function HomePage() {
           <a href="#product">Product</a>
           <a href="#journey">Journey</a>
           <a href="#stack">Stack</a>
+          <Link href="/login">Log in</Link>
         </nav>
       </header>
 
@@ -49,9 +52,9 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <a className="inline-flex items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-base font-semibold text-white transition hover:bg-[var(--accent-strong)]" href="#journey">
+            <Link className="inline-flex items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-base font-semibold text-white transition hover:bg-[var(--accent-strong)]" href="/signup">
               Start with $5 Free
-            </a>
+            </Link>
             <a className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-base font-semibold text-[var(--text)]" href="#stack">
               View Foundations
             </a>
@@ -87,6 +90,14 @@ export default function HomePage() {
           <p className="max-w-xl text-sm leading-6 text-[var(--muted)]">
             Visitor to signup, trial credit, API key creation, first request, low-balance prompt, Stripe top-up, and continued usage.
           </p>
+        </div>
+        <div className="mb-6 flex flex-wrap gap-3">
+          <Link className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-2 text-sm font-semibold" href="/signup">
+            Create account
+          </Link>
+          <Link className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-2 text-sm font-semibold" href="/dashboard">
+            Open dashboard
+          </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {sections.map((section) => (

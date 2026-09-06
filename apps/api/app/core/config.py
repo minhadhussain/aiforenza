@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     database_url: str = Field(default="", alias="DATABASE_URL")
     redis_url: str = Field(default="redis://redis:6379/0", alias="REDIS_URL")
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
+    supabase_anon_key: str = Field(default="", alias="SUPABASE_ANON_KEY")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
     stripe_secret_key: str = Field(default="", alias="STRIPE_SECRET_KEY")
     stripe_webhook_secret: str = Field(default="", alias="STRIPE_WEBHOOK_SECRET")
@@ -23,6 +24,10 @@ class Settings(BaseSettings):
     sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
     posthog_key: str = Field(default="", alias="POSTHOG_KEY")
     posthog_host: str = Field(default="", alias="POSTHOG_HOST")
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.api_cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache
