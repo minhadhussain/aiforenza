@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps.auth import get_current_dashboard_user
+from app.repositories.dashboard import fetch_usage_records
+from app.repositories.models import fetch_enabled_models
 from app.repositories.supabase_rest import SupabaseRepositoryError
 from app.repositories.wallets import bootstrap_user_account
 from app.repositories.wallets import build_wallet_summary
 from app.repositories.wallets import fetch_transactions
 from app.repositories.wallets import fetch_wallet
+from app.services.stripe_payments import list_user_topups
 
 
 router = APIRouter()
@@ -57,3 +60,59 @@ async def get_dashboard_overview(user: dict = Depends(get_current_dashboard_user
             "wallet_id": bootstrap.get("wallet_id"),
         },
     }
+
+
+@router.get("/dashboard/transactions")
+async def get_dashboard_transactions(user: dict = Depends(get_current_dashboard_user)) -> dict:
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authenticated user is missing required account data.")
+
+    try:
+        transactions = await fetch_transactions(user_id, limit=50)
+    except SupabaseRepositoryError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+    return {"data": transactions}
+
+
+@router.get("/dashboard/usage")
+async def get_dashboard_usage(user: dict = Depends(get_current_dashboard_user)) -> dict:
+    user_id = user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authenticated user is missing required account data.")
+
+    try:
+        records = await fetch_usage_records(user_id, limit=50)
+    except SupabaseRepositoryError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+    return {"data": records}
+
+
+@router.get("/dashboard/models")
+async def get_dashboard_models(_: dict = Depends(get_current_dashboard_user)) -> dict:
+    try:
+        models = await fetch_enabled_models()
+    except SupabaseRepositoryError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+    return {
+        "data": [
+            {
+                "id": model.id,
+                "slug": model.slug,
+                "display_name": model.display_name,
+                "provider": model.provider,
+                "customer_input_price_per_million": model.customer_input_price_per_million,
+                "customer_output_price_per_million": model.customer_output_price_per_million,
+                "customer_cached_input_price_per_million": model.customer_cached_input_price_per_million,
+            }
+            for model in models
+        ]
+    }
+
+
+@router.get("/dashboard/topups")
+async def get_dashboard_topups(user: dict = Depends(get_current_dashboard_user)) -> dict:
+    return {"data": await list_user_topups(user["id"])}

@@ -4,7 +4,7 @@ This repository contains the MVP foundation for a prepaid, OpenAI-compatible AI 
 
 ## Current Status
 
-Phase 1 through Phase 6 foundations are in place:
+Phase 1 through Phase 8 foundations are in place:
 
 - monorepo structure
 - Next.js web foundation
@@ -19,6 +19,8 @@ Phase 1 through Phase 6 foundations are in place:
 - API key schema, hashing flow, dashboard management, and auth dependency wiring
 - model catalog schema, `/v1/models`, and LiteLLM-backed chat completion forwarding
 - usage records, customer pricing fields, and atomic wallet charge foundations
+- Stripe Checkout session creation, webhook-driven wallet crediting, and top-up history foundations
+- dedicated dashboard views for usage, transactions, models, API keys, balance, and top-ups
 
 ## Repository Layout
 

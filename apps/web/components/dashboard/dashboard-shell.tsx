@@ -13,7 +13,7 @@ export function DashboardShell({ email, children }: DashboardShellProps) {
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">Protected dashboard</p>
           <h1 className="mt-2 font-[family-name:var(--font-heading)] text-3xl">Welcome back</h1>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Signed in as {email}. Wallets, usage, transactions, and API keys will attach to this surface in later phases.</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Signed in as {email}. This dashboard now covers wallet balance, API keys, top-ups, usage, transactions, and customer-facing model pricing.</p>
         </div>
 
         <form action="/logout" method="post">
@@ -29,6 +29,18 @@ export function DashboardShell({ email, children }: DashboardShellProps) {
         </Link>
         <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/api-keys">
           API Keys
+        </Link>
+        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/models">
+          Models
+        </Link>
+        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/usage">
+          Usage
+        </Link>
+        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/transactions">
+          Transactions
+        </Link>
+        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/topups">
+          Add Funds
         </Link>
       </nav>
 

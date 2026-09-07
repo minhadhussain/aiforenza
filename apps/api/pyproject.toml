@@ -9,6 +9,7 @@ dependencies = [
   "anyio==4.10.0",
   "httpx==0.28.1",
   "pydantic-settings==2.10.1",
+  "stripe==13.0.0",
   "uvicorn[standard]==0.35.0"
 ]
 

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
     stripe_secret_key: str = Field(default="", alias="STRIPE_SECRET_KEY")
     stripe_webhook_secret: str = Field(default="", alias="STRIPE_WEBHOOK_SECRET")
+    next_public_app_url: str = Field(default="http://localhost:3000", alias="NEXT_PUBLIC_APP_URL")
     azure_api_key: str = Field(default="", alias="AZURE_API_KEY")
     azure_endpoint: str = Field(default="", alias="AZURE_ENDPOINT")
     litellm_url: str = Field(default="http://litellm:4000", alias="LITELLM_URL")

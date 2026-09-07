@@ -41,10 +41,10 @@ export default async function DashboardPage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
       <section className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)] backdrop-blur">
-        <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">Phase 3 status</p>
-        <h2 className="mt-3 font-[family-name:var(--font-heading)] text-3xl">Wallet and trial credit foundation</h2>
+        <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">Phase 6 status</p>
+        <h2 className="mt-3 font-[family-name:var(--font-heading)] text-3xl">Wallet, API keys, models, and billing foundation</h2>
         <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--muted)]">
-          The dashboard now initializes the profile and wallet on first authenticated load, grants the one-time $5 signup credit, and renders the current ledger-backed balance.
+          The authenticated flow now boots the wallet, grants the one-time trial, supports API-key issuance, exposes the model catalog through the API, and records billable usage through the financial ledger.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
           )}
 
           <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface-strong)] p-4 text-sm leading-6 text-[var(--muted)]">
-            Next up from the spec: API keys in Phase 4, model endpoints in Phase 5, and usage billing in Phase 6.
+            Next up from the spec: Stripe top-ups in Phase 7, richer dashboard surfaces in Phase 8, and developer docs in Phase 9.
           </div>
         </div>
       </section>
