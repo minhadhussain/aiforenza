@@ -68,10 +68,10 @@ begin
   values (target_user_id)
   on conflict (user_id) do nothing;
 
-  select id, balance_cents
+  select w.id, w.balance_cents
   into current_wallet_id, current_balance
-  from public.wallets
-  where user_id = target_user_id
+  from public.wallets w
+  where w.user_id = target_user_id
   for update;
 
   grant_reference := 'signup:' || target_user_id::text;
@@ -86,10 +86,10 @@ begin
   if not trial_exists then
     current_balance := current_balance + 500;
 
-    update public.wallets
+    update public.wallets w
     set balance_cents = current_balance,
         updated_at = timezone('utc', now())
-    where id = current_wallet_id;
+    where w.id = current_wallet_id;
 
     insert into public.transactions (
       user_id,

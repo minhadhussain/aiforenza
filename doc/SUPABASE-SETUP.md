@@ -9,6 +9,8 @@ Run these SQL files in order inside the Supabase SQL editor:
 1. `infra/supabase/001_profiles.sql`
 2. `infra/supabase/002_wallets_transactions.sql`
 3. `infra/supabase/003_api_keys.sql`
+4. `infra/supabase/004_models.sql`
+5. `infra/supabase/005_fix_bootstrap_user_account.sql`
 
 These files create:
 
@@ -16,7 +18,9 @@ These files create:
 - `wallets`
 - `transactions`
 - `api_keys`
+- `models`
 - the signup wallet bootstrap RPC for one-time free trial credit
+- the follow-up wallet bootstrap function fix migration
 
 ## Required Environment Variables
 

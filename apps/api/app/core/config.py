@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = Field(default="", alias="STRIPE_WEBHOOK_SECRET")
     azure_api_key: str = Field(default="", alias="AZURE_API_KEY")
     azure_endpoint: str = Field(default="", alias="AZURE_ENDPOINT")
+    litellm_url: str = Field(default="http://litellm:4000", alias="LITELLM_URL")
     litellm_master_key: str = Field(default="", alias="LITELLM_MASTER_KEY")
     sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
     posthog_key: str = Field(default="", alias="POSTHOG_KEY")

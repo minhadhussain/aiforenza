@@ -1,3 +1,43 @@
-model_list: []
+model_list:
+  - model_name: azure/gpt-6-astra
+    litellm_params:
+      model: azure/gpt-6-astra
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
+  - model_name: azure/gpt-5.6-sol
+    litellm_params:
+      model: azure/gpt-5.6-sol
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
+  - model_name: azure/gpt-5.6-luna
+    litellm_params:
+      model: azure/gpt-5.6-luna
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
+  - model_name: azure/grok-4.6
+    litellm_params:
+      model: azure/grok-4.6
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
+  - model_name: azure/deepseek-v4-pro
+    litellm_params:
+      model: azure/deepseek-v4-pro
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
+  - model_name: azure/deepseek-v4-flash
+    litellm_params:
+      model: azure/deepseek-v4-flash
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
+  - model_name: azure/kimi-k2.7-code
+    litellm_params:
+      model: azure/kimi-k2.7-code
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
+  - model_name: azure/gpt-5.4
+    litellm_params:
+      model: azure/gpt-5.4
+      api_key: os.environ/AZURE_API_KEY
+      api_base: os.environ/AZURE_ENDPOINT
 litellm_settings:
   set_verbose: false
