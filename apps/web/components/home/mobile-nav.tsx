@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const navItems = [
   ["Models", "/models"],
   ["Pricing", "/pricing"],
   ["Docs", "/docs"],
-  ["About", "#about"],
+  ["About", "/#about"],
 ] as const;
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const [renderMenu, setRenderMenu] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (open) {
@@ -75,14 +77,16 @@ export function MobileNav() {
 
             <nav className="mt-8 flex flex-1 flex-col gap-3">
               {navItems.map(([label, href]) => (
+                ((label, href, active) => (
                 <Link
                   key={label}
                   href={href}
                   onClick={handleClose}
-                  className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4 text-base text-white transition hover:border-white/18 hover:bg-white/[0.05]"
+                  className={`rounded-2xl border px-4 py-4 text-base transition ${active ? "border-white/18 bg-white text-black" : "border-white/8 bg-white/[0.02] text-white hover:border-white/18 hover:bg-white/[0.05]"}`}
                 >
                   {label}
                 </Link>
+                ))(label, href, href === "/#about" ? pathname === "/" : pathname === href)
               ))}
             </nav>
 

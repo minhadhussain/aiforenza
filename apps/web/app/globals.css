@@ -39,6 +39,35 @@ a {
   text-decoration: none;
 }
 
+.smooth-border {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.smooth-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--smooth-border-color, var(--border));
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.smooth-stroke {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: inset 0 0 0 1px var(--smooth-border-color, var(--border));
+}
+
 .grain {
   position: fixed;
   inset: 0;

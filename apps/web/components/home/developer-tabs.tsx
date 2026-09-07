@@ -37,18 +37,22 @@ export function DeveloperTabs() {
   const current = useMemo(() => examples[active], [active]);
 
   return (
-    <div className="rounded-[2rem] border border-[var(--border)] bg-[rgba(12,14,18,0.9)] p-3 shadow-[var(--shadow)] backdrop-blur">
+    <div
+      className="smooth-border rounded-[2rem] bg-[rgba(12,14,18,0.9)] p-3 shadow-[var(--shadow)] backdrop-blur"
+      style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
+    >
       <div className="flex gap-2 overflow-x-auto pb-2">
         {tabNames.map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setActive(tab)}
-            className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm transition ${
+            className={`smooth-border whitespace-nowrap rounded-full px-4 py-2 text-sm transition ${
               active === tab
-                ? "border-white/20 bg-white text-black"
-                : "border-white/8 bg-white/[0.03] text-[var(--muted)] hover:border-white/16 hover:text-white"
+                ? "bg-white text-black"
+                : "bg-white/[0.03] text-[var(--muted)] hover:text-white"
             }`}
+            style={{ ["--smooth-border-color" as string]: active === tab ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)" }}
           >
             {tab}
           </button>
@@ -56,27 +60,39 @@ export function DeveloperTabs() {
       </div>
 
       <div className="grid gap-4 p-3 lg:grid-cols-[0.92fr_1.08fr]">
-        <div className="rounded-[1.5rem] border border-white/8 bg-[#0b0d10] p-5">
+        <div
+          className="smooth-border rounded-[1.5rem] bg-[#0b0d10] p-5"
+          style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
+        >
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Configuration</p>
               <h3 className="mt-2 font-[family-name:var(--font-heading)] text-lg text-white">{current.label}</h3>
             </div>
-            <button className="rounded-full border border-white/8 px-3 py-1 text-xs text-[var(--muted)] transition hover:border-white/16 hover:text-white">
+            <button
+              className="smooth-border rounded-full px-3 py-1 text-xs text-[var(--muted)] transition hover:text-white"
+              style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
+            >
               Copy
             </button>
           </div>
           <pre className="whitespace-pre-wrap text-sm leading-7 text-[#d8dde6]">{current.snippet}</pre>
         </div>
 
-        <div className="rounded-[1.5rem] border border-white/8 bg-[#090b0d] p-5">
+        <div
+          className="smooth-border rounded-[1.5rem] bg-[#090b0d] p-5"
+          style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
+        >
           <div className="mb-4 flex items-center justify-between">
             <div className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">OpenAI-Compatible Request</div>
-            <button className="rounded-full border border-white/8 px-3 py-1 text-xs text-[var(--muted)] transition hover:border-white/16 hover:text-white">
+            <button
+              className="smooth-border rounded-full px-3 py-1 text-xs text-[var(--muted)] transition hover:text-white"
+              style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
+            >
               Copy
             </button>
           </div>
-          <pre className="overflow-x-auto whitespace-pre-wrap text-sm leading-7 text-[#edf1f7]">{current.code}</pre>
+          <pre className="whitespace-pre-wrap break-words text-sm leading-7 text-[#edf1f7] [overflow-wrap:anywhere]">{current.code}</pre>
         </div>
       </div>
     </div>

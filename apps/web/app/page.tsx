@@ -27,24 +27,11 @@ const steps = [
   ["04", "BUILD", "Pay for what you use."],
 ] as const;
 
-const modelRows = [
-  ["GPT-6 Astra", "$X", "$Y"],
-  ["GPT-5.6 Sol", "$X", "$Y"],
-  ["GPT-5.6 Luna", "$X", "$Y"],
-  ["Grok 4.6", "$X", "$Y"],
-  ["DeepSeek V4 Pro", "$X", "$Y"],
-  ["DeepSeek V4 Flash", "$X", "$Y"],
-  ["Kimi K2.7 Code", "$X", "$Y"],
-  ["GPT-5.4", "$X", "$Y"],
-] as const;
-
-const prepaidAmounts = ["$10", "$25", "$50", "$100", "$500", "$1,000"];
-
 export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col px-4 pb-20 pt-5 sm:px-6 lg:px-8">
       <header className="sticky top-0 z-20 mb-14">
-        <div className="rounded-full border border-white/8 bg-black/35 px-4 py-3 shadow-[var(--shadow)] backdrop-blur-md sm:px-5">
+        <div className="smooth-border rounded-full bg-black/35 px-4 py-3 shadow-[var(--shadow)] backdrop-blur-md sm:px-5" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
           <div className="flex items-center justify-between gap-4">
             <Link href="/" className="font-[family-name:var(--font-heading)] text-base font-semibold tracking-[-0.035em] text-white sm:text-[1.06rem]">
               AI Forenza
@@ -82,7 +69,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="relative flex min-h-[78vh] flex-col items-center justify-center overflow-hidden rounded-[2.25rem] border border-white/6 px-6 py-20 text-center sm:px-10 lg:px-16">
+      <section className="smooth-border relative flex min-h-[78vh] flex-col items-center justify-center overflow-hidden rounded-[2.25rem] px-6 py-20 text-center sm:px-10 lg:px-16" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.06)" }}>
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute left-1/2 top-[18%] h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-white/[0.06] blur-[120px]" />
           <div className="absolute left-[18%] top-[30%] h-40 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
@@ -126,7 +113,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mt-10 overflow-x-auto rounded-full border border-white/6 bg-white/[0.02] px-5 py-4 shadow-[var(--shadow)] backdrop-blur-sm">
+      <section className="smooth-border mt-10 overflow-x-auto rounded-full bg-white/[0.02] px-5 py-4 shadow-[var(--shadow)] backdrop-blur-sm" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.06)" }}>
         <div className="flex min-w-max items-center justify-between gap-8 text-xs uppercase tracking-[0.28em] text-white/45 sm:text-sm">
           {trustModels.map((model) => (
             <span key={model}>{model}</span>
@@ -151,7 +138,8 @@ export default function HomePage() {
           {valueCards.map((card) => (
             <article
               key={card.title}
-              className="rounded-[1.75rem] border border-white/8 bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/14 hover:bg-white/[0.035]"
+              className="smooth-border rounded-[1.75rem] bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.035]"
+              style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
             >
               <p className="text-sm uppercase tracking-[0.24em] text-white/50">{card.title}</p>
               <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{card.copy}</p>
@@ -168,7 +156,7 @@ export default function HomePage() {
 
         <div className="mt-10 grid gap-4 lg:grid-cols-4">
           {steps.map(([index, title, copy]) => (
-            <article key={index} className="relative rounded-[1.75rem] border border-white/8 bg-white/[0.025] p-6">
+            <article key={index} className="smooth-border relative rounded-[1.75rem] bg-white/[0.025] p-6" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
               <div className="mb-6 flex items-center justify-between">
                 <span className="text-xs uppercase tracking-[0.3em] text-white/40">{index}</span>
                 <span className="hidden h-px flex-1 bg-gradient-to-r from-white/12 to-transparent lg:block" />
@@ -194,77 +182,25 @@ export default function HomePage() {
         <DeveloperTabs />
       </section>
 
-      <section className="mt-24">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Model Catalog</p>
-            <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl text-white sm:text-4xl">
-              Choose the model. Keep the interface.
-            </h2>
-            <p className="mt-5 text-base leading-8 text-[var(--muted)]">
-              Switch models without changing the way your application talks to the API.
-            </p>
-          </div>
-          <Link className="text-sm text-white/72 transition hover:text-white" href="/models">
-            View all models →
-          </Link>
-        </div>
-
-        <div className="mt-8 overflow-x-auto rounded-[2rem] border border-white/8 bg-white/[0.025] p-3 shadow-[var(--shadow)]">
-          <table className="min-w-full border-separate border-spacing-y-3 text-left text-sm">
-            <thead>
-              <tr>
-                {[
-                  ["Model", ""],
-                  ["Input", "per 1M"],
-                  ["Output", "per 1M"],
-                ].map(([label, sublabel]) => (
-                  <th key={label} className="px-4 py-2 font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-                    {label}
-                    {sublabel ? <span className="ml-2 text-[10px] tracking-[0.18em] text-white/30">{sublabel}</span> : null}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {modelRows.map(([model, input, output]) => (
-                <tr key={model} className="transition hover:translate-y-[-1px]">
-                  <td className="rounded-l-2xl border-y border-l border-white/8 bg-white/[0.035] px-4 py-4 font-medium text-white">
-                    {model}
-                  </td>
-                  <td className="border-y border-white/8 bg-white/[0.035] px-4 py-4 text-[var(--muted)]">{input}</td>
-                  <td className="rounded-r-2xl border-y border-r border-white/8 bg-white/[0.035] px-4 py-4 text-[var(--muted)]">{output}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="mt-24 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-        <div className="max-w-xl">
-          <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Pricing</p>
-          <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl text-white sm:text-4xl">Simple usage-based pricing.</h2>
-          <p className="mt-5 whitespace-pre-line text-base leading-8 text-[var(--muted)]">
-            {`$5 free credit to get started.
-Then pay only for what you use.`}
+      <section className="mt-24 flex flex-col items-start gap-5 rounded-[2rem] border border-white/8 bg-white/[0.025] px-6 py-10 shadow-[var(--shadow)] sm:px-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Models</p>
+          <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl text-white sm:text-4xl">
+            Explore the full model catalog on its own page.
+          </h2>
+          <p className="mt-5 text-base leading-8 text-[var(--muted)]">
+            Access multiple frontier models through one OpenAI-compatible API.
           </p>
         </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          {prepaidAmounts.map((amount) => (
-            <div
-              key={amount}
-              className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] px-5 py-6 text-center transition hover:border-white/16 hover:bg-white/[0.05]"
-            >
-              <div className="font-[family-name:var(--font-heading)] text-3xl text-white">{amount}</div>
-              <div className="mt-2 text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Prepaid balance</div>
-            </div>
-          ))}
-        </div>
+        <Link
+          className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-6 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
+          href="/models"
+        >
+          View all models →
+        </Link>
       </section>
 
-      <section className="mt-24 rounded-[2.5rem] border border-white/8 px-6 py-20 text-center shadow-[var(--shadow)] sm:px-10">
+      <section className="smooth-border mt-24 rounded-[2.5rem] px-6 py-20 text-center shadow-[var(--shadow)] sm:px-10" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
         <div className="mx-auto max-w-3xl">
           <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Start Building</p>
           <h2 className="mt-4 font-[family-name:var(--font-heading)] text-4xl leading-tight text-white sm:text-5xl">
