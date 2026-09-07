@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
 
+import { MouseGlow } from "@/components/mouse-glow";
+
 import "./globals.css";
 
 const bodyFont = IBM_Plex_Sans({
@@ -27,6 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div className="grain" />
         <div className="infra-glow" />
         <div className="infra-grid" />
+        <MouseGlow />
         <div className="page-layer">{children}</div>
       </body>
     </html>

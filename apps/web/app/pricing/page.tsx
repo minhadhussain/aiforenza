@@ -3,32 +3,36 @@ import Link from "next/link";
 import { PublicShell } from "@/components/home/public-shell";
 import { SectionHero } from "@/components/home/section-hero";
 
-const topups = ["$10", "$25", "$50", "$100", "$500", "$1,000"];
-
 export default function PricingPage() {
   return (
     <PublicShell>
       <SectionHero
-        eyebrow="Pricing"
+        eyebrow="PRICING"
         title="Simple usage-based pricing."
-        copy="$5 free credit to get started. Then pay only for what you use through prepaid balance top-ups."
+        copy="Pay for what you use. No monthly plans."
       />
 
-      <section className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {topups.map((amount) => (
-          <article key={amount} className="rounded-[1.75rem] border border-white/8 bg-white/[0.03] px-6 py-8 text-center transition hover:border-white/16 hover:bg-white/[0.05]">
-            <div className="font-[family-name:var(--font-heading)] text-4xl text-white">{amount}</div>
-            <div className="mt-3 text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Prepaid balance</div>
-            <p className="mt-5 text-sm leading-7 text-[var(--muted)]">Add credits to your wallet, authenticate with one API key, and consume balance as requests are charged.</p>
-          </article>
-        ))}
+      <section className="mt-14 rounded-[2rem] border border-white/8 bg-white/[0.025] px-6 py-10 shadow-[var(--shadow)] sm:px-8">
+        <div className="grid gap-6 lg:grid-cols-[0.7fr_1.6fr_0.7fr] lg:items-center">
+          {[
+            ["ADD BALANCE", "Choose an amount."],
+            ["USE ANY MODEL", "One API. Multiple models."],
+            ["PAY FOR USAGE", "Only what you consume."],
+          ].map(([title, copy], index) => (
+            <div key={title} className="text-center">
+              <div className="text-sm uppercase tracking-[0.24em] text-white/75">{title}</div>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{copy}</p>
+              {index < 2 ? <div className="mx-auto mt-6 hidden h-px w-16 bg-gradient-to-r from-transparent via-white/14 to-transparent lg:block" /> : null}
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className="mt-16 grid gap-4 md:grid-cols-3">
+      <section className="mt-12 grid gap-4 md:grid-cols-3">
         {[
-          ["Start free", "Every new developer account begins with free API credit so you can validate the integration path quickly."],
-          ["Pay only for usage", "Charges are based on model usage records and deducted from a prepaid wallet balance."],
-          ["No subscriptions", "No monthly plan matrix, no seat tiers, and no billing complexity beyond your wallet balance."],
+          ["NO SUBSCRIPTIONS", "Use credit when you need it."],
+          ["ONE API", "Access multiple models."],
+          ["TRANSPARENT", "See what you spend."],
         ].map(([title, copy]) => (
           <article key={title} className="rounded-[1.75rem] border border-white/8 bg-white/[0.025] p-6 transition hover:border-white/14 hover:bg-white/[0.035]">
             <h2 className="font-[family-name:var(--font-heading)] text-xl text-white">{title}</h2>
@@ -37,15 +41,27 @@ export default function PricingPage() {
         ))}
       </section>
 
+      <section className="mt-16 rounded-[2rem] border border-white/8 bg-white/[0.025] px-6 py-12 shadow-[var(--shadow)] sm:px-8">
+        <div className="max-w-2xl">
+          <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">START FREE</p>
+          <p className="mt-4 text-base leading-8 text-white">New accounts get $5 in API credit.</p>
+          <div className="mt-6">
+            <Link className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90" href="/signup">
+              Create your account →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="mt-16 flex flex-col items-center rounded-[2rem] border border-white/8 px-6 py-16 text-center shadow-[var(--shadow)] sm:px-10">
-        <h2 className="font-[family-name:var(--font-heading)] text-3xl text-white sm:text-4xl">Ready to make your first request?</h2>
-        <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--muted)]">Create an account, receive free credit, generate an API key, and top up only when usage becomes real.</p>
+        <h2 className="font-[family-name:var(--font-heading)] text-3xl text-white sm:text-4xl">Build without a pricing maze.</h2>
+        <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--muted)]">Start free. Choose your model. Pay as you go.</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90" href="/signup">
-            Start Free
+            Start Free →
           </Link>
           <Link className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-6 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]" href="/docs">
-            Quickstart Docs
+            Read the Docs
           </Link>
         </div>
       </section>

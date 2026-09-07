@@ -46,7 +46,7 @@ export function SignupForm() {
     <form className="space-y-5" onSubmit={handleSubmit}>
       <div>
         <p className="text-sm uppercase tracking-[0.25em] text-[var(--muted)]">Get started</p>
-        <h2 className="mt-3 font-[family-name:var(--font-heading)] text-3xl">Create your account</h2>
+        <h2 className="mt-3 font-[family-name:var(--font-heading)] text-3xl text-black">Create your account</h2>
       </div>
 
       <label className="block space-y-2 text-sm font-medium text-[var(--text)]">
