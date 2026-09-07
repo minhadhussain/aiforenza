@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { DataTable } from "@/components/dashboard/data-table";
+import { CopyChip } from "@/components/dashboard/copy-chip";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchDashboardModels, formatUsdFromCents } from "@/lib/dashboard";
 
@@ -21,18 +21,41 @@ export default async function DashboardModelsPage() {
   const models = await fetchDashboardModels(session.access_token);
 
   return (
-    <DataTable
-      title="Models"
-      description="Enabled customer-facing models and their current pricing configuration."
-      rows={models}
-      emptyMessage="No enabled models are available yet."
-      columns={[
-        { key: "model", label: "Model", render: (row) => row.display_name },
-        { key: "provider", label: "Provider", render: (row) => row.provider },
-        { key: "input", label: "Input / 1M", render: (row) => formatUsdFromCents(perMillionToCents(row.customer_input_price_per_million * 100)) },
-        { key: "output", label: "Output / 1M", render: (row) => formatUsdFromCents(perMillionToCents(row.customer_output_price_per_million * 100)) },
-        { key: "cached", label: "Cached / 1M", render: (row) => formatUsdFromCents(perMillionToCents((row.customer_cached_input_price_per_million ?? 0) * 100)) },
-      ]}
-    />
+    <div className="space-y-8">
+      <header>
+        <p className="font-mono text-sm uppercase tracking-[0.16em] text-white/70">// AVAILABLE MODELS</p>
+        <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Available customer-facing models and their current configured pricing.</p>
+      </header>
+
+      <section className="border border-white/10 bg-[#050608] p-4">
+        {models.length ? (
+          <div className="space-y-2">
+            <div className="grid gap-3 border-b border-white/10 px-3 py-2 text-xs uppercase tracking-[0.14em] text-[var(--muted)] md:grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr]">
+              <div>MODEL</div>
+              <div>INPUT</div>
+              <div>OUTPUT</div>
+              <div>CACHED</div>
+            </div>
+
+            {models.map((model) => (
+              <div key={model.id} className="grid gap-3 border border-white/10 px-3 py-3 text-sm md:grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr]">
+                <div>
+                  <div className="text-white">{model.display_name}</div>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="font-mono text-xs text-[var(--muted)]">{model.slug}</div>
+                    <CopyChip value={model.slug} />
+                  </div>
+                </div>
+                <div className="text-[var(--muted)]">{formatUsdFromCents(perMillionToCents(model.customer_input_price_per_million * 100))}</div>
+                <div className="text-[var(--muted)]">{formatUsdFromCents(perMillionToCents(model.customer_output_price_per_million * 100))}</div>
+                <div className="text-[var(--muted)]">{formatUsdFromCents(perMillionToCents((model.customer_cached_input_price_per_million ?? 0) * 100))}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="border border-white/10 px-4 py-4 text-sm text-[var(--muted)]">No enabled models are available yet.</div>
+        )}
+      </section>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { apiGet } from "@/lib/api";
+import { fetchApiKeys } from "@/lib/api-keys";
 
 export type DashboardOverview = {
   profile: {
@@ -103,6 +104,10 @@ export async function fetchDashboardModels(accessToken: string) {
   });
 
   return payload.data;
+}
+
+export async function fetchDashboardApiKeys(accessToken: string) {
+  return fetchApiKeys(accessToken);
 }
 
 export function formatUsdFromCents(value: number) {

@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 type DashboardShellProps = {
@@ -6,45 +10,137 @@ type DashboardShellProps = {
   children: ReactNode;
 };
 
-export function DashboardShell({ email, children }: DashboardShellProps) {
+const navItems = [
+  ["Overview", "/dashboard"],
+  ["API Keys", "/dashboard/api-keys"],
+  ["Usage", "/dashboard/usage"],
+  ["Billing", "/dashboard/billing"],
+  ["Docs", "/docs"],
+] as const;
+
+function NavList({ pathname, closeMenu }: { pathname: string; closeMenu?: () => void }) {
   return (
-    <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-8 sm:px-10 lg:px-12">
-      <header className="mb-8 flex flex-col gap-4 rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">Protected dashboard</p>
-          <h1 className="mt-2 font-[family-name:var(--font-heading)] text-3xl">Welcome back</h1>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Signed in as {email}. This dashboard now covers wallet balance, API keys, top-ups, usage, transactions, and customer-facing model pricing.</p>
+    <nav className="space-y-1.5">
+      {navItems.map(([label, href]) => {
+        const active = href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={closeMenu}
+            className={`flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm transition ${
+              active
+                ? "border-white/12 bg-white/[0.06] text-white"
+                : "text-[var(--muted)] hover:border-white/8 hover:bg-white/[0.03] hover:text-white"
+            }`}
+          >
+            <span className="inline-flex h-4 w-4 items-center justify-center border border-white/12 text-[10px] text-white/70">
+              ▢
+            </span>
+            <span>{label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function DashboardShell({ email, children }: DashboardShellProps) {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <main className="min-h-screen bg-[#030405] text-white">
+      <div className="mx-auto grid min-h-screen w-full max-w-[1600px] lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="hidden border-r border-white/10 lg:block">
+          <div className="sticky top-0 flex h-screen flex-col px-4 py-7">
+            <div className="border-b border-white/10 pb-7">
+              <div className="font-[family-name:var(--font-heading)] text-[1.05rem] font-semibold tracking-[-0.04em] text-white">AI Forenza</div>
+            </div>
+
+            <div className="pt-7">
+              <NavList pathname={pathname} />
+            </div>
+
+            <div className="mt-auto border-t border-white/10 pt-5">
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm text-[var(--muted)] transition hover:border-white/8 hover:bg-white/[0.03] hover:text-white"
+              >
+                <span className="inline-flex h-4 w-4 items-center justify-center border border-white/12 text-[10px] text-white/70">▢</span>
+                <span>Settings</span>
+              </Link>
+
+              <div className="mt-5 border-t border-white/10 pt-4">
+                <div className="px-3 pb-4 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Signed in</div>
+                <div className="px-3 text-sm text-white">{email}</div>
+                <form action="/logout" method="post" className="mt-4 px-3">
+                  <button className="w-full border border-white/10 px-4 py-2.5 text-left text-sm text-[var(--muted)] transition hover:border-white/18 hover:text-white">
+                    Log out
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0">
+          <div className="flex items-center justify-between border-b border-white/10 px-4 py-4 lg:hidden">
+            <div>
+              <div className="font-[family-name:var(--font-heading)] text-[1.05rem] font-semibold tracking-[-0.04em] text-white">AI Forenza</div>
+              <div className="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Developer dashboard</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="border border-white/10 px-3 py-2 text-sm text-white"
+            >
+              Menu
+            </button>
+          </div>
+
+          {menuOpen ? (
+            <div className="fixed inset-0 z-40 bg-black/90 px-4 py-4 lg:hidden">
+              <div className="flex h-full flex-col border border-white/10 bg-[#050608] p-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div className="font-[family-name:var(--font-heading)] text-[1.05rem] font-semibold tracking-[-0.04em] text-white">AI Forenza</div>
+                  <button type="button" onClick={() => setMenuOpen(false)} className="text-2xl text-white/80">
+                    ×
+                  </button>
+                </div>
+
+                <div className="pt-5">
+                  <NavList pathname={pathname} closeMenu={() => setMenuOpen(false)} />
+                </div>
+
+                <div className="mt-auto border-t border-white/10 pt-4">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm text-[var(--muted)] transition hover:border-white/8 hover:bg-white/[0.03] hover:text-white"
+                  >
+                    <span className="inline-flex h-4 w-4 items-center justify-center border border-white/12 text-[10px] text-white/70">▢</span>
+                    <span>Settings</span>
+                  </Link>
+
+                  <div className="mt-5 border-t border-white/10 pt-4">
+                    <div className="px-3 pb-4 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Signed in</div>
+                    <div className="px-3 text-sm text-white">{email}</div>
+                    <form action="/logout" method="post" className="mt-4 px-3">
+                      <button className="w-full border border-white/10 px-4 py-2.5 text-left text-sm text-[var(--muted)] transition hover:border-white/18 hover:text-white">
+                        Log out
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="px-4 py-5 lg:px-8 lg:py-7">{children}</div>
         </div>
-
-        <form action="/logout" method="post">
-          <button className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-strong)] px-5 py-3 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">
-            Sign out
-          </button>
-        </form>
-      </header>
-
-      <nav className="mb-8 flex flex-wrap gap-3">
-        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard">
-          Overview
-        </Link>
-        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/api-keys">
-          API Keys
-        </Link>
-        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/models">
-          Models
-        </Link>
-        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/usage">
-          Usage
-        </Link>
-        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/transactions">
-          Transactions
-        </Link>
-        <Link className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold shadow-[var(--shadow)]" href="/dashboard/topups">
-          Add Funds
-        </Link>
-      </nav>
-
-      {children}
+      </div>
     </main>
   );
 }

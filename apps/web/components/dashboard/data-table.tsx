@@ -16,10 +16,11 @@ type DataTableProps<T> = {
 
 export function DataTable<T>({ title, description, columns, rows, emptyMessage }: DataTableProps<T>) {
   return (
-    <section className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)] backdrop-blur">
+    <section className="rounded-[1.9rem] border border-white/8 bg-[var(--surface)] p-6 shadow-[var(--shadow)] backdrop-blur">
       <div className="mb-6">
-        <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">{title}</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{description}</p>
+        <p className="text-sm uppercase tracking-[0.18em] text-[var(--muted)]">{title}</p>
+        <h2 className="mt-3 font-[family-name:var(--font-heading)] text-2xl text-white">{title}</h2>
+        <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{description}</p>
       </div>
 
       {rows.length ? (
@@ -36,9 +37,9 @@ export function DataTable<T>({ title, description, columns, rows, emptyMessage }
             </thead>
             <tbody>
               {rows.map((row, index) => (
-                <tr key={index} className="rounded-3xl bg-[var(--surface-strong)]">
+                <tr key={index} className="rounded-[1.25rem] bg-[var(--surface-strong)] transition hover:bg-white/[0.04]">
                   {columns.map((column) => (
-                    <td key={column.key} className="px-4 py-4 align-top text-[var(--text)] first:rounded-l-3xl last:rounded-r-3xl">
+                    <td key={column.key} className="px-4 py-4 align-top text-[var(--text)] first:rounded-l-[1.25rem] last:rounded-r-[1.25rem]">
                       {column.render(row)}
                     </td>
                   ))}
@@ -48,9 +49,9 @@ export function DataTable<T>({ title, description, columns, rows, emptyMessage }
           </table>
         </div>
       ) : (
-        <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface-strong)] p-4 text-sm leading-6 text-[var(--muted)]">
-          {emptyMessage}
-        </div>
+          <div className="rounded-[1.25rem] border border-white/8 bg-[var(--surface-strong)] p-4 text-sm leading-6 text-[var(--muted)]">
+            {emptyMessage}
+          </div>
       )}
     </section>
   );

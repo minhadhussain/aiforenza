@@ -46,74 +46,84 @@ export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPa
   }
 
   return (
-    <section className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)] backdrop-blur">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-[var(--muted)]">Add funds</p>
-          <h2 className="mt-2 font-[family-name:var(--font-heading)] text-3xl">Prepaid wallet top-ups</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Use Stripe Checkout to add balance in fixed MVP amounts. Wallet crediting happens only after verified webhook processing.</p>
+    <div className="space-y-8">
+      <header>
+        <p className="font-mono text-sm uppercase tracking-[0.16em] text-white/70">// BILLING</p>
+      </header>
+
+      <section className="grid gap-px overflow-hidden border border-white/10 bg-white/10 xl:grid-cols-[0.82fr_1.18fr]">
+        <div className="bg-[#050608] px-6 py-8 lg:px-7">
+          <p className="font-mono text-sm uppercase tracking-[0.16em] text-white/70">// Balance</p>
+          <div className="mt-8 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">AVAILABLE BALANCE</div>
+          <div className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white">{formatUsdFromCents(balanceCents)}</div>
+          <p className="mt-5 text-sm leading-7 text-[var(--muted)]">Use prepaid wallet credits for API usage. Wallet crediting occurs only after verified Stripe webhook completion.</p>
+          <div className="mt-8 text-sm text-[var(--muted)]">Completed top-ups: {completedCount}</div>
         </div>
-        <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-3 text-sm">
-          <div className="text-[var(--muted)]">Current balance</div>
-          <div className="mt-1 font-[family-name:var(--font-heading)] text-2xl">{formatUsdFromCents(balanceCents)}</div>
-        </div>
-      </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        {amounts.map((amount) => (
-          <button
-            key={amount}
-            type="button"
-            onClick={() => setSelectedAmount(amount)}
-            className={`rounded-3xl border px-4 py-4 text-left transition ${
-              selectedAmount === amount
-                ? "border-[var(--accent)] bg-[var(--surface-strong)]"
-                : "border-[var(--border)] bg-[var(--surface-strong)]"
-            }`}
-          >
-            <div className="font-[family-name:var(--font-heading)] text-2xl">{formatUsdFromCents(amount)}</div>
-            <div className="mt-2 text-sm text-[var(--muted)]">Stripe Checkout</div>
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-[var(--muted)]">Completed top-ups: {completedCount}</div>
-        <button
-          type="button"
-          onClick={startCheckout}
-          disabled={loading}
-          className="inline-flex items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? "Redirecting..." : `Add ${formatUsdFromCents(selectedAmount)}`}
-        </button>
-      </div>
-
-      {error ? <div className="mt-4 rounded-3xl bg-[#f7d9cb] p-4 text-sm text-[#7f2d12]">{error}</div> : null}
-
-      <div className="mt-6 space-y-3">
-        {initialTopups.length ? (
-          initialTopups.map((topup) => (
-            <article key={topup.id} className="rounded-3xl border border-[var(--border)] bg-[var(--surface-strong)] p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm uppercase tracking-[0.15em] text-[var(--muted)]">{topup.status}</p>
-                  <h3 className="mt-2 font-[family-name:var(--font-heading)] text-lg">{formatUsdFromCents(topup.amount_cents)}</h3>
-                  <p className="mt-2 text-sm text-[var(--muted)]">Created {formatDateLabel(topup.created_at)}</p>
-                </div>
-                <div className="text-right text-sm text-[var(--muted)]">
-                  <div>{topup.currency}</div>
-                  <div className="mt-2">{topup.completed_at ? `Completed ${formatDateLabel(topup.completed_at)}` : "Pending webhook"}</div>
-                </div>
-              </div>
-            </article>
-          ))
-        ) : (
-          <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface-strong)] p-4 text-sm leading-6 text-[var(--muted)]">
-            No top-ups yet. Your first Stripe Checkout payment will appear here after the webhook credits your wallet.
+        <div className="bg-[#050608] px-6 py-8 lg:px-7">
+          <div className="flex flex-col gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="text-lg font-semibold text-white">Prepaid top-ups</div>
+              <div className="mt-3 text-sm leading-7 text-[var(--muted)]">Choose a fixed MVP amount and continue to Stripe Checkout.</div>
+            </div>
+            <button
+              type="button"
+              onClick={startCheckout}
+              disabled={loading}
+              className="inline-flex items-center justify-center border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Redirecting..." : `Add ${formatUsdFromCents(selectedAmount)}`}
+            </button>
           </div>
-        )}
-      </div>
-    </section>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {amounts.map((amount) => (
+              <button
+                key={amount}
+                type="button"
+                onClick={() => setSelectedAmount(amount)}
+                className={`border px-4 py-5 text-left transition ${
+                  selectedAmount === amount
+                    ? "border-white/18 bg-white/[0.07]"
+                    : "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
+                }`}
+              >
+                <div className="text-2xl font-semibold tracking-[-0.04em] text-white">{formatUsdFromCents(amount)}</div>
+                <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Stripe Checkout</div>
+              </button>
+            ))}
+          </div>
+
+          {error ? <div className="mt-6 border border-[#7f2d12] bg-[#f7d9cb] px-4 py-4 text-sm text-[#7f2d12]">{error}</div> : null}
+        </div>
+      </section>
+
+      <section>
+        <p className="mb-4 font-mono text-sm uppercase tracking-[0.16em] text-white/70">// RECENT TOP-UPS</p>
+        <div className="border border-white/10 bg-[#050608] p-4">
+          {initialTopups.length ? (
+            <div className="space-y-2">
+              <div className="grid gap-3 border-b border-white/10 px-3 py-2 text-xs uppercase tracking-[0.14em] text-[var(--muted)] md:grid-cols-[0.9fr_0.8fr_0.9fr_0.9fr]">
+                <div>DATE</div>
+                <div>STATUS</div>
+                <div>AMOUNT</div>
+                <div>CURRENCY</div>
+              </div>
+
+              {initialTopups.map((topup) => (
+                <div key={topup.id} className="grid gap-3 border border-white/10 px-3 py-3 text-sm md:grid-cols-[0.9fr_0.8fr_0.9fr_0.9fr]">
+                  <div className="text-[var(--muted)]">{formatDateLabel(topup.created_at).toUpperCase()}</div>
+                  <div className="text-white">{topup.status}</div>
+                  <div className="text-[var(--muted)]">{formatUsdFromCents(topup.amount_cents)}</div>
+                  <div className="text-[var(--muted)]">{topup.currency}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="border border-white/10 px-4 py-4 text-sm text-[var(--muted)]">No top-ups yet. Your first Stripe Checkout payment will appear here after the webhook credits your wallet.</div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }

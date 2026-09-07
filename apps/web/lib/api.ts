@@ -4,7 +4,7 @@ type ApiOptions = {
 };
 
 export async function apiGet<T>(path: string, options: ApiOptions): Promise<T> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
 
   if (!baseUrl) {
     throw new Error("Missing NEXT_PUBLIC_API_BASE_URL.");
