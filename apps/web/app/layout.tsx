@@ -16,8 +16,8 @@ const headingFont = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "One API. Multiple frontier models.",
-  description: "Prepaid OpenAI-compatible model access with a simple developer workflow.",
+  title: "AI Forenza | One API. Multiple frontier models.",
+  description: "AI Forenza gives developers one OpenAI-compatible API for multiple frontier models with prepaid usage and simple top-ups.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -25,7 +25,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body className={`${bodyFont.variable} ${headingFont.variable} bg-[var(--bg)] font-[family-name:var(--font-body)] text-[var(--text)] antialiased`}>
         <div className="grain" />
-        {children}
+        <div className="infra-glow" />
+        <div className="infra-grid" />
+        <div className="page-layer">{children}</div>
       </body>
     </html>
   );
