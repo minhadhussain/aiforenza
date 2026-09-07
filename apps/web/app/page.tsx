@@ -8,23 +8,23 @@ const trustModels = ["GPT", "Claude", "Gemini", "Grok", "DeepSeek", "Kimi"];
 const valueCards = [
   {
     title: "ONE API",
-    copy: "Use a single OpenAI-compatible endpoint across models.",
+    copy: "One endpoint. Any model.",
   },
   {
-    title: "ONE API KEY",
-    copy: "Create one secure API key and use it across your applications and developer tools.",
+    title: "ONE KEY",
+    copy: "One key for everything.",
   },
   {
     title: "ONE BALANCE",
-    copy: "Prepaid credits, transparent usage, and simple top-ups.",
+    copy: "Pay as you go.",
   },
 ];
 
 const steps = [
-  ["01", "Create your account", "Get $5 in free API credit."],
-  ["02", "Create an API key", "Generate a secure API key from your dashboard."],
-  ["03", "Connect your tools", "Use OpenCode, Claude Code, Cline, Python, JavaScript, or any OpenAI-compatible client."],
-  ["04", "Build", "Send requests through one API and pay only for what you use."],
+  ["01", "SIGN UP", "Get started free."],
+  ["02", "CREATE A KEY", "One secure API key."],
+  ["03", "CONNECT", "Use your existing tools."],
+  ["04", "BUILD", "Pay for what you use."],
 ] as const;
 
 const modelRows = [
@@ -46,7 +46,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-20 mb-14">
         <div className="rounded-full border border-white/8 bg-black/35 px-4 py-3 shadow-[var(--shadow)] backdrop-blur-md sm:px-5">
           <div className="flex items-center justify-between gap-4">
-            <Link href="/" className="font-[family-name:var(--font-heading)] text-sm tracking-[0.16em] text-white sm:text-base">
+            <Link href="/" className="font-[family-name:var(--font-heading)] text-base font-semibold tracking-[-0.035em] text-white sm:text-[1.06rem]">
               AI Forenza
             </Link>
 
@@ -73,7 +73,7 @@ export default function HomePage() {
                 className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
                 href="/signup"
               >
-                Start with $5 Free
+                Start Free
               </Link>
             </div>
 
@@ -89,19 +89,11 @@ export default function HomePage() {
           <div className="absolute right-[18%] top-[34%] h-40 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
           <div className="absolute left-1/2 top-[44%] h-px w-[52%] -translate-x-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <div className="absolute left-1/2 top-[48%] h-px w-[36%] -translate-x-1/2 bg-gradient-to-r from-transparent via-white/8 to-transparent" />
-          <div className="absolute left-1/2 top-[41%] grid w-[68%] max-w-[760px] -translate-x-1/2 grid-cols-3 gap-y-10 text-[10px] uppercase tracking-[0.24em] text-white/28 sm:text-xs">
-            <span className="justify-self-start">Developer</span>
-            <span className="justify-self-center">AI Forenza API</span>
-            <span className="justify-self-end">Models</span>
-            <span className="justify-self-start text-white/18">OpenCode</span>
-            <span className="justify-self-center text-white/18">OpenAI-Compatible</span>
-            <span className="justify-self-end text-white/18">GPT · Claude · Gemini</span>
-          </div>
         </div>
 
         <div className="relative z-10 flex max-w-4xl flex-col items-center">
-          <div className="mb-8 inline-flex rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
-            $5 free API credit for every new developer account
+          <div className="mb-8 inline-flex rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">
+            Start free
           </div>
 
           <h1 className="max-w-4xl font-[family-name:var(--font-heading)] text-[3rem] leading-[0.95] tracking-[-0.05em] text-white sm:text-[4.5rem] lg:text-[6.25rem]">
@@ -122,13 +114,13 @@ export default function HomePage() {
               className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
               href="/signup"
             >
-              Start with $5 Free →
+              Start Free →
             </Link>
             <Link
               className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-6 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
               href="/models"
             >
-              View Models +
+              View Models
             </Link>
           </div>
         </div>
@@ -146,10 +138,12 @@ export default function HomePage() {
         <div className="max-w-xl">
           <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Value Proposition</p>
           <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl leading-tight text-white sm:text-4xl">
-            One interface for the models you need.
+            One interface.
+            <br />
+            Every model you need.
           </h2>
           <p className="mt-5 text-base leading-8 text-[var(--muted)]">
-            Use the tools and SDKs you already know. AI Forenza gives you one OpenAI-compatible interface for multiple models.
+            One API for every model.
           </p>
         </div>
 
@@ -169,7 +163,7 @@ export default function HomePage() {
       <section className="mt-24">
         <div className="max-w-2xl">
           <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">How It Works</p>
-          <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl text-white sm:text-4xl">From signup to first request, without a custom integration detour.</h2>
+          <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl text-white sm:text-4xl">From signup to first request.</h2>
         </div>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-4">

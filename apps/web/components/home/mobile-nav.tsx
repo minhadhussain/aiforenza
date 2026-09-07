@@ -61,7 +61,7 @@ export function MobileNav() {
           <div className={`mx-auto flex h-full w-full max-w-lg flex-col rounded-[2rem] border border-white/8 bg-[#090b0d] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.6)] ${open ? "animate-[panelIn_220ms_cubic-bezier(0.22,1,0.36,1)_forwards]" : "animate-[panelOut_180ms_cubic-bezier(0.55,0.06,0.68,0.19)_forwards]"}`}>
             <div className="flex items-center justify-between gap-4 border-b border-white/8 pb-4">
               <Link href="/" onClick={handleClose} className="font-[family-name:var(--font-heading)] text-base tracking-[0.14em] text-white">
-                AI Forenza
+                <span className="text-[0.95rem] font-semibold tracking-[-0.03em] text-white">AI Forenza</span>
               </Link>
               <button
                 type="button"
@@ -99,7 +99,7 @@ export function MobileNav() {
                 onClick={handleClose}
                 className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
               >
-                Start with $5 Free
+                Start Free
               </Link>
             </div>
           </div>
