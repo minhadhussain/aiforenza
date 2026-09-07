@@ -76,10 +76,19 @@ def test_dashboard_overview_bootstraps_wallet(monkeypatch) -> None:
             }
         ]
 
+    async def fake_fetch_usage_summary(user_id: str) -> dict:
+        assert user_id == "user-123"
+        return {
+            "today_usage_cents": 11,
+            "month_usage_cents": 42,
+            "api_request_count": 3,
+        }
+
     monkeypatch.setattr("app.api.deps.auth.fetch_user_for_token", fake_fetch_user_for_token)
     monkeypatch.setattr("app.api.routes.account.bootstrap_user_account", fake_bootstrap_user_account)
     monkeypatch.setattr("app.api.routes.account.fetch_wallet", fake_fetch_wallet)
     monkeypatch.setattr("app.api.routes.account.fetch_transactions", fake_fetch_transactions)
+    monkeypatch.setattr("app.api.routes.account.fetch_usage_summary", fake_fetch_usage_summary)
 
     response = client.get(
         "/v1/dashboard/overview",
@@ -91,6 +100,9 @@ def test_dashboard_overview_bootstraps_wallet(monkeypatch) -> None:
     assert payload["wallet"]["balance_cents"] == 500
     assert payload["bootstrap"]["trial_granted"] is True
     assert payload["metrics"]["trial_credit_granted"] is True
+    assert payload["metrics"]["today_usage_cents"] == 11
+    assert payload["metrics"]["month_usage_cents"] == 42
+    assert payload["metrics"]["api_request_count"] == 3
 
 
 def test_dashboard_transactions_returns_ledger_rows(monkeypatch) -> None:

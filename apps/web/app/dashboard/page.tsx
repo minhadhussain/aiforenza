@@ -27,14 +27,19 @@ export default async function DashboardPage() {
         : "Your wallet balance is loaded from the transaction ledger.",
     },
     {
-      title: "Transactions",
-      value: overview.metrics.transaction_count.toString(),
-      detail: "Immutable ledger entries are the source of truth for wallet balance.",
+      title: "Today's Usage",
+      value: formatUsdFromCents(overview.metrics.today_usage_cents),
+      detail: "Billable usage recorded since the start of the current UTC day.",
     },
     {
-      title: "Trial status",
-      value: overview.metrics.trial_credit_granted ? "Granted" : "Pending",
-      detail: "The signup credit uses an idempotent reference so duplicate grants are prevented.",
+      title: "This Month",
+      value: formatUsdFromCents(overview.metrics.month_usage_cents),
+      detail: "Month-to-date usage spend calculated from immutable usage records.",
+    },
+    {
+      title: "API Requests",
+      value: overview.metrics.api_request_count.toLocaleString(),
+      detail: "Successful billable requests recorded in the usage ledger.",
     },
   ];
 
@@ -47,7 +52,7 @@ export default async function DashboardPage() {
           The authenticated flow now boots the wallet, grants the one-time trial, supports API-key issuance, exposes the model catalog through the API, and records billable usage through the financial ledger.
         </p>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {cards.map((card) => (
             <article key={card.title} className="rounded-3xl border border-[var(--border)] bg-[var(--surface-strong)] p-5">
               <p className="text-sm uppercase tracking-[0.15em] text-[var(--muted)]">{card.title}</p>
@@ -55,6 +60,14 @@ export default async function DashboardPage() {
               <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{card.detail}</p>
             </article>
           ))}
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-[var(--border)] bg-[var(--surface-strong)] p-4 text-sm leading-6 text-[var(--muted)]">
+          {overview.bootstrap.trial_granted
+            ? "The $5 trial credit has just been granted to this account."
+            : overview.metrics.trial_credit_granted
+              ? "Trial credit has already been granted and your current balance is ledger-backed."
+              : "Trial credit has not yet been granted to this account."}
         </div>
       </section>
 

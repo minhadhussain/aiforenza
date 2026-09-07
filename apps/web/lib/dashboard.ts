@@ -26,6 +26,9 @@ export type DashboardOverview = {
     current_balance_cents: number;
     transaction_count: number;
     trial_credit_granted: boolean;
+    today_usage_cents: number;
+    month_usage_cents: number;
+    api_request_count: number;
   };
   bootstrap: {
     trial_granted: boolean;

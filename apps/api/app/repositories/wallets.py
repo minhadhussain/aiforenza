@@ -45,6 +45,9 @@ def build_wallet_summary(wallet: Mapping[str, object] | None, transactions: list
                 "current_balance_cents": 0,
                 "transaction_count": len(transactions),
                 "trial_credit_granted": False,
+                "today_usage_cents": 0,
+                "month_usage_cents": 0,
+                "api_request_count": 0,
             },
         }
 
@@ -55,5 +58,8 @@ def build_wallet_summary(wallet: Mapping[str, object] | None, transactions: list
             "current_balance_cents": int(wallet.get("balance_cents", 0) or 0),
             "transaction_count": len(transactions),
             "trial_credit_granted": any(tx.get("type") == "FREE_TRIAL" for tx in transactions),
+            "today_usage_cents": 0,
+            "month_usage_cents": 0,
+            "api_request_count": 0,
         },
     }

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.repositories.dashboard import fetch_usage_summary
 from app.api.deps.auth import get_current_dashboard_user
 from app.repositories.dashboard import fetch_usage_records
 from app.repositories.models import fetch_enabled_models
@@ -39,6 +40,7 @@ async def get_dashboard_overview(user: dict = Depends(get_current_dashboard_user
         bootstrap = await bootstrap_user_account(user_id, email)
         wallet = await fetch_wallet(user_id)
         transactions = await fetch_transactions(user_id)
+        usage_summary = await fetch_usage_summary(user_id)
     except SupabaseRepositoryError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -46,6 +48,7 @@ async def get_dashboard_overview(user: dict = Depends(get_current_dashboard_user
         ) from exc
 
     summary = build_wallet_summary(wallet, transactions)
+    summary["metrics"].update(usage_summary)
 
     return {
         "profile": {
