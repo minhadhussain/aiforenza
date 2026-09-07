@@ -32,7 +32,7 @@ async def rest_select(path: str, params: dict[str, str]) -> list[dict]:
         )
 
     if response.status_code != 200:
-        raise SupabaseRepositoryError(f"Failed to fetch data from {path}.")
+        raise SupabaseRepositoryError(_error_message(response, f"Failed to fetch data from {path}."))
 
     return response.json()
 
@@ -47,7 +47,7 @@ async def execute_rest_mutation(path: str, method: str, json: dict, prefer: str)
         )
 
     if response.status_code not in {200, 201, 204}:
-        raise SupabaseRepositoryError(f"Failed to mutate data at {path}.")
+        raise SupabaseRepositoryError(_error_message(response, f"Failed to mutate data at {path}."))
 
     if response.status_code == 204 or not response.content:
         return None
@@ -64,7 +64,19 @@ async def execute_rest_rpc(path: str, payload: dict) -> dict:
         )
 
     if response.status_code != 200:
-        raise SupabaseRepositoryError(f"Failed to execute RPC at {path}.")
+        raise SupabaseRepositoryError(_error_message(response, f"Failed to execute RPC at {path}."))
 
     data = response.json()
     return data[0] if isinstance(data, list) and data else data
+
+
+def _error_message(response: httpx.Response, fallback: str) -> str:
+    try:
+        payload = response.json()
+    except ValueError:
+        return fallback
+
+    if isinstance(payload, dict):
+        return payload.get("message") or payload.get("details") or payload.get("hint") or fallback
+
+    return fallback

@@ -11,6 +11,8 @@ Run these SQL files in order inside the Supabase SQL editor:
 3. `infra/supabase/003_api_keys.sql`
 4. `infra/supabase/004_models.sql`
 5. `infra/supabase/005_fix_bootstrap_user_account.sql`
+6. `infra/supabase/006_usage_records_billing.sql`
+7. `infra/supabase/007_customer_pricing_columns.sql`
 
 These files create:
 
@@ -19,8 +21,10 @@ These files create:
 - `transactions`
 - `api_keys`
 - `models`
+- `usage_records`
 - the signup wallet bootstrap RPC for one-time free trial credit
 - the follow-up wallet bootstrap function fix migration
+- the atomic usage charge RPC and model-level customer pricing fields
 
 ## Required Environment Variables
 

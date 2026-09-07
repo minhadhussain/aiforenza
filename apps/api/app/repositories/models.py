@@ -7,7 +7,7 @@ async def fetch_enabled_models() -> list[CatalogModel]:
         path="/rest/v1/models",
         params={
             "enabled": "eq.true",
-            "select": "id,slug,display_name,provider,provider_model_id,enabled,input_price_per_million,output_price_per_million,cached_input_price_per_million",
+            "select": "id,slug,display_name,provider,provider_model_id,enabled,input_price_per_million,output_price_per_million,cached_input_price_per_million,customer_input_price_per_million,customer_output_price_per_million,customer_cached_input_price_per_million",
             "order": "display_name.asc",
         },
     )
@@ -20,7 +20,7 @@ async def fetch_model_by_slug(slug: str) -> CatalogModel | None:
         params={
             "slug": f"eq.{slug}",
             "enabled": "eq.true",
-            "select": "id,slug,display_name,provider,provider_model_id,enabled,input_price_per_million,output_price_per_million,cached_input_price_per_million",
+            "select": "id,slug,display_name,provider,provider_model_id,enabled,input_price_per_million,output_price_per_million,cached_input_price_per_million,customer_input_price_per_million,customer_output_price_per_million,customer_cached_input_price_per_million",
             "limit": "1",
         },
     )

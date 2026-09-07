@@ -13,6 +13,10 @@ from app.services.litellm_proxy import create_chat_completion as proxy_chat_comp
 from app.services.litellm_proxy import stream_chat_completion as proxy_stream_chat_completion
 from app.services.models import ModelCatalogError
 from app.services.models import get_model_by_slug
+from app.services.usage_records import estimate_preflight_charge_cents
+from app.services.usage_records import extract_usage_metrics
+from app.services.usage_records import record_usage_charge
+from app.services.usage_records import stream_and_charge
 
 
 def _insufficient_balance() -> OpenAIAPIError:
@@ -59,6 +63,13 @@ async def validate_model_and_wallet(user_id: str, slug: str) -> tuple[CatalogMod
     return model, wallet, create_request_id()
 
 
+def ensure_preflight_balance(request: ChatCompletionRequest, model: CatalogModel, wallet: dict) -> None:
+    estimated_cents = estimate_preflight_charge_cents(request, model)
+    balance_cents = int(wallet.get("balance_cents", 0) or 0)
+    if estimated_cents > balance_cents:
+        raise _insufficient_balance()
+
+
 def build_provider_payload(request: ChatCompletionRequest, model: CatalogModel, request_id: str) -> dict[str, Any]:
     payload = request.model_dump(exclude_none=True)
     payload["model"] = model.provider_model_id
@@ -93,3 +104,44 @@ async def forward_chat_completion_stream(request: ChatCompletionRequest, model: 
             code="provider_unavailable",
             status_code=status.HTTP_502_BAD_GATEWAY,
         ) from exc
+
+
+async def bill_non_streaming_response(
+    *,
+    request: ChatCompletionRequest,
+    response_payload: dict[str, Any],
+    user_id: str,
+    api_key_id: str,
+    model: CatalogModel,
+    request_id: str,
+) -> dict[str, Any]:
+    usage = extract_usage_metrics(response_payload, request=request)
+    await record_usage_charge(
+        user_id=user_id,
+        api_key_id=api_key_id,
+        model=model,
+        request_id=request_id,
+        usage=usage,
+        provider_cost_reference=request_id,
+        status="completed",
+    )
+    return response_payload
+
+
+async def bill_streaming_response(
+    *,
+    source,
+    request: ChatCompletionRequest,
+    user_id: str,
+    api_key_id: str,
+    model: CatalogModel,
+    request_id: str,
+):
+    return stream_and_charge(
+        source=source,
+        request=request,
+        model=model,
+        user_id=user_id,
+        api_key_id=api_key_id,
+        request_id=request_id,
+    )
