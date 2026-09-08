@@ -73,7 +73,7 @@ export default async function DashboardPage() {
               <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">Make your first API request.</h2>
               <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Create a key, choose a model, and connect your app.</p>
             </div>
-            <Link href="/docs" className="inline-flex items-center justify-center border border-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/[0.04]">
+            <Link href="/dashboard/docs" className="inline-flex items-center justify-center border border-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/[0.04]">
               View Docs
             </Link>
           </div>

@@ -5,7 +5,11 @@ import { usePathname } from "next/navigation";
 
 import { docsPages } from "@/lib/docs";
 
-export function DocsSidebar() {
+type DocsSidebarProps = {
+  basePath?: string;
+};
+
+export function DocsSidebar({ basePath = "/docs" }: DocsSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -17,14 +21,14 @@ export function DocsSidebar() {
 
         <nav className="space-y-1.5">
           <Link
-            href="/docs"
-            className={`block px-3 py-2 text-sm transition ${pathname === "/docs" ? "bg-white text-black" : "text-[var(--muted)] hover:bg-white/[0.04] hover:text-white"}`}
+            href={basePath}
+            className={`block px-3 py-2 text-sm transition ${pathname === basePath ? "bg-white text-black" : "text-[var(--muted)] hover:bg-white/[0.04] hover:text-white"}`}
           >
             Overview
           </Link>
 
           {docsPages.map((page) => {
-            const href = `/docs/${page.slug}`;
+            const href = `${basePath}/${page.slug}`;
             const active = pathname === href;
 
             return (
