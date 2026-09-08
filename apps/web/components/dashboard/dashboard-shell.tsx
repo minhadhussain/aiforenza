@@ -15,7 +15,7 @@ const navItems = [
   ["API Keys", "/dashboard/api-keys"],
   ["Usage", "/dashboard/usage"],
   ["Billing", "/dashboard/billing"],
-  ["Docs", "/docs"],
+  ["Docs", "/dashboard/docs"],
 ] as const;
 
 function NavList({ pathname, closeMenu }: { pathname: string; closeMenu?: () => void }) {
@@ -65,7 +65,7 @@ export function DashboardShell({ email, children }: DashboardShellProps) {
 
             <div className="mt-auto border-t border-white/10 pt-5">
               <Link
-                href="/dashboard"
+                href="/dashboard/settings"
                 className="flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm text-[var(--muted)] transition hover:border-white/8 hover:bg-white/[0.03] hover:text-white"
               >
                 <span className="inline-flex h-4 w-4 items-center justify-center border border-white/12 text-[10px] text-white/70">▢</span>
@@ -116,7 +116,7 @@ export function DashboardShell({ email, children }: DashboardShellProps) {
 
                 <div className="mt-auto border-t border-white/10 pt-4">
                   <Link
-                    href="/dashboard"
+                    href="/dashboard/settings"
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm text-[var(--muted)] transition hover:border-white/8 hover:bg-white/[0.03] hover:text-white"
                   >
