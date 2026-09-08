@@ -7,11 +7,13 @@ from fastapi import status
 from app.core.errors import OpenAIAPIError
 from app.models.catalog import CatalogModel
 from app.models.openai import ChatCompletionRequest
-from app.models.usage import UsageChargeResult
+from app.models.pricing import RequestChargeBreakdown
 from app.models.usage import UsageMetrics
+from app.models.usage import UsageChargeResult
 from app.repositories.supabase_rest import SupabaseRepositoryError
 from app.repositories.usage import record_usage_charge as record_usage_charge_rpc
-from app.services.pricing import calculate_customer_charge
+from app.services.pricing import calculate_pricing_breakdown
+from app.services.pricing import estimate_customer_charge_cents
 from app.services.pricing import estimate_text_tokens
 
 
@@ -57,7 +59,7 @@ def estimate_preflight_charge_cents(request: ChatCompletionRequest, model: Catal
         output_tokens=max(output_budget, 0),
         cached_input_tokens=0,
     )
-    return calculate_customer_charge(model, usage).cents
+    return estimate_customer_charge_cents(usage, model)
 
 
 def _message_text(content: Any) -> str:
@@ -99,7 +101,7 @@ async def record_usage_charge(
     provider_cost_reference: str,
     status: str,
 ) -> UsageChargeResult:
-    charge = calculate_customer_charge(model, usage)
+    pricing = calculate_pricing_breakdown(model, usage)
     try:
         payload = await record_usage_charge_rpc(
             user_id=user_id,
@@ -109,7 +111,11 @@ async def record_usage_charge(
             input_tokens=usage.input_tokens,
             output_tokens=usage.output_tokens,
             cached_input_tokens=usage.cached_input_tokens,
-            customer_charge_cents=charge.cents,
+            total_tokens=usage.input_tokens + usage.output_tokens + usage.cached_input_tokens,
+            reference_charge_cents=pricing.reference_charge_cents,
+            customer_charge_cents=pricing.customer_charge_cents,
+            customer_savings_cents=pricing.customer_savings_cents,
+            provider_cost_cents=pricing.provider_cost_cents,
             provider_cost_reference=provider_cost_reference,
             status=status,
         )

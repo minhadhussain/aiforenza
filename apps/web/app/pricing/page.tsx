@@ -1,9 +1,34 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 import { PublicShell } from "@/components/home/public-shell";
 import { SectionHero } from "@/components/home/section-hero";
+import { fetchPublicModels } from "@/lib/public-models";
+import { formatUsdFromCents } from "@/lib/dashboard";
+import type { DashboardModel } from "@/lib/dashboard";
 
 export default function PricingPage() {
+  const [models, setModels] = useState<DashboardModel[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchPublicModels()
+      .then((data) => {
+        if (active) setModels(data);
+      })
+      .catch(() => {
+        if (active) setModels([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const pricedPreview = useMemo(() => models.slice(0, 4), [models]);
+
   return (
     <PublicShell>
       <SectionHero
@@ -39,6 +64,41 @@ export default function PricingPage() {
             <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{copy}</p>
           </article>
         ))}
+      </section>
+
+      <section className="mt-16 rounded-[2rem] border border-white/8 bg-white/[0.025] px-6 py-12 shadow-[var(--shadow)] sm:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--muted)]">Model pricing</p>
+            <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Configured customer-facing pricing is model-driven. AI Forenza applies the current discount structure on top of the model reference price.</p>
+          </div>
+          <Link className="text-sm text-white/72 transition hover:text-white" href="/models">
+            View all models →
+          </Link>
+        </div>
+
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          {pricedPreview.map((model) => (
+            <div key={model.id} className="rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-4">
+              <div className="text-sm font-semibold text-white">{model.display_name}</div>
+              <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">Discount</div>
+                  <div className="mt-2 text-white">{model.discount_percent}%</div>
+                </div>
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">Input / 1M</div>
+                  <div className="mt-2 text-white">{formatUsdFromCents(Math.round(model.customer_input_price_per_million * 100))}</div>
+                </div>
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">Output / 1M</div>
+                  <div className="mt-2 text-white">{formatUsdFromCents(Math.round(model.customer_output_price_per_million * 100))}</div>
+                </div>
+              </div>
+              <div className="mt-4 text-xs text-[var(--muted)]">Reference pricing remains server-configured. Customer-facing pricing is calculated with the configured discount before wallet deduction.</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="mt-16 rounded-[2rem] border border-white/8 bg-white/[0.025] px-6 py-12 shadow-[var(--shadow)] sm:px-8">

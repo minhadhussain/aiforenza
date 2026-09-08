@@ -14,6 +14,7 @@ class CatalogModel(BaseModel):
     input_price_per_million: str | int | float
     output_price_per_million: str | int | float
     cached_input_price_per_million: str | int | float | None = None
+    discount_percent: str | int | float = 40
     customer_input_price_per_million: str | int | float
     customer_output_price_per_million: str | int | float
     customer_cached_input_price_per_million: str | int | float | None = None

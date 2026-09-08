@@ -43,14 +43,14 @@ insert into public.models (
   customer_cached_input_price_per_million
 )
 values
-  ('gpt-6-astra', 'GPT-6 Astra', 'azure', 'azure/gpt-6-astra', true, 0, 0, 0, 0, 0, 0),
-  ('gpt-5.6-sol', 'GPT-5.6 Sol', 'azure', 'azure/gpt-5.6-sol', true, 0, 0, 0, 0, 0, 0),
-  ('gpt-5.6-luna', 'GPT-5.6 Luna', 'azure', 'azure/gpt-5.6-luna', true, 0, 0, 0, 0, 0, 0),
-  ('grok-4.6', 'Grok 4.6', 'azure', 'azure/grok-4.6', true, 0, 0, 0, 0, 0, 0),
-  ('deepseek-v4-pro', 'DeepSeek V4 Pro', 'azure', 'azure/deepseek-v4-pro', true, 0, 0, 0, 0, 0, 0),
-  ('deepseek-v4-flash', 'DeepSeek V4 Flash', 'azure', 'azure/deepseek-v4-flash', true, 0, 0, 0, 0, 0, 0),
-  ('kimi-k2.7-code', 'Kimi K2.7 Code', 'azure', 'azure/kimi-k2.7-code', true, 0, 0, 0, 0, 0, 0),
-  ('gpt-5.4', 'GPT-5.4', 'azure', 'azure/gpt-5.4', true, 0, 0, 0, 0, 0, 0)
+  ('gpt-6-astra', 'GPT-6 Astra', 'azure', 'gpt-6-astra', true, 0, 0, 0, 0, 0, 0),
+  ('gpt-5.6-sol', 'GPT-5.6 Sol', 'azure', 'gpt-5.6-sol', true, 0, 0, 0, 0, 0, 0),
+  ('gpt-5.6-luna', 'GPT-5.6 Luna', 'azure', 'gpt-5.6-luna', true, 0, 0, 0, 0, 0, 0),
+  ('grok-4.6', 'Grok 4.6', 'azure', 'grok-4.6', true, 0, 0, 0, 0, 0, 0),
+  ('deepseek-v4-pro', 'DeepSeek V4 Pro', 'azure', 'DeepSeek-V4-Pro', true, 0, 0, 0, 0, 0, 0),
+  ('deepseek-v4-flash', 'DeepSeek V4 Flash', 'azure', 'DeepSeek-V4-Flash', true, 0, 0, 0, 0, 0, 0),
+  ('kimi-k2.7-code', 'Kimi K2.7 Code', 'azure', 'Kimi-K2.7-Code', true, 0, 0, 0, 0, 0, 0),
+  ('gpt-5.4', 'GPT-5.4', 'azure', 'gpt-5.4', true, 0, 0, 0, 0, 0, 0)
 on conflict (slug) do update
 set
   display_name = excluded.display_name,

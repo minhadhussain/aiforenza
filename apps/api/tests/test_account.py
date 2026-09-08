@@ -176,6 +176,10 @@ def test_dashboard_models_returns_customer_pricing(monkeypatch) -> None:
         slug = "gpt-5.6-luna"
         display_name = "GPT-5.6 Luna"
         provider = "azure"
+        input_price_per_million = 10
+        output_price_per_million = 20
+        cached_input_price_per_million = 5
+        discount_percent = 40
         customer_input_price_per_million = 5000
         customer_output_price_per_million = 5000
         customer_cached_input_price_per_million = 2500

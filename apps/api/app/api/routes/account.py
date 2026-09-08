@@ -9,6 +9,7 @@ from app.repositories.wallets import bootstrap_user_account
 from app.repositories.wallets import build_wallet_summary
 from app.repositories.wallets import fetch_transactions
 from app.repositories.wallets import fetch_wallet
+from app.services.models import serialize_dashboard_models
 from app.services.stripe_payments import list_user_topups
 
 
@@ -100,20 +101,7 @@ async def get_dashboard_models(_: dict = Depends(get_current_dashboard_user)) ->
     except SupabaseRepositoryError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
-    return {
-        "data": [
-            {
-                "id": model.id,
-                "slug": model.slug,
-                "display_name": model.display_name,
-                "provider": model.provider,
-                "customer_input_price_per_million": model.customer_input_price_per_million,
-                "customer_output_price_per_million": model.customer_output_price_per_million,
-                "customer_cached_input_price_per_million": model.customer_cached_input_price_per_million,
-            }
-            for model in models
-        ]
-    }
+    return {"data": serialize_dashboard_models(models)}
 
 
 @router.get("/dashboard/topups")

@@ -1,109 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { PublicShell } from "@/components/home/public-shell";
 import { SectionHero } from "@/components/home/section-hero";
+import { publicModelCatalog } from "@/lib/model-catalog";
+import { fetchPublicModels } from "@/lib/public-models";
+import type { DashboardModel } from "@/lib/dashboard";
+import { formatUsdFromCents } from "@/lib/dashboard";
 
 type ModelCategory = "All" | "General" | "Reasoning" | "Coding";
-
-type ModelRecord = {
-  name: string;
-  slug: string;
-  category: Exclude<ModelCategory, "All">;
-  inputPrice: string;
-  outputPrice: string;
-  description: string;
-  capabilities?: string;
-};
-
-const models: ModelRecord[] = [
-  {
-    name: "GPT-6 Astra",
-    slug: "gpt-6-astra",
-    category: "General",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "General-purpose frontier model for broad production workloads.",
-    capabilities: "Strong default choice for multi-step generation and broad reasoning tasks.",
-  },
-  {
-    name: "GPT-5.6 Sol",
-    slug: "gpt-5.6-sol",
-    category: "General",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "Balanced general model for everyday developer-facing inference.",
-    capabilities: "Good tradeoff between latency and reasoning depth.",
-  },
-  {
-    name: "GPT-5.6 Luna",
-    slug: "gpt-5.6-luna",
-    category: "General",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "General model tuned for OpenAI-compatible workflows and agent loops.",
-    capabilities: "Fits common SDK and coding-assistant integrations.",
-  },
-  {
-    name: "Grok 4.6",
-    slug: "grok-4.6",
-    category: "General",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "General conversational model with a distinct inference profile.",
-    capabilities: "Useful when you want a different model family behind the same interface.",
-  },
-  {
-    name: "DeepSeek V4 Pro",
-    slug: "deepseek-v4-pro",
-    category: "Reasoning",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "Reasoning-oriented model for deeper analytical tasks.",
-    capabilities: "Well suited to heavier technical and structured reasoning workflows.",
-  },
-  {
-    name: "DeepSeek V4 Flash",
-    slug: "deepseek-v4-flash",
-    category: "Reasoning",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "Faster reasoning variant for lighter latency-sensitive requests.",
-    capabilities: "Good for quicker responses while keeping a reasoning-first profile.",
-  },
-  {
-    name: "Kimi K2.7 Code",
-    slug: "kimi-k2.7-code",
-    category: "Coding",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "Coding-focused model for implementation and editor workflows.",
-    capabilities: "Useful for code generation, iteration, and development assistants.",
-  },
-  {
-    name: "GPT-5.4",
-    slug: "gpt-5.4",
-    category: "General",
-    inputPrice: "$X",
-    outputPrice: "$Y",
-    description: "Stable general model for predictable, standard request patterns.",
-    capabilities: "Works well as a dependable fallback in a shared integration surface.",
-  },
-];
 
 const filters: ModelCategory[] = ["All", "General", "Reasoning", "Coding"];
 
 export default function ModelsPage() {
+  const [pricing, setPricing] = useState<Record<string, DashboardModel>>({});
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ModelCategory>("All");
-  const [selectedModel, setSelectedModel] = useState<ModelRecord | null>(models[0]);
+  const [selectedModel, setSelectedModel] = useState<(typeof publicModelCatalog)[number] | null>(publicModelCatalog[0]);
+
+  useEffect(() => {
+    let active = true;
+
+    fetchPublicModels()
+      .then((models) => {
+        if (!active) return;
+        const nextMap = Object.fromEntries(models.map((model) => [model.slug, model]));
+        setPricing(nextMap);
+      })
+      .catch(() => {
+        if (!active) return;
+        setPricing({});
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredModels = useMemo(() => {
     const normalized = search.trim().toLowerCase();
 
-    return models.filter((model) => {
+    return publicModelCatalog.filter((model) => {
       const matchesFilter = activeFilter === "All" || model.category === activeFilter;
       const matchesSearch =
         !normalized ||
@@ -118,6 +57,24 @@ export default function ModelsPage() {
   const visibleSelection = selectedModel && filteredModels.some((model) => model.slug === selectedModel.slug)
     ? selectedModel
     : filteredModels[0] ?? null;
+
+  function displayInputPrice(slug: string, fallback: string) {
+    const model = pricing[slug];
+    if (!model) return fallback;
+    return formatUsdFromCents(Math.round(model.customer_input_price_per_million * 100));
+  }
+
+  function displayOutputPrice(slug: string, fallback: string) {
+    const model = pricing[slug];
+    if (!model) return fallback;
+    return formatUsdFromCents(Math.round(model.customer_output_price_per_million * 100));
+  }
+
+  function displayDiscount(slug: string) {
+    const model = pricing[slug];
+    if (!model) return null;
+    return `${model.discount_percent}% off reference`;
+  }
 
   return (
     <PublicShell>
@@ -191,14 +148,17 @@ Keep the interface."
                     <div>
                       <div className="font-[family-name:var(--font-heading)] text-lg">{model.name}</div>
                       <div className={`mt-1 text-xs uppercase tracking-[0.18em] ${active ? "text-black/60" : "text-[var(--muted)]"}`}>{model.category}</div>
+                      {displayDiscount(model.slug) ? (
+                        <div className={`mt-2 text-[11px] ${active ? "text-black/55" : "text-white/40"}`}>{displayDiscount(model.slug)}</div>
+                      ) : null}
                     </div>
                     <div>
                       <div className={`text-[11px] uppercase tracking-[0.18em] md:hidden ${active ? "text-black/60" : "text-[var(--muted)]"}`}>Input / 1M</div>
-                      <div className="mt-1 text-sm md:mt-0">{model.inputPrice}</div>
+                      <div className="mt-1 text-sm md:mt-0">{displayInputPrice(model.slug, model.inputPrice)}</div>
                     </div>
                     <div>
                       <div className={`text-[11px] uppercase tracking-[0.18em] md:hidden ${active ? "text-black/60" : "text-[var(--muted)]"}`}>Output / 1M</div>
-                      <div className="mt-1 text-sm md:mt-0">{model.outputPrice}</div>
+                      <div className="mt-1 text-sm md:mt-0">{displayOutputPrice(model.slug, model.outputPrice)}</div>
                     </div>
                   </button>
                 );
@@ -219,17 +179,18 @@ Keep the interface."
               <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Model details</p>
               <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl text-white">{visibleSelection.name}</h2>
               <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--muted)]">{visibleSelection.category}</p>
+              {displayDiscount(visibleSelection.slug) ? <p className="mt-2 text-xs text-white/50">{displayDiscount(visibleSelection.slug)}</p> : null}
               <p className="mt-5 text-sm leading-7 text-[var(--muted)]">{visibleSelection.description}</p>
               {visibleSelection.capabilities ? <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{visibleSelection.capabilities}</p> : null}
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 <div className="smooth-border rounded-[1.25rem] bg-white/[0.03] p-4" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
                   <div className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Input pricing</div>
-                  <div className="mt-2 text-lg text-white">{visibleSelection.inputPrice}</div>
+                  <div className="mt-2 text-lg text-white">{displayInputPrice(visibleSelection.slug, visibleSelection.inputPrice)}</div>
                 </div>
                 <div className="smooth-border rounded-[1.25rem] bg-white/[0.03] p-4" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
                   <div className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Output pricing</div>
-                  <div className="mt-2 text-lg text-white">{visibleSelection.outputPrice}</div>
+                  <div className="mt-2 text-lg text-white">{displayOutputPrice(visibleSelection.slug, visibleSelection.outputPrice)}</div>
                 </div>
               </div>
 

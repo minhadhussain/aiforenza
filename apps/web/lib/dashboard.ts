@@ -53,7 +53,11 @@ export type DashboardUsageRecord = {
   input_tokens: number;
   output_tokens: number;
   cached_input_tokens: number;
+  total_tokens: number;
+  reference_charge_cents: number;
   customer_charge_cents: number;
+  customer_savings_cents: number;
+  provider_cost_cents: number | null;
   status: string;
   created_at: string;
   model: {
@@ -67,6 +71,10 @@ export type DashboardModel = {
   slug: string;
   display_name: string;
   provider: string;
+  reference_input_price_per_million: number;
+  reference_output_price_per_million: number;
+  reference_cached_input_price_per_million: number | null;
+  discount_percent: number;
   customer_input_price_per_million: number;
   customer_output_price_per_million: number;
   customer_cached_input_price_per_million: number | null;

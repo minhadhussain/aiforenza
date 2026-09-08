@@ -5,6 +5,7 @@ from app.api.routes import api_keys
 from app.api.routes import chat
 from app.api.routes import health
 from app.api.routes import models
+from app.api.routes import public_models
 from app.api.routes import topups
 
 
@@ -14,4 +15,5 @@ api_router.include_router(account.router, prefix="/v1", tags=["dashboard"])
 api_router.include_router(api_keys.router, prefix="/v1", tags=["dashboard"])
 api_router.include_router(topups.router, prefix="/v1", tags=["payments"])
 api_router.include_router(models.router, prefix="/v1", tags=["models"])
+api_router.include_router(public_models.router, prefix="/v1", tags=["public"])
 api_router.include_router(chat.router, prefix="/v1", tags=["chat"])
