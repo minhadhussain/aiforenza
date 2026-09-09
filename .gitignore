@@ -2,6 +2,8 @@
 .next-dev/
 *.log
 tools/stripe/
+docs/*.png
+nul
 node_modules/
 dist/
 build/
