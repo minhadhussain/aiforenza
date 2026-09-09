@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { CopyChip } from "@/components/dashboard/copy-chip";
-import { fetchDashboardApiKeys, fetchDashboardOverview, fetchDashboardModels, fetchDashboardUsage, formatDateLabel, formatTransactionAmount, formatUsdFromCents } from "@/lib/dashboard";
+import { fetchDashboardApiKeys, fetchDashboardOverview, fetchDashboardModels, fetchDashboardUsage, formatDateLabel, formatTransactionAmount, formatUsdFromCents, formatModelRate } from "@/lib/dashboard";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -28,6 +28,8 @@ export default async function DashboardPage() {
   const modelPreview = models.slice(0, 8);
   const activeKey = apiKeys.find((key) => key.status === "active") ?? null;
   const displayName = overview.profile.email;
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
+  const defaultModel = models.find(model => model.slug === "gpt-5.6-sol") ?? models[0];
 
   return (
     <div className="space-y-10">
@@ -91,22 +93,22 @@ export default async function DashboardPage() {
             <div>
               <div className="font-mono text-xs uppercase tracking-[0.18em] text-white/70">[02] BASE URL</div>
               <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex-1 border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white">https://api.YOURDOMAIN.com/v1</div>
-                <CopyChip value="https://api.YOURDOMAIN.com/v1" />
+                <div className="flex-1 break-all border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white">{apiBase}</div>
+                <CopyChip value={apiBase} />
               </div>
             </div>
 
             <div>
               <div className="font-mono text-xs uppercase tracking-[0.18em] text-white/70">[03] MODEL</div>
               <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex-1 border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white">gpt-5.6-luna</div>
-                <CopyChip value="gpt-5.6-luna" />
+                <div className="flex-1 border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white">{defaultModel?.slug ?? "No models currently available"}</div>
+                {defaultModel && <CopyChip value={defaultModel.slug} />}
               </div>
             </div>
 
             <div>
               <div className="font-mono text-xs uppercase tracking-[0.18em] text-white/70">[04] REQUEST</div>
-              <pre className="mt-3 overflow-x-auto border border-white/10 bg-white/[0.03] px-4 py-4 text-sm leading-7 text-[#edf1f7]">{`from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="https://api.YOURDOMAIN.com/v1"\n)`}</pre>
+              <pre className="mt-3 whitespace-pre-wrap break-words border border-white/10 bg-white/[0.03] px-4 py-4 text-sm leading-7 text-[#edf1f7]">{`from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url=${JSON.stringify(apiBase)}\n)`}</pre>
             </div>
           </div>
         </div>
@@ -126,7 +128,7 @@ export default async function DashboardPage() {
 
             {overview.metrics.current_balance_cents === 0 ? (
               <p className="mt-5 text-sm text-[var(--muted)]">Your balance is too low to make requests.</p>
-            ) : overview.metrics.current_balance_cents <= 1000 ? (
+            ) : overview.metrics.current_balance_cents < 200 ? (
               <p className="mt-5 text-sm text-[var(--muted)]">Balance is running low.</p>
             ) : null}
 
@@ -152,12 +154,12 @@ export default async function DashboardPage() {
           <div className="border border-white/10 bg-[#050608] p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <div className="text-base font-semibold text-white">Production</div>
-                <div className="mt-3 font-mono text-sm text-white/80">{activeKey?.masked_key ?? "sk_live_••••••••••••"}</div>
+                <div className="text-base font-semibold text-white">{activeKey?.name ?? "No active API key"}</div>
+                <div className="mt-3 font-mono text-sm text-white/80">{activeKey?.masked_key ?? "Create a key to get started."}</div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <div>
                     <div className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Created</div>
-                    <div className="mt-2 text-sm text-white">{activeKey?.created_at ? formatDateLabel(activeKey.created_at) : "Sep 8"}</div>
+                    <div className="mt-2 text-sm text-white">{activeKey?.created_at ? formatDateLabel(activeKey.created_at) : "—"}</div>
                   </div>
                   <div>
                     <div className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Last used</div>
@@ -266,8 +268,8 @@ export default async function DashboardPage() {
             {modelPreview.map((model) => (
               <div key={model.id} className="grid gap-3 border border-white/10 px-3 py-3 text-sm md:grid-cols-[1.4fr_0.9fr_0.9fr]">
                 <div className="text-white">{model.display_name}</div>
-                <div className="text-[var(--muted)]">{formatUsdFromCents(Math.round(model.customer_input_price_per_million * 100))}</div>
-                <div className="text-[var(--muted)]">{formatUsdFromCents(Math.round(model.customer_output_price_per_million * 100))}</div>
+                <div className="text-[var(--muted)]">{formatModelRate(model.customer_input_price_per_million)}</div>
+                <div className="text-[var(--muted)]">{formatModelRate(model.customer_output_price_per_million)}</div>
               </div>
             ))}
           </div>

@@ -1,4 +1,7 @@
 .next/
+.next-dev/
+*.log
+tools/stripe/
 node_modules/
 dist/
 build/

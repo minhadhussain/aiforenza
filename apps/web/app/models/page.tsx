@@ -5,10 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { PublicShell } from "@/components/home/public-shell";
 import { SectionHero } from "@/components/home/section-hero";
-import { publicModelCatalog } from "@/lib/model-catalog";
+import { CopyChip } from "@/components/dashboard/copy-chip";
 import { fetchPublicModels } from "@/lib/public-models";
 import type { DashboardModel } from "@/lib/dashboard";
-import { formatUsdFromCents } from "@/lib/dashboard";
+import { formatModelRate } from "@/lib/dashboard";
 
 type ModelCategory = "All" | "General" | "Reasoning" | "Coding";
 
@@ -16,9 +16,10 @@ const filters: ModelCategory[] = ["All", "General", "Reasoning", "Coding"];
 
 export default function ModelsPage() {
   const [pricing, setPricing] = useState<Record<string, DashboardModel>>({});
+  const [loadState, setLoadState] = useState("Loading model pricing...");
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ModelCategory>("All");
-  const [selectedModel, setSelectedModel] = useState<(typeof publicModelCatalog)[number] | null>(publicModelCatalog[0]);
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -28,10 +29,12 @@ export default function ModelsPage() {
         if (!active) return;
         const nextMap = Object.fromEntries(models.map((model) => [model.slug, model]));
         setPricing(nextMap);
+        setLoadState("No enabled models are available.");
       })
       .catch(() => {
         if (!active) return;
         setPricing({});
+        setLoadState("Model pricing is temporarily unavailable. Please try again later.");
       });
 
     return () => {
@@ -42,7 +45,11 @@ export default function ModelsPage() {
   const filteredModels = useMemo(() => {
     const normalized = search.trim().toLowerCase();
 
-    return publicModelCatalog.filter((model) => {
+    return Object.values(pricing).map((item) => ({
+      name: item.display_name, slug: item.slug, category: "General",
+      inputPrice: "Unavailable", outputPrice: "Unavailable",
+      description: "Use this model ID with the AI Forenza API.", capabilities: undefined as string | undefined,
+    })).filter((model) => {
       const matchesFilter = activeFilter === "All" || model.category === activeFilter;
       const matchesSearch =
         !normalized ||
@@ -52,22 +59,20 @@ export default function ModelsPage() {
 
       return matchesFilter && matchesSearch;
     });
-  }, [activeFilter, search]);
+  }, [activeFilter, search, pricing]);
 
-  const visibleSelection = selectedModel && filteredModels.some((model) => model.slug === selectedModel.slug)
-    ? selectedModel
-    : filteredModels[0] ?? null;
+  const visibleSelection = filteredModels.find((model) => model.slug === selectedSlug) ?? filteredModels[0] ?? null;
 
   function displayInputPrice(slug: string, fallback: string) {
     const model = pricing[slug];
     if (!model) return fallback;
-    return formatUsdFromCents(Math.round(model.customer_input_price_per_million * 100));
+    return formatModelRate(model.customer_input_price_per_million);
   }
 
   function displayOutputPrice(slug: string, fallback: string) {
     const model = pricing[slug];
     if (!model) return fallback;
-    return formatUsdFromCents(Math.round(model.customer_output_price_per_million * 100));
+    return formatModelRate(model.customer_output_price_per_million);
   }
 
   function displayDiscount(slug: string) {
@@ -139,7 +144,7 @@ Keep the interface."
                   <button
                     key={model.slug}
                     type="button"
-                    onClick={() => setSelectedModel(model)}
+                    onClick={() => setSelectedSlug(model.slug)}
                     className={`smooth-border grid w-full gap-4 rounded-[1.5rem] px-4 py-4 text-left transition md:grid-cols-[1.55fr_0.7fr_0.7fr] ${
                       active ? "bg-white text-black" : "bg-white/[0.035] text-white hover:bg-white/[0.05]"
                     }`}
@@ -166,7 +171,7 @@ Keep the interface."
 
               {!filteredModels.length ? (
                 <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] px-4 py-8 text-center text-sm text-[var(--muted)]">
-                  No models match your search.
+                  {Object.keys(pricing).length ? "No models match your search." : loadState}
                 </div>
               ) : null}
             </div>
@@ -197,9 +202,7 @@ Keep the interface."
               <div className="mt-8 rounded-[1.5rem] border border-white/8 bg-[#0a0c0e] p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">API model ID</div>
-                  <button className="smooth-border rounded-full px-3 py-1 text-xs text-[var(--muted)] transition hover:text-white" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
-                    Copy Model ID
-                  </button>
+                  <CopyChip value={visibleSelection.slug} />
                 </div>
                 <div className="mt-4 font-mono text-sm text-white">{visibleSelection.slug}</div>
                 <pre className="mt-5 whitespace-pre-wrap break-words text-sm leading-7 text-[#d8dde6] [overflow-wrap:anywhere]">{`model="${visibleSelection.slug}"`}</pre>

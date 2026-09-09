@@ -54,10 +54,9 @@ export type DashboardUsageRecord = {
   output_tokens: number;
   cached_input_tokens: number;
   total_tokens: number;
-  reference_charge_cents: number;
+  reference_charge_cents: number | null;
   customer_charge_cents: number;
-  customer_savings_cents: number;
-  provider_cost_cents: number | null;
+  customer_savings_cents: number | null;
   status: string;
   created_at: string;
   model: {
@@ -71,13 +70,17 @@ export type DashboardModel = {
   slug: string;
   display_name: string;
   provider: string;
-  reference_input_price_per_million: number;
-  reference_output_price_per_million: number;
-  reference_cached_input_price_per_million: number | null;
-  discount_percent: number;
-  customer_input_price_per_million: number;
-  customer_output_price_per_million: number;
-  customer_cached_input_price_per_million: number | null;
+  reference_input_price_per_million: string;
+  reference_output_price_per_million: string;
+  reference_cached_input_price_per_million: string | null;
+  discount_percent: string;
+  customer_input_price_per_million: string;
+  customer_output_price_per_million: string;
+  customer_cached_input_price_per_million: string | null;
+  pricing_basis: string;
+  reference_price_source: string | null;
+  pricing_max_input_tokens: number;
+  pricing_max_output_tokens: number;
 };
 
 export async function fetchDashboardOverview(accessToken: string) {
@@ -118,11 +121,17 @@ export async function fetchDashboardApiKeys(accessToken: string) {
   return fetchApiKeys(accessToken);
 }
 
-export function formatUsdFromCents(value: number) {
+export function formatUsdFromCents(value: number | null) {
+  if (value === null) return "Not recorded";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
   }).format(value / 100);
+}
+
+export function formatModelRate(value: string | number | null) {
+  if (value === null || !Number.isFinite(Number(value))) return "Not configured";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 6 }).format(Number(value));
 }
 
 export function formatTransactionAmount(amountCents: number) {

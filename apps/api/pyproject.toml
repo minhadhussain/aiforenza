@@ -8,7 +8,10 @@ dependencies = [
   "fastapi==0.116.1",
   "anyio==4.10.0",
   "httpx==0.28.1",
+  "posthog==6.7.11",
   "pydantic-settings==2.10.1",
+  "redis==6.2.0",
+  "sentry-sdk==2.22.0",
   "stripe==13.0.0",
   "uvicorn[standard]==0.35.0"
 ]

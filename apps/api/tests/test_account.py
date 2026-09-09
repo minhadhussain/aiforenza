@@ -197,4 +197,4 @@ def test_dashboard_models_returns_customer_pricing(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json()["data"][0]["slug"] == "gpt-5.6-luna"
-    assert response.json()["data"][0]["customer_input_price_per_million"] == 5000
+    assert response.json()["data"][0]["customer_input_price_per_million"] == "6.0"

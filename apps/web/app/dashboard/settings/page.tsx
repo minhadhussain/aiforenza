@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { CopyChip } from "@/components/dashboard/copy-chip";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchPublicModels } from "@/lib/public-models";
 
 export default async function DashboardSettingsPage() {
   const supabase = await createSupabaseServerClient();
@@ -14,6 +15,9 @@ export default async function DashboardSettingsPage() {
   if (!user) {
     redirect("/login");
   }
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
+  const models = await fetchPublicModels();
+  const defaultModel = models.find(model => model.slug === "gpt-5.6-sol") ?? models[0];
 
   return (
     <div className="space-y-8">
@@ -64,17 +68,17 @@ export default async function DashboardSettingsPage() {
             <div className="border border-white/10 bg-white/[0.03] px-4 py-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="text-[11px] uppercase tracking-[0.16em] text-white/55">API base URL</div>
-                <CopyChip value="https://api.YOURDOMAIN.com/v1" />
+                <CopyChip value={apiBase} />
               </div>
-              <div className="mt-3 break-all text-sm text-white">https://api.YOURDOMAIN.com/v1</div>
+              <div className="mt-3 break-all text-sm text-white">{apiBase}</div>
             </div>
 
             <div className="border border-white/10 bg-white/[0.03] px-4 py-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="text-[11px] uppercase tracking-[0.16em] text-white/55">Recommended model</div>
-                <CopyChip value="gpt-5.6-luna" />
+                {defaultModel && <CopyChip value={defaultModel.slug} />}
               </div>
-              <div className="mt-3 text-sm text-white">gpt-5.6-luna</div>
+              <div className="mt-3 text-sm text-white">{defaultModel?.slug ?? "No models currently available"}</div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">

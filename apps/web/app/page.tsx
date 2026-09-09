@@ -79,10 +79,6 @@ export default function HomePage() {
         </div>
 
         <div className="relative z-10 flex max-w-4xl flex-col items-center">
-          <div className="mb-8 inline-flex rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-[var(--muted)]">
-            Start free
-          </div>
-
           <h1 className="max-w-4xl font-[family-name:var(--font-heading)] text-[3rem] leading-[0.95] tracking-[-0.05em] text-white sm:text-[4.5rem] lg:text-[6.25rem]">
             One API.
             <br />

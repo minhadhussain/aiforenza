@@ -52,7 +52,7 @@ export const docsPages: DocPage[] = [
         heading: "Base URL",
         body:
           "All OpenAI-compatible model requests use the same API base URL.",
-        code: `https://api.YOURDOMAIN.com/v1`,
+        code: `http://localhost:8000/v1`,
       },
       {
         heading: "What stays consistent",
@@ -81,18 +81,18 @@ export const docsPages: DocPage[] = [
         heading: "3. Set the base URL",
         body:
           "Point your existing OpenAI-compatible tooling to the AI Forenza endpoint.",
-        code: `https://api.YOURDOMAIN.com/v1`,
+        code: `http://localhost:8000/v1`,
       },
       {
         heading: "4. Choose a model",
         body:
-          "Start with one of the enabled models such as gpt-5.6-luna or another model from the catalog.",
+          "Start with one of the enabled models such as gpt-5.6-sol or another model from the catalog.",
       },
       {
         heading: "5. Make your first request",
         body:
           "A minimal Python example using the OpenAI SDK looks like this.",
-        code: `from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="https://api.YOURDOMAIN.com/v1"\n)\n\nresponse = client.chat.completions.create(\n    model="gpt-5.6-luna",\n    messages=[\n        {"role": "user", "content": "Hello"}\n    ]\n)\n\nprint(response.choices[0].message.content)`,
+        code: `from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="http://localhost:8000/v1"\n)\n\nresponse = client.chat.completions.create(\n    model="gpt-5.6-sol",\n    messages=[\n        {"role": "user", "content": "Hello"}\n    ]\n)\n\nprint(response.choices[0].message.content)`,
       },
       {
         heading: "6. Expected response shape",
@@ -152,13 +152,13 @@ export const docsPages: DocPage[] = [
         heading: "List available models",
         body:
           "Use GET /v1/models to retrieve the currently enabled model set in an OpenAI-compatible shape.",
-        code: `GET https://api.YOURDOMAIN.com/v1/models`,
+        code: `GET http://localhost:8000/v1/models`,
       },
       {
         heading: "Example response",
         body:
           "Model listing follows the OpenAI-compatible list structure.",
-        code: `{\n  "object": "list",\n  "data": [\n    {\n      "id": "gpt-5.6-luna",\n      "object": "model",\n      "owned_by": "your-platform"\n    }\n  ]\n}`,
+        code: `{\n  "object": "list",\n  "data": [\n    {\n      "id": "gpt-5.6-sol",\n      "object": "model",\n      "owned_by": "your-platform"\n    }\n  ]\n}`,
       },
       {
         heading: "What the response means",
@@ -168,15 +168,11 @@ export const docsPages: DocPage[] = [
       {
         heading: "Current catalog",
         body:
-          "The initial catalog includes GPT, Grok, DeepSeek, and Kimi variants while preserving a single request interface across models.",
+          "The catalog is configuration-driven. Only enabled models with verified inference and reference pricing are returned by GET /v1/models. A planned model is not necessarily available; check the endpoint before selecting it. Luna is not an alias for Sol.",
         bullets: [
           "GPT-6 Astra",
           "GPT-5.6 Sol",
-          "GPT-5.6 Luna",
           "Grok 4.6",
-          "DeepSeek V4 Pro",
-          "DeepSeek V4 Flash",
-          "Kimi K2.7 Code",
           "GPT-5.4",
         ],
       },
@@ -197,7 +193,7 @@ export const docsPages: DocPage[] = [
         heading: "Endpoint",
         body:
           "Use the standard chat completions path for synchronous and streaming requests.",
-        code: `POST https://api.YOURDOMAIN.com/v1/chat/completions`,
+        code: `POST http://localhost:8000/v1/chat/completions`,
       },
       {
         heading: "Supported request fields",
@@ -209,7 +205,7 @@ export const docsPages: DocPage[] = [
         heading: "Sample request body",
         body:
           "A minimal request body looks like this.",
-        code: `{\n  "model": "gpt-5.6-luna",\n  "messages": [\n    {"role": "user", "content": "Hello"}\n  ],\n  "stream": false\n}`,
+        code: `{\n  "model": "gpt-5.6-sol",\n  "messages": [\n    {"role": "user", "content": "Hello"}\n  ],\n  "stream": false\n}`,
       },
       {
         heading: "What happens during a request",
@@ -220,7 +216,7 @@ export const docsPages: DocPage[] = [
         heading: "Example request",
         body:
           "A minimal cURL example looks like this.",
-        code: `curl https://api.YOURDOMAIN.com/v1/chat/completions \\\n+  -H "Authorization: Bearer YOUR_API_KEY" \\\n+  -H "Content-Type: application/json" \\\n+  -d '{\n+    "model": "gpt-5.6-luna",\n+    "messages": [{"role": "user", "content": "Hello"}]\n+  }'`,
+        code: `curl http://localhost:8000/v1/chat/completions \\\n+  -H "Authorization: Bearer YOUR_API_KEY" \\\n+  -H "Content-Type: application/json" \\\n+  -d '{\n+    "model": "gpt-5.6-sol",\n+    "messages": [{"role": "user", "content": "Hello"}]\n+  }'`,
       },
       {
         heading: "Example response",
@@ -245,7 +241,7 @@ export const docsPages: DocPage[] = [
         heading: "Streaming request example",
         body:
           "A streaming request body differs only by the stream flag.",
-        code: `{\n  "model": "gpt-5.6-luna",\n  "messages": [\n    {"role": "user", "content": "Hello"}\n  ],\n  "stream": true\n}`,
+        code: `{\n  "model": "gpt-5.6-sol",\n  "messages": [\n    {"role": "user", "content": "Hello"}\n  ],\n  "stream": true\n}`,
       },
       {
         heading: "Why streaming matters",
@@ -255,7 +251,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Billing note",
         body:
-          "Usage is captured after final provider usage information becomes available. If a streaming configuration does not return reliable usage, AI Forenza uses a safe fallback estimate rather than silently charging zero.",
+          "Final provider usage is required for settlement. Missing or interrupted usage produces an error, not invented token counts or a successful zero charge. The wallet reservation remains held for operator reconciliation. The final DONE event is emitted only after settlement succeeds.",
       },
       {
         heading: "Example event stream lines",
@@ -274,8 +270,8 @@ export const docsPages: DocPage[] = [
       {
         heading: "Configuration values",
         body:
-          "Where Claude Code or an OpenAI-compatible configuration surface is available, set the AI Forenza base URL, API key, and chosen model.",
-        code: `BASE URL\nhttps://api.YOURDOMAIN.com/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-luna`,
+          "Native Claude Code uses the Anthropic Messages protocol, which this Chat Completions API does not implement. Do not point Claude Code directly at this endpoint or assume OPENAI_BASE_URL enables it. An explicitly supported protocol adapter is required; direct Claude Code compatibility is not yet verified.",
+        code: `BASE URL\nhttp://localhost:8000/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-sol`,
       },
       {
         heading: "Recommended workflow",
@@ -298,8 +294,17 @@ export const docsPages: DocPage[] = [
       {
         heading: "Configuration values",
         body:
-          "Set the base URL, key, and model exactly as you would for an OpenAI-compatible endpoint.",
-        code: `BASE URL\nhttps://api.YOURDOMAIN.com/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-luna`,
+          "Use a custom provider named aiforenza with @ai-sdk/openai-compatible in your project's opencode.json. Set AI_FORENZA_API_KEY in your terminal to your generated customer key. Select aiforenza/gpt-5.6-sol, not the built-in OpenAI or Azure provider. localhost must refer to the machine running FastAPI.",
+        code: JSON.stringify({
+          "$schema": "https://opencode.ai/config.json",
+          provider: { aiforenza: {
+            npm: "@ai-sdk/openai-compatible", name: "AI Forenza",
+            options: { baseURL: "http://localhost:8000/v1", apiKey: "{env:AI_FORENZA_API_KEY}" },
+            models: { "gpt-5.6-sol": { name: "GPT-5.6 Sol" } },
+          } },
+          model: "aiforenza/gpt-5.6-sol",
+          small_model: "aiforenza/gpt-5.6-sol",
+        }, null, 2),
       },
       {
         heading: "Why this works",
@@ -323,13 +328,13 @@ export const docsPages: DocPage[] = [
         heading: "Python example",
         body:
           "Use the standard OpenAI SDK and override the base URL.",
-        code: `from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="https://api.YOURDOMAIN.com/v1"\n)\n\nresponse = client.chat.completions.create(\n    model="gpt-5.6-luna",\n    messages=[\n        {"role": "user", "content": "Hello"}\n    ]\n)`,
+        code: `from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="http://localhost:8000/v1"\n)\n\nresponse = client.chat.completions.create(\n    model="gpt-5.6-sol",\n    messages=[\n        {"role": "user", "content": "Hello"}\n    ]\n)`,
       },
       {
         heading: "Streaming example",
         body:
           "If you need incremental output, request a streamed response and iterate through events.",
-        code: `stream = client.chat.completions.create(\n    model="gpt-5.6-luna",\n    messages=[{"role": "user", "content": "Hello"}],\n    stream=True,\n)\n\nfor event in stream:\n    print(event)`,
+        code: `stream = client.chat.completions.create(\n    model="gpt-5.6-sol",\n    messages=[{"role": "user", "content": "Hello"}],\n    stream=True,\n)\n\nfor event in stream:\n    print(event)`,
       },
       {
         heading: "Keep the client shape the same",
@@ -348,13 +353,13 @@ export const docsPages: DocPage[] = [
         heading: "JavaScript example",
         body:
           "Use the OpenAI JavaScript SDK with a custom baseURL.",
-        code: `import OpenAI from "openai"\n\nconst client = new OpenAI({\n  apiKey: process.env.AI_FORENZA_API_KEY,\n  baseURL: "https://api.YOURDOMAIN.com/v1",\n})\n\nconst response = await client.chat.completions.create({\n  model: "gpt-5.6-luna",\n  messages: [{ role: "user", content: "Hello" }],\n})`,
+        code: `import OpenAI from "openai"\n\nconst client = new OpenAI({\n  apiKey: process.env.AI_FORENZA_API_KEY,\n  baseURL: "http://localhost:8000/v1",\n})\n\nconst response = await client.chat.completions.create({\n  model: "gpt-5.6-sol",\n  messages: [{ role: "user", content: "Hello" }],\n})`,
       },
       {
         heading: "Streaming example",
         body:
           "Streaming works through the same request surface.",
-        code: `const stream = await client.chat.completions.create({\n  model: "gpt-5.6-luna",\n  messages: [{ role: "user", content: "Hello" }],\n  stream: true,\n})\n\nfor await (const chunk of stream) {\n  console.log(chunk)\n}`,
+        code: `const stream = await client.chat.completions.create({\n  model: "gpt-5.6-sol",\n  messages: [{ role: "user", content: "Hello" }],\n  stream: true,\n})\n\nfor await (const chunk of stream) {\n  console.log(chunk)\n}`,
       },
       {
         heading: "Server-side recommendation",
@@ -436,4 +441,12 @@ export const docsPages: DocPage[] = [
   },
 ];
 
+// Examples follow the public API endpoint configured for this environment.
+const exampleBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
+for (const page of docsPages) {
+  for (const section of page.sections) {
+    section.body = section.body.replaceAll("such as gpt-5.6-sol", "such as gpt-5.6-sol");
+    if (section.code) section.code = section.code.replaceAll("http://localhost:8000/v1", exampleBaseUrl).replaceAll("gpt-5.6-sol", "gpt-5.6-sol").replace(/\n\+/g, "\n");
+  }
+}
 export const docsPageMap = Object.fromEntries(docsPages.map((page) => [page.slug, page])) as Record<string, DocPage>;

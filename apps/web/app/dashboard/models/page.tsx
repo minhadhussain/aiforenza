@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { CopyChip } from "@/components/dashboard/copy-chip";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { fetchDashboardModels, formatUsdFromCents } from "@/lib/dashboard";
+import { fetchDashboardModels, formatModelRate } from "@/lib/dashboard";
 
 function perMillionToCents(value: number | null) {
   return value ?? 0;
@@ -46,9 +46,9 @@ export default async function DashboardModelsPage() {
                     <CopyChip value={model.slug} />
                   </div>
                 </div>
-                <div className="text-[var(--muted)]">{formatUsdFromCents(perMillionToCents(model.customer_input_price_per_million * 100))}</div>
-                <div className="text-[var(--muted)]">{formatUsdFromCents(perMillionToCents(model.customer_output_price_per_million * 100))}</div>
-                <div className="text-[var(--muted)]">{formatUsdFromCents(perMillionToCents((model.customer_cached_input_price_per_million ?? 0) * 100))}</div>
+                <div className="text-[var(--muted)]">{formatModelRate(model.customer_input_price_per_million)}</div>
+                <div className="text-[var(--muted)]">{formatModelRate(model.customer_output_price_per_million)}</div>
+                <div className="text-[var(--muted)]">{formatModelRate(model.customer_cached_input_price_per_million)}</div>
               </div>
             ))}
           </div>

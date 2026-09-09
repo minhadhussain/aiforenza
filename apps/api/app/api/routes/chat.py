@@ -24,8 +24,10 @@ async def post_chat_completions(
     authorization: str | None = Header(default=None),
 ):
     raw_body = await raw_request.body()
-    authz = await authorize_api_request(authorization=authorization, request=request, raw_body=raw_body)
+    authz = await authorize_api_request(authorization=authorization, request=request, raw_body=raw_body, request_id=raw_request.state.request_id)
+    raw_request.state.audit = {"user_id":authz.api_key["user_id"], "api_key_id":authz.api_key["id"], "model":request.model}
 
+    streaming = False
     try:
         if request.stream:
             source = await forward_chat_completion_stream(request, authz.model, authz.request_id)
@@ -38,8 +40,17 @@ async def post_chat_completions(
                 request_id=authz.request_id,
             )
             capture_event(authz.api_key["user_id"], "first_api_request", {"request_id": authz.request_id, "model": request.model, "stream": True})
+            async def managed_stream():
+                try:
+                    async for chunk in iterator:
+                        yield chunk
+                finally:
+                    await source.aclose()
+                    release_authorized_request(authz)
+
+            streaming = True
             return StreamingResponse(
-                iterator,
+                managed_stream(),
                 media_type="text/event-stream",
                 headers={"x-request-id": authz.request_id},
             )
@@ -56,4 +67,5 @@ async def post_chat_completions(
         capture_event(authz.api_key["user_id"], "first_api_request", {"request_id": authz.request_id, "model": request.model, "stream": False})
         return JSONResponse(payload, headers={"x-request-id": authz.request_id})
     finally:
-        release_authorized_request(authz)
+        if not streaming:
+            release_authorized_request(authz)

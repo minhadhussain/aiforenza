@@ -6,20 +6,21 @@ import { useEffect, useMemo, useState } from "react";
 import { PublicShell } from "@/components/home/public-shell";
 import { SectionHero } from "@/components/home/section-hero";
 import { fetchPublicModels } from "@/lib/public-models";
-import { formatUsdFromCents } from "@/lib/dashboard";
+import { formatModelRate } from "@/lib/dashboard";
 import type { DashboardModel } from "@/lib/dashboard";
 
 export default function PricingPage() {
   const [models, setModels] = useState<DashboardModel[]>([]);
+  const [message, setMessage] = useState("Loading configured pricing...");
 
   useEffect(() => {
     let active = true;
     fetchPublicModels()
       .then((data) => {
-        if (active) setModels(data);
+        if (active) { setModels(data); setMessage("No enabled models are available."); }
       })
       .catch(() => {
-        if (active) setModels([]);
+        if (active) { setModels([]); setMessage("Pricing is temporarily unavailable. Please try again later."); }
       });
 
     return () => {
@@ -78,6 +79,7 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-2">
+          {!pricedPreview.length && <p role="status" className="text-sm text-[var(--muted)]">{message}</p>}
           {pricedPreview.map((model) => (
             <div key={model.id} className="rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-4">
               <div className="text-sm font-semibold text-white">{model.display_name}</div>
@@ -88,11 +90,11 @@ export default function PricingPage() {
                 </div>
                 <div>
                   <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">Input / 1M</div>
-                  <div className="mt-2 text-white">{formatUsdFromCents(Math.round(model.customer_input_price_per_million * 100))}</div>
+                  <div className="mt-2 text-white">{formatModelRate(model.customer_input_price_per_million)}</div>
                 </div>
                 <div>
                   <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]">Output / 1M</div>
-                  <div className="mt-2 text-white">{formatUsdFromCents(Math.round(model.customer_output_price_per_million * 100))}</div>
+                  <div className="mt-2 text-white">{formatModelRate(model.customer_output_price_per_million)}</div>
                 </div>
               </div>
               <div className="mt-4 text-xs text-[var(--muted)]">Reference pricing remains server-configured. Customer-facing pricing is calculated with the configured discount before wallet deduction.</div>

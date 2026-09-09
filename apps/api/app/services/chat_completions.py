@@ -16,6 +16,10 @@ from app.services.usage_records import stream_and_charge
 def build_provider_payload(request: ChatCompletionRequest, model: CatalogModel, request_id: str) -> dict[str, Any]:
     payload = request.model_dump(exclude_none=True)
     payload["model"] = model.provider_model_id
+    if request.max_tokens is None and request.max_completion_tokens is None:
+        payload["max_completion_tokens"] = 1024
+    if request.stream:
+        payload["stream_options"] = {"include_usage": True}
     return payload
 
 
@@ -64,7 +68,10 @@ async def bill_non_streaming_response(
         provider_cost_reference=request_id,
         status="completed",
     )
-    return response_payload
+    # Return the public model name, not provider routing/debug metadata.
+    return {**{key: value for key, value in response_payload.items() if key in
+               {"id", "object", "created", "choices", "usage", "system_fingerprint", "service_tier"}},
+            "model": model.slug}
 
 
 async def bill_streaming_response(

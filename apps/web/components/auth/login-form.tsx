@@ -32,7 +32,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       return;
     }
 
-    router.push(nextPath || "/dashboard");
+    router.push(/^\/dashboard(?:\/|\?|$)/.test(nextPath) && !nextPath.includes("\\") ? nextPath : "/dashboard");
     router.refresh();
   }
 

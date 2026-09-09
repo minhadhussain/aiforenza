@@ -5,28 +5,28 @@ import { useMemo, useState } from "react";
 const examples = {
   OpenCode: {
     label: "OpenCode",
-    snippet: `BASE URL\nhttps://api.yourdomain.com/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-luna`,
-    code: `provider = "openai"\nbase_url = "https://api.yourdomain.com/v1"\napi_key = "YOUR_API_KEY"\nmodel = "gpt-5.6-luna"`,
+    snippet: `BASE URL\nhttp://localhost:8000/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-sol`,
+    code: `provider = "openai-compatible"\nbase_url = "http://localhost:8000/v1"\napi_key = "YOUR_API_KEY"\nmodel = "gpt-5.6-sol"`,
   },
   "Claude Code": {
     label: "Claude Code",
-    snippet: `BASE URL\nhttps://api.yourdomain.com/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-luna`,
-    code: `export OPENAI_BASE_URL="https://api.yourdomain.com/v1"\nexport OPENAI_API_KEY="YOUR_API_KEY"\nexport OPENAI_MODEL="gpt-5.6-luna"`,
+    snippet: `BASE URL\nhttp://localhost:8000/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-sol`,
+    code: `export OPENAI_BASE_URL="http://localhost:8000/v1"\nexport OPENAI_API_KEY="YOUR_API_KEY"\nexport OPENAI_MODEL="gpt-5.6-sol"`,
   },
   Python: {
     label: "Python",
-    snippet: `BASE URL\nhttps://api.yourdomain.com/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-luna`,
-    code: `from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="https://api.yourdomain.com/v1"\n)\n\nresponse = client.chat.completions.create(\n    model="gpt-5.6-luna",\n    messages=[\n        {"role": "user", "content": "Hello"}\n    ]\n)`,
+    snippet: `BASE URL\nhttp://localhost:8000/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-sol`,
+    code: `from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="http://localhost:8000/v1"\n)\n\nresponse = client.chat.completions.create(\n    model="gpt-5.6-sol",\n    messages=[\n        {"role": "user", "content": "Hello"}\n    ]\n)`,
   },
   JavaScript: {
     label: "JavaScript",
-    snippet: `BASE URL\nhttps://api.yourdomain.com/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-luna`,
-    code: `import OpenAI from "openai"\n\nconst client = new OpenAI({\n  apiKey: process.env.AI_FORENZA_API_KEY,\n  baseURL: "https://api.yourdomain.com/v1",\n})\n\nconst response = await client.chat.completions.create({\n  model: "gpt-5.6-luna",\n  messages: [{ role: "user", content: "Hello" }],\n})`,
+    snippet: `BASE URL\nhttp://localhost:8000/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-sol`,
+    code: `import OpenAI from "openai"\n\nconst client = new OpenAI({\n  apiKey: process.env.AI_FORENZA_API_KEY,\n  baseURL: "http://localhost:8000/v1",\n})\n\nconst response = await client.chat.completions.create({\n  model: "gpt-5.6-sol",\n  messages: [{ role: "user", content: "Hello" }],\n})`,
   },
   cURL: {
     label: "cURL",
-    snippet: `BASE URL\nhttps://api.yourdomain.com/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-luna`,
-    code: `curl https://api.yourdomain.com/v1/chat/completions \\\n+  -H "Authorization: Bearer YOUR_API_KEY" \\\n+  -H "Content-Type: application/json" \\\n+  -d '{\n+    "model": "gpt-5.6-luna",\n+    "messages": [{"role": "user", "content": "Hello"}]\n+  }'`,
+    snippet: `BASE URL\nhttp://localhost:8000/v1\n\nAPI KEY\nsk_live_••••••••••\n\nMODEL\ngpt-5.6-sol`,
+    code: `curl http://localhost:8000/v1/chat/completions \\\n+  -H "Authorization: Bearer YOUR_API_KEY" \\\n+  -H "Content-Type: application/json" \\\n+  -d '{\n+    "model": "gpt-5.6-sol",\n+    "messages": [{"role": "user", "content": "Hello"}]\n+  }'`,
   },
 } as const;
 
@@ -34,7 +34,13 @@ const tabNames = Object.keys(examples) as Array<keyof typeof examples>;
 
 export function DeveloperTabs() {
   const [active, setActive] = useState<keyof typeof examples>("Python");
-  const current = useMemo(() => examples[active], [active]);
+  const current = useMemo(() => {
+    const example = examples[active];
+    const normalize = (text: string) => text.replaceAll("gpt-5.6-sol", "gpt-5.6-sol")
+      .replaceAll("http://localhost:8000/v1", process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1")
+      .replace(/\n\+/g, "\n");
+    return { ...example, snippet: normalize(example.snippet), code: normalize(example.code) };
+  }, [active]);
 
   return (
     <div

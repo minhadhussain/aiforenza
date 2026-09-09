@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.core.config import settings
 from app.middleware.error_handlers import register_error_handlers
+from app.services.observability import init_posthog
+from app.services.observability import init_sentry
+from app.middleware.request_safety import RequestSafetyMiddleware
 
 
 app = FastAPI(
@@ -13,6 +16,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+app.add_middleware(RequestSafetyMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -20,6 +24,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+init_sentry()
+init_posthog()
 
 register_error_handlers(app)
 

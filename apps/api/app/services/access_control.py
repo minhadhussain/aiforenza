@@ -10,6 +10,7 @@ from app.models.openai import ChatCompletionRequest
 from app.repositories.profiles import fetch_profile
 from app.repositories.supabase_rest import SupabaseRepositoryError
 from app.repositories.wallets import fetch_wallet
+from app.repositories.reservations import reserve_usage
 from app.services.api_keys import ApiKeyServiceError
 from app.services.api_keys import authenticate_api_key
 from app.services.api_keys import touch_api_key_last_used
@@ -58,9 +59,9 @@ def validate_request_size(raw_body: bytes, request: ChatCompletionRequest) -> No
         )
 
 
-async def authorize_api_request(*, authorization: str | None, request: ChatCompletionRequest, raw_body: bytes) -> AuthorizedAPIRequest:
+async def authorize_api_request(*, authorization: str | None, request: ChatCompletionRequest, raw_body: bytes, request_id: str | None = None) -> AuthorizedAPIRequest:
     validate_request_size(raw_body, request)
-    request_id = create_request_id()
+    request_id = request_id or create_request_id()
 
     if not authorization or not authorization.startswith("Bearer "):
         raise _invalid_api_key()
@@ -73,7 +74,7 @@ async def authorize_api_request(*, authorization: str | None, request: ChatCompl
         api_key = await authenticate_api_key(plaintext_key)
     except ApiKeyServiceError as exc:
         raise OpenAIAPIError(
-            str(exc),
+            "API key validation temporarily unavailable.",
             error_type="api_error",
             code="api_key_lookup_failed",
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -87,7 +88,7 @@ async def authorize_api_request(*, authorization: str | None, request: ChatCompl
         wallet = await fetch_wallet(api_key["user_id"])
     except SupabaseRepositoryError as exc:
         raise OpenAIAPIError(
-            str(exc),
+            "Account validation temporarily unavailable.",
             error_type="api_error",
             code="account_lookup_failed",
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -109,7 +110,7 @@ async def authorize_api_request(*, authorization: str | None, request: ChatCompl
     except ModelCatalogError as exc:
         release_concurrency_slot(user_id=api_key["user_id"], api_key_id=api_key["id"])
         raise OpenAIAPIError(
-            str(exc),
+            "Model catalog temporarily unavailable.",
             error_type="api_error",
             code="model_lookup_failed",
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -124,7 +125,11 @@ async def authorize_api_request(*, authorization: str | None, request: ChatCompl
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
-    estimated_charge_cents = estimate_preflight_charge_cents(request, model)
+    try:
+        estimated_charge_cents = estimate_preflight_charge_cents(request, model)
+    except BaseException:
+        release_concurrency_slot(user_id=api_key["user_id"], api_key_id=api_key["id"])
+        raise
     balance_cents = int(wallet.get("balance_cents", 0) or 0)
     if estimated_charge_cents > balance_cents or balance_cents <= 0:
         release_concurrency_slot(user_id=api_key["user_id"], api_key_id=api_key["id"])
@@ -135,7 +140,20 @@ async def authorize_api_request(*, authorization: str | None, request: ChatCompl
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
         )
 
-    await touch_api_key_last_used(api_key["id"])
+    try:
+        await touch_api_key_last_used(api_key["id"])
+        await reserve_usage(request_id, api_key["user_id"], api_key["id"], model.id, estimated_charge_cents)
+    except BaseException as exc:
+        release_concurrency_slot(user_id=api_key["user_id"], api_key_id=api_key["id"])
+        if isinstance(exc, SupabaseRepositoryError):
+            insufficient = "insufficient_balance" in str(exc)
+            raise OpenAIAPIError(
+                "Insufficient balance. Please add funds to continue." if insufficient else "Wallet authorization unavailable.",
+                error_type="insufficient_balance" if insufficient else "api_error",
+                code="insufficient_balance" if insufficient else "wallet_authorization_failed",
+                status_code=402 if insufficient else 503,
+            ) from exc
+        raise
 
     return AuthorizedAPIRequest(
         request_id=request_id,

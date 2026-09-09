@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CopyChip } from "@/components/dashboard/copy-chip";
 
 type ApiKeyRecord = {
   id: string;
@@ -28,7 +29,7 @@ type CreateResponse = {
 
 function formatCreatedLabel(value: string | null) {
   if (!value) {
-    return "Sep 8";
+    return "Unknown";
   }
 
   return new Intl.DateTimeFormat("en-US", {
@@ -133,6 +134,10 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
             <div className="mt-8 border border-[#d3b58c] bg-[#fff4e3] px-4 py-4 text-sm text-[#6b4b21]">
               <div className="font-semibold">Copy this key now. It will not be shown again.</div>
               <div className="mt-3 break-all font-mono text-xs sm:text-sm">{revealedKey}</div>
+              <div className="mt-4 flex gap-3 bg-[#050608] p-3 text-white">
+                <CopyChip value={revealedKey} />
+                <button type="button" onClick={() => setRevealedKey(null)}>Hide key</button>
+              </div>
             </div>
           ) : null}
 

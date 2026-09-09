@@ -1,5 +1,5 @@
 type ApiOptions = {
-  accessToken: string;
+  accessToken?: string;
   cache?: RequestCache;
 };
 
@@ -13,7 +13,7 @@ export async function apiGet<T>(path: string, options: ApiOptions): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${options.accessToken}`,
+      ...(options.accessToken ? { Authorization: `Bearer ${options.accessToken}` } : {}),
       "Content-Type": "application/json",
     },
     cache: options.cache ?? "no-store",

@@ -97,7 +97,7 @@ def test_chat_completion_returns_provider_payload(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.headers["x-request-id"] == "req_test123"
+    assert response.headers["x-request-id"].startswith("req_")
     assert response.json()["choices"][0]["message"]["content"] == "Hi"
     assert released["called"] is True
 
@@ -152,7 +152,7 @@ def test_chat_completion_streams_provider_chunks(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.headers["x-request-id"] == "req_stream123"
+    assert response.headers["x-request-id"].startswith("req_")
     assert "data: [DONE]" in response.text
     assert released["called"] is True
 

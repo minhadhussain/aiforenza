@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { TopupRecord } from "@/lib/topups";
 import { formatDateLabel, formatUsdFromCents } from "@/lib/dashboard";
@@ -11,10 +12,37 @@ type TopupPanelProps = {
   initialTopups: TopupRecord[];
 };
 
-const amounts = [1000, 2500, 5000, 10000, 50000, 100000];
+const packages = [
+  { id: "starter_10", amountCents: 1000 },
+  { id: "starter_25", amountCents: 2500 },
+  { id: "starter_50", amountCents: 5000 },
+  { id: "starter_100", amountCents: 10000 },
+  { id: "starter_500", amountCents: 50000 },
+  { id: "starter_1000", amountCents: 100000 },
+];
 
 export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPanelProps) {
-  const [selectedAmount, setSelectedAmount] = useState<number>(1000);
+  const router = useRouter();
+  const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("cancelled") === "true") {
+      setPaymentNotice("Checkout cancelled. No balance has been added.");
+      return;
+    }
+    if (query.get("success") !== "true") return;
+    setPaymentNotice("Payment submitted. Confirming your payment; balance updates only after verification.");
+    let count = 0;
+    const timer = window.setInterval(() => {
+      router.refresh();
+      if (++count >= 10) {
+        window.clearInterval(timer);
+        setPaymentNotice("Check your top-up status below. If payment is still pending, refresh again shortly.");
+      }
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [router]);
+  const [selectedPackage, setSelectedPackage] = useState<string>("starter_10");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const completedCount = useMemo(() => initialTopups.filter((item) => item.status === "COMPLETED").length, [initialTopups]);
@@ -24,18 +52,25 @@ export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPa
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/topups/checkout`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/billing/create-checkout-session`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ amount_cents: selectedAmount }),
+        body: JSON.stringify({ package_id: selectedPackage }),
       });
 
-      const payload = (await response.json()) as { checkout_url?: string; detail?: string };
+      const payload = (await response.json()) as {
+        checkout_url?: string;
+        detail?: string;
+        error?: {
+          message?: string;
+          code?: string;
+        };
+      };
       if (!response.ok || !payload.checkout_url) {
-        throw new Error(payload.detail || "Failed to create Stripe Checkout session.");
+        throw new Error(payload.error?.message || payload.detail || "Failed to create Stripe Checkout session.");
       }
 
       window.location.href = payload.checkout_url;
@@ -49,6 +84,7 @@ export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPa
     <div className="space-y-8">
       <header>
         <p className="font-mono text-sm uppercase tracking-[0.16em] text-white/70">// BILLING</p>
+        {paymentNotice && <p role="status" className="mt-3 text-sm text-[var(--muted)]">{paymentNotice}</p>}
       </header>
 
       <section className="grid gap-px overflow-hidden border border-white/10 bg-white/10 xl:grid-cols-[0.82fr_1.18fr]">
@@ -64,7 +100,7 @@ export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPa
           <div className="flex flex-col gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="text-lg font-semibold text-white">Prepaid top-ups</div>
-              <div className="mt-3 text-sm leading-7 text-[var(--muted)]">Choose a fixed MVP amount and continue to Stripe Checkout.</div>
+              <div className="mt-3 text-sm leading-7 text-[var(--muted)]">Choose a fixed MVP amount and continue to Stripe Checkout. A successful redirect does not credit your wallet until the verified webhook is processed.</div>
             </div>
             <button
               type="button"
@@ -72,23 +108,23 @@ export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPa
               disabled={loading}
               className="inline-flex items-center justify-center border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Redirecting..." : `Add ${formatUsdFromCents(selectedAmount)}`}
-            </button>
+          {loading ? "Redirecting..." : `Add ${formatUsdFromCents(packages.find((pkg) => pkg.id === selectedPackage)?.amountCents ?? 1000)}`}
+        </button>
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {amounts.map((amount) => (
+            {packages.map((pkg) => (
               <button
-                key={amount}
+                key={pkg.id}
                 type="button"
-                onClick={() => setSelectedAmount(amount)}
+                onClick={() => setSelectedPackage(pkg.id)}
                 className={`border px-4 py-5 text-left transition ${
-                  selectedAmount === amount
+                  selectedPackage === pkg.id
                     ? "border-white/18 bg-white/[0.07]"
                     : "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
                 }`}
               >
-                <div className="text-2xl font-semibold tracking-[-0.04em] text-white">{formatUsdFromCents(amount)}</div>
+                <div className="text-2xl font-semibold tracking-[-0.04em] text-white">{formatUsdFromCents(pkg.amountCents)}</div>
                 <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Stripe Checkout</div>
               </button>
             ))}
@@ -96,6 +132,10 @@ export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPa
 
           {error ? <div className="mt-6 border border-[#7f2d12] bg-[#f7d9cb] px-4 py-4 text-sm text-[#7f2d12]">{error}</div> : null}
         </div>
+      </section>
+
+      <section className="border border-white/10 bg-[#050608] px-6 py-5 text-sm text-[var(--muted)]">
+        Local Stripe development uses Stripe CLI webhook forwarding. Wallet crediting only happens after a verified webhook event reaches the backend.
       </section>
 
       <section>

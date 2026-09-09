@@ -36,9 +36,9 @@ def test_calculate_pricing_breakdown_applies_40_percent_discount() -> None:
         UsageMetrics(input_tokens=500000, output_tokens=250000, cached_input_tokens=100000),
     )
 
-    assert breakdown.reference_charge_cents == 1050
-    assert breakdown.customer_charge_cents == 630
-    assert breakdown.customer_savings_cents == 420
+    assert breakdown.reference_charge_cents == 950
+    assert breakdown.customer_charge_cents == 570
+    assert breakdown.customer_savings_cents == 380
 
 
 def test_extract_usage_metrics_prefers_provider_usage() -> None:
