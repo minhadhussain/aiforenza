@@ -1,11 +1,27 @@
 from functools import lru_cache
+from pathlib import Path
+from urllib.parse import urlsplit
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def resolve_env_file(source: Path = Path(__file__)) -> Path:
+    """Find the monorepo env independently of cwd, also supporting /app containers."""
+    source = source.resolve()
+    for parent in source.parents:
+        if parent / "apps/api/app/core/config.py" == source:
+            return parent / ".env"
+    return source.parents[2] / ".env"
+
+
+ROOT_ENV_FILE = resolve_env_file()
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=ROOT_ENV_FILE, env_file_encoding="utf-8", extra="ignore"
+    )
 
     api_env: str = Field(default="development", alias="API_ENV")
     api_host: str = Field(default="0.0.0.0", alias="API_HOST")
@@ -53,11 +69,30 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [
+        configured = [
             origin.strip()
             for origin in self.api_cors_origins.split(",")
             if origin.strip()
         ]
+        expanded: list[str] = []
+
+        for origin in configured:
+            if origin not in expanded:
+                expanded.append(origin)
+
+            parsed = urlsplit(origin)
+            host = parsed.hostname
+            if host not in {"localhost", "127.0.0.1"}:
+                continue
+
+            sibling_host = "127.0.0.1" if host == "localhost" else "localhost"
+            sibling = f"{parsed.scheme}://{sibling_host}"
+            if parsed.port is not None:
+                sibling += f":{parsed.port}"
+            if sibling not in expanded:
+                expanded.append(sibling)
+
+        return expanded
 
 
 @lru_cache

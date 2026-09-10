@@ -119,16 +119,18 @@ export default async function DashboardPage() {
           <p className="mb-4 font-mono text-sm uppercase tracking-[0.16em] text-white/70">// BALANCE</p>
           <div className="border border-white/10 bg-[#050608] p-6">
             <div className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">AVAILABLE BALANCE</div>
-            <div className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white">{formatUsdFromCents(overview.metrics.current_balance_cents)}</div>
+            <div className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white">{formatUsdFromCents(overview.metrics.available_balance_cents)}</div>
+            <p className="mt-3 text-sm text-[var(--muted)]">Wallet total: {formatUsdFromCents(overview.metrics.current_balance_cents)} · Reserved for requests: {formatUsdFromCents(overview.metrics.reserved_cents)}</p>
+            {overview.metrics.reserved_cents > 0 && <p className="mt-2 text-xs text-[var(--muted)]">Reservations are not charges. Interrupted requests may need reconciliation before those funds become available again.</p>}
             <div className="mt-5">
               <Link className="inline-flex items-center justify-center border border-white/10 bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90" href="/dashboard/billing">
                 Add Funds
               </Link>
             </div>
 
-            {overview.metrics.current_balance_cents === 0 ? (
+            {overview.metrics.available_balance_cents === 0 ? (
               <p className="mt-5 text-sm text-[var(--muted)]">Your balance is too low to make requests.</p>
-            ) : overview.metrics.current_balance_cents < 200 ? (
+            ) : overview.metrics.available_balance_cents < 200 ? (
               <p className="mt-5 text-sm text-[var(--muted)]">Balance is running low.</p>
             ) : null}
 

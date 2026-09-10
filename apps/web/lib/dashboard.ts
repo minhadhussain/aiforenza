@@ -10,6 +10,8 @@ export type DashboardOverview = {
     id: string;
     user_id: string;
     balance_cents: number;
+    available_balance_cents: number;
+    reserved_cents: number;
     currency: string;
     created_at: string;
     updated_at: string;
@@ -25,6 +27,8 @@ export type DashboardOverview = {
   }>;
   metrics: {
     current_balance_cents: number;
+    available_balance_cents: number;
+    reserved_cents: number;
     transaction_count: number;
     trial_credit_granted: boolean;
     today_usage_cents: number;

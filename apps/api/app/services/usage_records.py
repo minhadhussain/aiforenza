@@ -21,13 +21,21 @@ class UsageChargeError(Exception):
     pass
 
 
-def extract_usage_metrics(payload: dict[str, Any], request: ChatCompletionRequest | None = None) -> UsageMetrics:
+def extract_usage_metrics(
+    payload: dict[str, Any], request: ChatCompletionRequest | None = None
+) -> UsageMetrics:
     usage = payload.get("usage") if isinstance(payload, dict) else None
     if isinstance(usage, dict):
         input_tokens = usage.get("prompt_tokens", usage.get("input_tokens"))
         output_tokens = usage.get("completion_tokens", usage.get("output_tokens"))
-        details = usage.get("prompt_tokens_details") or usage.get("input_tokens_details") or {}
-        cached_input_tokens = details.get("cached_tokens", usage.get("cached_input_tokens", 0))
+        details = (
+            usage.get("prompt_tokens_details")
+            or usage.get("input_tokens_details")
+            or {}
+        )
+        cached_input_tokens = details.get(
+            "cached_tokens", usage.get("cached_input_tokens", 0)
+        )
         return UsageMetrics(
             input_tokens=input_tokens,
             output_tokens=output_tokens,
@@ -36,33 +44,74 @@ def extract_usage_metrics(payload: dict[str, Any], request: ChatCompletionReques
 
     # Never invent usage from characters: tool/reasoning tokens cannot be recovered that way.
     raise OpenAIAPIError(
-            "Provider response did not include usage details.",
-            error_type="api_error",
-            code="missing_usage",
-            status_code=http_status.HTTP_502_BAD_GATEWAY,
+        "Provider response did not include usage details.",
+        error_type="api_error",
+        code="missing_usage",
+        status_code=http_status.HTTP_502_BAD_GATEWAY,
     )
 
 
-def estimate_preflight_charge_cents(request: ChatCompletionRequest, model: CatalogModel) -> int:
+def preflight_spending_details(
+    request: ChatCompletionRequest, model: CatalogModel
+) -> dict[str, int]:
     # Conservative text-only budget includes tool schemas and message overhead.
     payload = request.model_dump(exclude_none=True)
     for message in request.messages:
         if message.content is not None and not isinstance(message.content, str):
-            raise OpenAIAPIError("Only text messages are supported for metered requests.", error_type="invalid_request_error", code="unsupported_content", status_code=400)
+            raise OpenAIAPIError(
+                "Only text messages are supported for metered requests.",
+                error_type="invalid_request_error",
+                code="unsupported_content",
+                status_code=400,
+            )
     if payload.get("n", 1) != 1:
-        raise OpenAIAPIError("Only one completion per request is supported.", error_type="invalid_request_error", code="unsupported_n", status_code=400)
-    input_budget = len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) + 64 * len(request.messages) + 256
+        raise OpenAIAPIError(
+            "Only one completion per request is supported.",
+            error_type="invalid_request_error",
+            code="unsupported_n",
+            status_code=400,
+        )
+    input_budget = (
+        len(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
+        + 64 * len(request.messages)
+        + 256
+    )
     output_budget = request.max_completion_tokens or request.max_tokens or 1024
     if payload.get("service_tier") not in (None, "default"):
-        raise OpenAIAPIError("Only standard service pricing is supported.", error_type="invalid_request_error",code="unsupported_service_tier",status_code=400)
-    if input_budget > model.pricing_max_input_tokens or output_budget > model.pricing_max_output_tokens:
-        raise OpenAIAPIError("Request exceeds the configured pricing tier limits.", error_type="invalid_request_error",code="pricing_limit_exceeded",status_code=400)
+        raise OpenAIAPIError(
+            "Only standard service pricing is supported.",
+            error_type="invalid_request_error",
+            code="unsupported_service_tier",
+            status_code=400,
+        )
+    if (
+        input_budget > model.pricing_max_input_tokens
+        or output_budget > model.pricing_max_output_tokens
+    ):
+        raise OpenAIAPIError(
+            "Request exceeds the configured pricing tier limits.",
+            error_type="invalid_request_error",
+            code="pricing_limit_exceeded",
+            status_code=400,
+        )
     usage = UsageMetrics(
         input_tokens=input_budget,
         output_tokens=max(output_budget, 0),
         cached_input_tokens=0,
     )
-    return estimate_customer_charge_cents(usage, model)
+    pricing = calculate_pricing_breakdown(model, usage)
+    return {
+        "input_token_estimate": input_budget,
+        "max_output_tokens": output_budget,
+        "reference_charge_cents": pricing.reference_charge_cents,
+        "customer_charge_cents": pricing.customer_charge_cents,
+    }
+
+
+def estimate_preflight_charge_cents(
+    request: ChatCompletionRequest, model: CatalogModel
+) -> int:
+    return preflight_spending_details(request, model)["customer_charge_cents"]
 
 
 def _message_text(content: Any) -> str:
@@ -104,8 +153,16 @@ async def record_usage_charge(
     provider_cost_reference: str,
     status: str,
 ) -> UsageChargeResult:
-    if usage.input_tokens > model.pricing_max_input_tokens or usage.output_tokens > model.pricing_max_output_tokens:
-        raise OpenAIAPIError("Provider usage exceeded the authorized pricing tier.",error_type="api_error",code="usage_reconciliation_required",status_code=502)
+    if (
+        usage.input_tokens > model.pricing_max_input_tokens
+        or usage.output_tokens > model.pricing_max_output_tokens
+    ):
+        raise OpenAIAPIError(
+            "Provider usage exceeded the authorized pricing tier.",
+            error_type="api_error",
+            code="usage_reconciliation_required",
+            status_code=502,
+        )
     pricing = calculate_pricing_breakdown(model, usage)
     try:
         payload = await record_usage_charge_rpc(
@@ -133,8 +190,12 @@ async def record_usage_charge(
                 code="insufficient_balance",
                 status_code=http_status.HTTP_402_PAYMENT_REQUIRED,
             ) from exc
-        raise OpenAIAPIError("Billing is temporarily unavailable.", error_type="api_error",
-                             code="billing_unavailable", status_code=503) from exc
+        raise OpenAIAPIError(
+            "Billing is temporarily unavailable.",
+            error_type="api_error",
+            code="billing_unavailable",
+            status_code=503,
+        ) from exc
 
     return UsageChargeResult.model_validate(payload)
 
@@ -154,7 +215,12 @@ async def stream_and_charge(
     async for chunk in source:
         buffer += chunk
         if len(buffer) > 2_000_000:
-            raise OpenAIAPIError("Provider stream frame too large.", error_type="api_error", code="invalid_stream", status_code=502)
+            raise OpenAIAPIError(
+                "Provider stream frame too large.",
+                error_type="api_error",
+                code="invalid_stream",
+                status_code=502,
+            )
         while b"\n" in buffer:
             line, buffer = buffer.split(b"\n", 1)
             line = line.rstrip(b"\r")
@@ -167,16 +233,36 @@ async def stream_and_charge(
             try:
                 event = json.loads(body)
             except (ValueError, UnicodeError) as exc:
-                raise OpenAIAPIError("Invalid provider stream.", error_type="api_error", code="invalid_stream", status_code=502) from exc
+                raise OpenAIAPIError(
+                    "Invalid provider stream.",
+                    error_type="api_error",
+                    code="invalid_stream",
+                    status_code=502,
+                ) from exc
             if event.get("error"):
-                raise OpenAIAPIError("Provider stream failed.", error_type="api_error", code="provider_unavailable", status_code=502)
+                raise OpenAIAPIError(
+                    "Provider stream failed.",
+                    error_type="api_error",
+                    code="provider_unavailable",
+                    status_code=502,
+                )
             if event.get("usage") is not None:
                 usage_payload = event
-            safe = {key: value for key, value in event.items() if key in {"id", "object", "created", "choices", "usage", "system_fingerprint"}}
+            safe = {
+                key: value
+                for key, value in event.items()
+                if key
+                in {"id", "object", "created", "choices", "usage", "system_fingerprint"}
+            }
             safe["model"] = model.slug
             yield ("data: " + json.dumps(safe) + "\n\n").encode()
     if not done:
-        raise OpenAIAPIError("Provider stream interrupted.", error_type="api_error", code="invalid_stream", status_code=502)
+        raise OpenAIAPIError(
+            "Provider stream interrupted.",
+            error_type="api_error",
+            code="invalid_stream",
+            status_code=502,
+        )
     payload = usage_payload or {}
     usage = extract_usage_metrics(payload, request=request)
     await record_usage_charge(
@@ -192,11 +278,15 @@ async def stream_and_charge(
     yield b"data: [DONE]\n\n"
 
 
-def _set_usage_payload(payload: dict[str, Any], box: dict[str, dict[str, Any] | None]) -> None:
+def _set_usage_payload(
+    payload: dict[str, Any], box: dict[str, dict[str, Any] | None]
+) -> None:
     box["payload"] = payload
 
 
-def _capture_stream_state(chunk: bytes, output_parts: list[str], set_usage_payload) -> None:
+def _capture_stream_state(
+    chunk: bytes, output_parts: list[str], set_usage_payload
+) -> None:
     text = chunk.decode("utf-8", errors="ignore")
     for line in text.splitlines():
         if not line.startswith("data: "):

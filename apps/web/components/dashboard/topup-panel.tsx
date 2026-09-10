@@ -9,6 +9,8 @@ import { formatDateLabel, formatUsdFromCents } from "@/lib/dashboard";
 type TopupPanelProps = {
   accessToken: string;
   balanceCents: number;
+  totalBalanceCents: number;
+  reservedCents: number;
   initialTopups: TopupRecord[];
 };
 
@@ -21,7 +23,7 @@ const packages = [
   { id: "starter_1000", amountCents: 100000 },
 ];
 
-export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPanelProps) {
+export function TopupPanel({ accessToken, balanceCents, totalBalanceCents, reservedCents, initialTopups }: TopupPanelProps) {
   const router = useRouter();
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   useEffect(() => {
@@ -92,6 +94,7 @@ export function TopupPanel({ accessToken, balanceCents, initialTopups }: TopupPa
           <p className="font-mono text-sm uppercase tracking-[0.16em] text-white/70">// Balance</p>
           <div className="mt-8 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">AVAILABLE BALANCE</div>
           <div className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white">{formatUsdFromCents(balanceCents)}</div>
+          <p className="mt-3 text-sm text-[var(--muted)]">Wallet total: {formatUsdFromCents(totalBalanceCents)} · Reserved for requests: {formatUsdFromCents(reservedCents)}</p>
           <p className="mt-5 text-sm leading-7 text-[var(--muted)]">Use prepaid wallet credits for API usage. Wallet crediting occurs only after verified Stripe webhook completion.</p>
           <div className="mt-8 text-sm text-[var(--muted)]">Completed top-ups: {completedCount}</div>
         </div>

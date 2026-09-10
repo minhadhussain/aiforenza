@@ -6,15 +6,30 @@ from app.core.errors import OpenAIAPIError
 from app.models.catalog import CatalogModel
 from app.models.openai import ChatCompletionRequest
 from app.services.provider_gateway import ProviderGatewayError
-from app.services.provider_gateway import create_chat_completion as proxy_chat_completion
-from app.services.provider_gateway import stream_chat_completion as proxy_stream_chat_completion
+from app.services.provider_gateway import (
+    create_chat_completion as proxy_chat_completion,
+)
+from app.services.provider_gateway import (
+    stream_chat_completion as proxy_stream_chat_completion,
+)
 from app.services.usage_records import extract_usage_metrics
 from app.services.usage_records import record_usage_charge
 from app.services.usage_records import stream_and_charge
 
 
-def build_provider_payload(request: ChatCompletionRequest, model: CatalogModel, request_id: str) -> dict[str, Any]:
+def build_provider_payload(
+    request: ChatCompletionRequest, model: CatalogModel, request_id: str
+) -> dict[str, Any]:
     payload = request.model_dump(exclude_none=True)
+    # OpenAI-compatible SDKs can serialize this Responses-only client option.
+    # Chat Completions has no reasoning-summary field; keep reasoning_effort intact.
+    payload.pop("reasoningSummary", None)
+    # Preserve the same allowance/precedence as preflight; GPT-5.4 rejects max_tokens.
+    if request.model == "gpt-5.4" and request.max_tokens is not None:
+        payload["max_completion_tokens"] = (
+            request.max_completion_tokens or request.max_tokens
+        )
+        payload.pop("max_tokens", None)
     payload["model"] = model.provider_model_id
     if request.max_tokens is None and request.max_completion_tokens is None:
         payload["max_completion_tokens"] = 1024
@@ -23,7 +38,9 @@ def build_provider_payload(request: ChatCompletionRequest, model: CatalogModel, 
     return payload
 
 
-async def forward_chat_completion(request: ChatCompletionRequest, model: CatalogModel, request_id: str) -> dict[str, Any]:
+async def forward_chat_completion(
+    request: ChatCompletionRequest, model: CatalogModel, request_id: str
+) -> dict[str, Any]:
     payload = build_provider_payload(request, model, request_id)
     try:
         return await proxy_chat_completion(payload)
@@ -36,7 +53,9 @@ async def forward_chat_completion(request: ChatCompletionRequest, model: Catalog
         ) from exc
 
 
-async def forward_chat_completion_stream(request: ChatCompletionRequest, model: CatalogModel, request_id: str):
+async def forward_chat_completion_stream(
+    request: ChatCompletionRequest, model: CatalogModel, request_id: str
+):
     payload = build_provider_payload(request, model, request_id)
     try:
         return await proxy_stream_chat_completion(payload)
@@ -69,9 +88,23 @@ async def bill_non_streaming_response(
         status="completed",
     )
     # Return the public model name, not provider routing/debug metadata.
-    return {**{key: value for key, value in response_payload.items() if key in
-               {"id", "object", "created", "choices", "usage", "system_fingerprint", "service_tier"}},
-            "model": model.slug}
+    return {
+        **{
+            key: value
+            for key, value in response_payload.items()
+            if key
+            in {
+                "id",
+                "object",
+                "created",
+                "choices",
+                "usage",
+                "system_fingerprint",
+                "service_tier",
+            }
+        },
+        "model": model.slug,
+    }
 
 
 async def bill_streaming_response(

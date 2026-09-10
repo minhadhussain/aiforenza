@@ -16,4 +16,6 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+.opencode-test-workspace/
+.opencode-test.env.local
 coverage/

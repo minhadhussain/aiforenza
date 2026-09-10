@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 from app.models.openai import ChatCompletionRequest
 from app.services.access_control import authorize_api_request
 from app.services.access_control import release_authorized_request
+from app.services.access_control import release_rejected_request
 from app.services.chat_completions import bill_non_streaming_response
 from app.services.chat_completions import bill_streaming_response
 from app.services.chat_completions import forward_chat_completion
@@ -24,13 +25,28 @@ async def post_chat_completions(
     authorization: str | None = Header(default=None),
 ):
     raw_body = await raw_request.body()
-    authz = await authorize_api_request(authorization=authorization, request=request, raw_body=raw_body, request_id=raw_request.state.request_id)
-    raw_request.state.audit = {"user_id":authz.api_key["user_id"], "api_key_id":authz.api_key["id"], "model":request.model}
+    authz = await authorize_api_request(
+        authorization=authorization,
+        request=request,
+        raw_body=raw_body,
+        request_id=raw_request.state.request_id,
+    )
+    raw_request.state.audit = {
+        "user_id": authz.api_key["user_id"],
+        "api_key_id": authz.api_key["id"],
+        "model": request.model,
+    }
 
     streaming = False
     try:
         if request.stream:
-            source = await forward_chat_completion_stream(request, authz.model, authz.request_id)
+            try:
+                source = await forward_chat_completion_stream(
+                    request, authz.model, authz.request_id
+                )
+            except Exception as exc:
+                await release_rejected_request(authz, exc)
+                raise
             iterator = await bill_streaming_response(
                 source=source,
                 request=request,
@@ -39,7 +55,16 @@ async def post_chat_completions(
                 model=authz.model,
                 request_id=authz.request_id,
             )
-            capture_event(authz.api_key["user_id"], "first_api_request", {"request_id": authz.request_id, "model": request.model, "stream": True})
+            capture_event(
+                authz.api_key["user_id"],
+                "first_api_request",
+                {
+                    "request_id": authz.request_id,
+                    "model": request.model,
+                    "stream": True,
+                },
+            )
+
             async def managed_stream():
                 try:
                     async for chunk in iterator:
@@ -55,7 +80,13 @@ async def post_chat_completions(
                 headers={"x-request-id": authz.request_id},
             )
 
-        payload = await forward_chat_completion(request, authz.model, authz.request_id)
+        try:
+            payload = await forward_chat_completion(
+                request, authz.model, authz.request_id
+            )
+        except Exception as exc:
+            await release_rejected_request(authz, exc)
+            raise
         payload = await bill_non_streaming_response(
             request=request,
             response_payload=payload,
@@ -64,7 +95,11 @@ async def post_chat_completions(
             model=authz.model,
             request_id=authz.request_id,
         )
-        capture_event(authz.api_key["user_id"], "first_api_request", {"request_id": authz.request_id, "model": request.model, "stream": False})
+        capture_event(
+            authz.api_key["user_id"],
+            "first_api_request",
+            {"request_id": authz.request_id, "model": request.model, "stream": False},
+        )
         return JSONResponse(payload, headers={"x-request-id": authz.request_id})
     finally:
         if not streaming:

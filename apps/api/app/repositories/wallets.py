@@ -13,15 +13,10 @@ async def bootstrap_user_account(user_id: str, email: str) -> dict:
 
 
 async def fetch_wallet(user_id: str) -> dict | None:
-    payload = await rest_select(
-        path="/rest/v1/wallets",
-        params={
-            "user_id": f"eq.{user_id}",
-            "select": "id,user_id,balance_cents,currency,created_at,updated_at",
-            "limit": "1",
-        },
+    return await execute_rest_rpc(
+        path="/rest/v1/rpc/wallet_availability",
+        payload={"target_user_id": user_id},
     )
-    return payload[0] if payload else None
 
 
 async def fetch_transactions(user_id: str, limit: int = 20) -> list[dict]:
@@ -36,13 +31,17 @@ async def fetch_transactions(user_id: str, limit: int = 20) -> list[dict]:
     )
 
 
-def build_wallet_summary(wallet: Mapping[str, object] | None, transactions: list[dict]) -> dict:
+def build_wallet_summary(
+    wallet: Mapping[str, object] | None, transactions: list[dict]
+) -> dict:
     if wallet is None:
         return {
             "wallet": None,
             "transactions": transactions,
             "metrics": {
                 "current_balance_cents": 0,
+                "available_balance_cents": 0,
+                "reserved_cents": 0,
                 "transaction_count": len(transactions),
                 "trial_credit_granted": False,
                 "today_usage_cents": 0,
@@ -56,8 +55,15 @@ def build_wallet_summary(wallet: Mapping[str, object] | None, transactions: list
         "transactions": transactions,
         "metrics": {
             "current_balance_cents": int(wallet.get("balance_cents", 0) or 0),
+            "available_balance_cents": int(
+                wallet.get("available_balance_cents", wallet.get("balance_cents", 0))
+                or 0
+            ),
+            "reserved_cents": int(wallet.get("reserved_cents", 0) or 0),
             "transaction_count": len(transactions),
-            "trial_credit_granted": any(tx.get("type") == "FREE_TRIAL" for tx in transactions),
+            "trial_credit_granted": any(
+                tx.get("type") == "FREE_TRIAL" for tx in transactions
+            ),
             "today_usage_cents": 0,
             "month_usage_cents": 0,
             "api_request_count": 0,

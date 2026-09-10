@@ -23,7 +23,9 @@ export default async function DashboardBillingPage() {
   return (
     <TopupPanel
       accessToken={session.access_token}
-      balanceCents={overview.metrics.current_balance_cents}
+      balanceCents={overview.metrics.available_balance_cents}
+      totalBalanceCents={overview.metrics.current_balance_cents}
+      reservedCents={overview.metrics.reserved_cents}
       initialTopups={topups}
     />
   );
