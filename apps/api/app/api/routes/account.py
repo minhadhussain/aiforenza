@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from datetime import datetime
+from typing import Literal
+from uuid import UUID
+from app.repositories.activity import fetch_activity
 
 from app.repositories.dashboard import fetch_usage_summary
 from app.api.deps.auth import get_current_dashboard_user
@@ -27,7 +31,9 @@ async def get_current_account(user: dict = Depends(get_current_dashboard_user)) 
 
 
 @router.get("/dashboard/overview")
-async def get_dashboard_overview(user: dict = Depends(get_current_dashboard_user)) -> dict:
+async def get_dashboard_overview(
+    user: dict = Depends(get_current_dashboard_user),
+) -> dict:
     user_id = user.get("id")
     email = user.get("email")
 
@@ -67,15 +73,22 @@ async def get_dashboard_overview(user: dict = Depends(get_current_dashboard_user
 
 
 @router.get("/dashboard/transactions")
-async def get_dashboard_transactions(user: dict = Depends(get_current_dashboard_user)) -> dict:
+async def get_dashboard_transactions(
+    user: dict = Depends(get_current_dashboard_user),
+) -> dict:
     user_id = user.get("id")
     if not user_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authenticated user is missing required account data.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Authenticated user is missing required account data.",
+        )
 
     try:
         transactions = await fetch_transactions(user_id, limit=50)
     except SupabaseRepositoryError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
+        ) from exc
 
     return {"data": transactions}
 
@@ -84,12 +97,17 @@ async def get_dashboard_transactions(user: dict = Depends(get_current_dashboard_
 async def get_dashboard_usage(user: dict = Depends(get_current_dashboard_user)) -> dict:
     user_id = user.get("id")
     if not user_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authenticated user is missing required account data.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Authenticated user is missing required account data.",
+        )
 
     try:
         records = await fetch_usage_records(user_id, limit=50)
     except SupabaseRepositoryError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
+        ) from exc
 
     return {"data": records}
 
@@ -99,11 +117,47 @@ async def get_dashboard_models(_: dict = Depends(get_current_dashboard_user)) ->
     try:
         models = await fetch_enabled_models()
     except SupabaseRepositoryError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)
+        ) from exc
 
     return {"data": serialize_dashboard_models(models)}
 
 
+@router.get("/dashboard/activity")
+async def get_dashboard_activity(
+    user: dict = Depends(get_current_dashboard_user),
+    page: int = Query(default=1, ge=1, le=100000),
+    page_size: int = Query(default=25, ge=1, le=100),
+    model: str | None = Query(
+        default=None, min_length=1, max_length=160, pattern=r"^[A-Za-z0-9._/-]+$"
+    ),
+    api_key_id: UUID | None = None,
+    activity_status: Literal["billed", "unsettled", "rejected", "released"]
+    | None = None,
+    as_of: datetime | None = None,
+) -> dict:
+    if as_of and as_of.tzinfo is None:
+        raise HTTPException(status_code=422, detail="as_of must include a timezone")
+    try:
+        payload = await fetch_activity(
+            user["id"],
+            page=page,
+            page_size=page_size,
+            model=model,
+            api_key_id=api_key_id,
+            status=activity_status,
+            as_of=as_of,
+        )
+    except SupabaseRepositoryError as exc:
+        raise HTTPException(
+            status_code=503, detail="Activity history temporarily unavailable."
+        ) from exc
+    return {**payload, "account": {"id": user["id"], "email": user.get("email")}}
+
+
 @router.get("/dashboard/topups")
-async def get_dashboard_topups(user: dict = Depends(get_current_dashboard_user)) -> dict:
+async def get_dashboard_topups(
+    user: dict = Depends(get_current_dashboard_user),
+) -> dict:
     return {"data": await list_user_topups(user["id"])}

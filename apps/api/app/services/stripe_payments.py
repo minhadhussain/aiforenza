@@ -93,9 +93,7 @@ async def create_checkout_session(
 ) -> CheckoutSessionResult:
     amount_cents = resolve_package(package_id)
     client = _stripe_client()
-    success_url = (
-        f"{settings.next_public_app_url.rstrip('/')}/dashboard/billing?success=true"
-    )
+    success_url = f"{settings.next_public_app_url.rstrip('/')}/dashboard/billing?success=true&session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = (
         f"{settings.next_public_app_url.rstrip('/')}/dashboard/billing?cancelled=true"
     )

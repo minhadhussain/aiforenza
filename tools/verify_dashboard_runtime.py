@@ -141,6 +141,10 @@ def main(probe=False, keys=False):
                 "anon_key": settings.supabase_anon_key,
                 "session": session,
                 "expected_cents": overview["wallet"]["balance_cents"],
+                "expected_available_cents": overview["wallet"][
+                    "available_balance_cents"
+                ],
+                "expected_reserved_cents": overview["wallet"]["reserved_cents"],
                 "email": private["email"],
             }
             result = subprocess.run(

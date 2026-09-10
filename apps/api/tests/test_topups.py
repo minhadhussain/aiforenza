@@ -73,10 +73,14 @@ def test_checkout_creates_session(monkeypatch) -> None:
     assert response.json()["stripe_amount_inr"] == 83500
 
 
-def test_webhook_processes_checkout_completion(monkeypatch) -> None:
+@pytest.mark.parametrize(
+    "event_type",
+    ["checkout.session.completed", "checkout.session.async_payment_succeeded"],
+)
+def test_webhook_processes_checkout_completion(monkeypatch, event_type) -> None:
     class Event:
         id = "evt_test_123"
-        type = "checkout.session.completed"
+        type = event_type
         data = {
             "object": {
                 "id": "cs_test_123",
@@ -364,3 +368,21 @@ def test_webhook_ignores_unrelated_event(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json()["ignored"] is True
+
+
+def test_delayed_unpaid_completion_waits_for_paid_event(monkeypatch):
+    from types import SimpleNamespace
+
+    event = SimpleNamespace(
+        type="checkout.session.completed", data={"object": {"payment_status": "unpaid"}}
+    )
+    monkeypatch.setattr(
+        "app.api.routes.topups.verify_webhook_signature", lambda *args: event
+    )
+    credit = AsyncMock()
+    monkeypatch.setattr("app.api.routes.topups.handle_checkout_completed", credit)
+    response = client.post(
+        "/v1/webhooks/stripe", content=b"{}", headers={"Stripe-Signature": "fixture"}
+    )
+    assert response.status_code == 200 and response.json()["pending_payment"] is True
+    credit.assert_not_called()

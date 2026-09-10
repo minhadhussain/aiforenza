@@ -1,5 +1,8 @@
 # Phase 5 - Model API
 
+> Historical phase snapshot. Current verification uses the configured direct
+> Azure gateway, with billing and settlement enabled; see [README.md](README.md).
+
 This phase introduces the OpenAI-compatible model API surface.
 
 ## Included

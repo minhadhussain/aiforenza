@@ -1,5 +1,7 @@
 # Phase 1 - Foundation
 
+> Historical phase snapshot. Current steps and status: [README.md](README.md).
+
 This phase establishes the monorepo and runtime foundation for the MVP.
 
 ## Included

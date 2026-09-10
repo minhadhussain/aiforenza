@@ -1,5 +1,8 @@
 # Phase 8 - Dashboard
 
+> Historical phase snapshot. Current authenticated browser/payment evidence:
+> [FINAL-E2E-2026-09-10.md](FINAL-E2E-2026-09-10.md).
+
 This phase adds the dedicated customer dashboard views described in the MVP specification.
 
 ## Included

@@ -1,5 +1,7 @@
 # Phase 6 - Usage Billing
 
+> Historical phase snapshot. Current verified accounting: [README.md](README.md).
+
 This phase adds the first billable usage foundation on top of the model API.
 
 ## Included
@@ -14,7 +16,8 @@ This phase adds the first billable usage foundation on top of the model API.
 
 - pricing is model-driven, not hard-coded globally
 - charging is keyed by `request_id` for idempotency
-- the current implementation uses provider usage when available and a fallback estimate when needed
+- current settlement requires authoritative provider usage; no estimated-usage
+  fallback is permitted. Missing usage retains the reservation for reconciliation.
 
 ## Deferred To Later Phases
 

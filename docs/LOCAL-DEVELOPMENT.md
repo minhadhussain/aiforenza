@@ -2,6 +2,11 @@
 
 From the repository root, run `npm run dev`.
 
+For payments, **also run `npm run dev:payments` in a second terminal** before
+opening Checkout. The app launcher alone does not forward Stripe webhooks.
+See [SETUP-AND-TOPUPS.md](SETUP-AND-TOPUPS.md) for first-time signing-secret setup,
+test card/3DS steps, and what to do when funds do not appear.
+
 The launcher (`tools/dev.py`) checks required backend Supabase settings and the
 frontend API URL, refuses occupied dev ports, starts the existing Docker Redis
 service, checks Redis PING, and launches exactly one local app stack:
@@ -50,8 +55,12 @@ CORS preflight checks. It never makes an inference request or alters holds.
 Test login state is read programmatically from the Git-ignored
 `tools/.opencode-test.env.local`; do not print or commit that file.
 
-Verified after repair: usage, key listing and overview HTTP 200; temporary key
+Verified at the runtime-repair checkpoint: usage, key listing and overview HTTP 200; temporary key
 creation HTTP 201 with CORS headers and successful revocation; authenticated
 dashboard HTTP 200 showing $4.98. Only 3000, 8000 and Docker Redis 6379 remain
 listening. Historical reservations and payment/provider configuration were not
 changed.
+
+Those are historical balances, not fixed fixtures. The later real payment run
+credited $10 and verified post-top-up API use; current evidence is in
+[FINAL-E2E-2026-09-10.md](FINAL-E2E-2026-09-10.md).

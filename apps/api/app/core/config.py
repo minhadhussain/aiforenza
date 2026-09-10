@@ -30,7 +30,9 @@ class Settings(BaseSettings):
         default="http://localhost:3000", alias="API_CORS_ORIGINS"
     )
     api_key_pepper: str = Field(default="", alias="API_KEY_PEPPER")
-    api_max_request_bytes: int = Field(default=200_000, alias="API_MAX_REQUEST_BYTES")
+    api_max_request_bytes: int = Field(
+        default=1_000_000, ge=1024, le=10_000_000, alias="API_MAX_REQUEST_BYTES"
+    )
     api_max_messages: int = Field(default=100, alias="API_MAX_MESSAGES")
     api_requests_per_minute_per_key: int = Field(
         default=60, alias="API_REQUESTS_PER_MINUTE_PER_KEY"

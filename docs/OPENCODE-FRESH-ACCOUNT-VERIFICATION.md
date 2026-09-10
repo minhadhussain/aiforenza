@@ -1,5 +1,12 @@
 # Real OpenCode verification with an isolated trial wallet
 
+> This records the initial test-account checkpoint. Later, with user approval,
+> the desktop OpenCode config was switched to this account and successfully
+> tested again (498 → 496 cents). It is no longer the one-request fixture below.
+> Latest top-up and API balances: [FINAL-E2E-2026-09-10.md](FINAL-E2E-2026-09-10.md).
+> Use `verify_dashboard_runtime.py` for current read-only runtime checks rather
+> than the original one-request assertions. The top-up test fixture issue is fixed.
+
 ## Result
 
 OpenCode **1.2.27** successfully called `gpt-5.4` through

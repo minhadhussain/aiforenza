@@ -23,6 +23,7 @@ from app.services.rate_limit import acquire_concurrency_slot
 from app.services.rate_limit import check_api_rate_limit
 from app.services.rate_limit import release_concurrency_slot
 from app.services.usage_records import preflight_spending_details
+from app.repositories.activity import record_rejection
 
 logger = logging.getLogger("aiforenza.balance")
 
@@ -95,10 +96,42 @@ def validate_request_size(raw_body: bytes, request: ChatCompletionRequest) -> No
 
 async def authorize_api_request(
     *,
+    authorization,
+    request,
+    raw_body,
+    request_id=None,
+):
+    request_id = request_id or create_request_id()
+    context = {}
+    try:
+        return await _authorize_api_request(
+            authorization=authorization,
+            request=request,
+            raw_body=raw_body,
+            request_id=request_id,
+            rejection_context=context,
+        )
+    except OpenAIAPIError as exc:
+        if context.get("api_key"):
+            key = context["api_key"]
+            await record_rejection(
+                request_id=request_id,
+                user_id=key["user_id"],
+                api_key_id=key["id"],
+                model=request.model,
+                code=exc.code,
+                http_status=exc.status_code,
+            )
+        raise
+
+
+async def _authorize_api_request(
+    *,
     authorization: str | None,
     request: ChatCompletionRequest,
     raw_body: bytes,
     request_id: str | None = None,
+    rejection_context: dict | None = None,
 ) -> AuthorizedAPIRequest:
     validate_request_size(raw_body, request)
     request_id = request_id or create_request_id()
@@ -122,6 +155,8 @@ async def authorize_api_request(
 
     if api_key is None:
         raise _invalid_api_key()
+    if rejection_context is not None:
+        rejection_context["api_key"] = api_key
 
     try:
         profile = await fetch_profile(api_key["user_id"])

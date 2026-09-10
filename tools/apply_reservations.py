@@ -13,6 +13,7 @@ if filename not in {
     "202609090002_payment_credit_safety.sql",
     "202609090003_catalog_reference_prices.sql",
     "202609100001_wallet_availability.sql",
+    "202609110001_request_activity.sql",
 }:
     raise SystemExit("Unsupported migration")
 version = filename.split("_", 1)[0]

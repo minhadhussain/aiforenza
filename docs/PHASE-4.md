@@ -1,5 +1,8 @@
 # Phase 4 - API Keys
 
+> Historical phase snapshot. Current setup: [README.md](README.md). Keys from the
+> same account share one wallet; generating another key does not add funds.
+
 This phase adds the API key lifecycle required for OpenAI-compatible API access.
 
 ## Included

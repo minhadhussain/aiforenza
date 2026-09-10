@@ -101,6 +101,16 @@ def database():
                 / "supabase/migrations/202609090002_payment_credit_safety.sql"
             ).read_text()
             cur.execute(payment_sql.replace("public.", schema + "."))
+            domestic_sql = (
+                Path(__file__).resolve().parents[3]
+                / "supabase/migrations/202609090007_fix_inr_topup_completion.sql"
+            ).read_text()
+            cur.execute(domestic_sql.replace("public.", schema + "."))
+            activity_sql = (
+                Path(__file__).resolve().parents[3]
+                / "supabase/migrations/202609110001_request_activity.sql"
+            ).read_text()
+            cur.execute(activity_sql.replace("public.", schema + "."))
         conn.commit()
         yield RedactedDatabaseURL(url), schema
     finally:
@@ -190,6 +200,17 @@ def test_concurrent_reservations_exact_balance_idempotency(database):
             assert snapshot["balance_cents"] == 50
             assert snapshot["reserved_cents"] == 40
     assert snapshot["available_balance_cents"] == 10
+    with psycopg2.connect(url, sslmode="require") as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"select {schema}.dashboard_activity(%s,25,1,null,null,'unsettled')",
+                (user,),
+            )
+            pending = cur.fetchone()[0]
+            assert pending["total"] == 1
+            assert pending["data"][0]["reserved_cents"] == 40
+            assert pending["data"][0]["customer_charge_cents"] is None
+            assert pending["data"][0]["input_tokens"] is None
 
     def settle(request_id, charge):
         with psycopg2.connect(url, sslmode="require") as conn:
@@ -220,6 +241,59 @@ def test_concurrent_reservations_exact_balance_idempotency(database):
                 f"select balance_cents from {schema}.wallets where id=%s", (wallet,)
             )
             assert cur.fetchone()[0] == 0
+
+    # Read-only activity exposes settled charges and released attempts once each.
+    with psycopg2.connect(url, sslmode="require") as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"select {schema}.dashboard_activity(%s)", (user,))
+            history = cur.fetchone()[0]
+            assert history["total"] == 3
+            assert len({r["request_id"] for r in history["data"]}) == 3
+            assert {r["status"] for r in history["data"]} == {"billed", "released"}
+            assert all(
+                r["api_key_id"] == key and r["api_key_name"] == "test"
+                for r in history["data"]
+            )
+            assert "key_hash" not in str(history) and "key_prefix" not in str(history)
+            cur.execute(f"select {schema}.dashboard_activity(%s)", (str(uuid4()),))
+            empty = cur.fetchone()[0]
+            assert empty["data"] == empty["keys"] == empty["models"] == []
+            request_id = "req_" + uuid4().hex
+            for _ in range(2):
+                cur.execute(
+                    f"select {schema}.record_request_rejection(%s,%s,%s,'test','pricing_limit_exceeded',400)",
+                    (request_id, user, key),
+                )
+            cur.execute(
+                f"select {schema}.dashboard_activity(%s,1,1,'test',%s,'rejected')",
+                (user, key),
+            )
+            rejection = cur.fetchone()[0]
+            assert rejection["total"] == 1 and len(rejection["data"]) == 1
+            assert rejection["data"][0]["customer_charge_cents"] is None
+            assert rejection["data"][0]["error_code"] == "pricing_limit_exceeded"
+            cur.execute(f"select {schema}.dashboard_activity(%s,1,1)", (user,))
+            first = cur.fetchone()[0]
+            cur.execute(
+                f"select {schema}.dashboard_activity(%s,1,2,null,null,null,%s)",
+                (user, first["as_of"]),
+            )
+            second = cur.fetchone()[0]
+            assert first["total"] == second["total"] == 4
+            assert first["data"][0]["request_id"] != second["data"][0]["request_id"]
+            cur.execute(
+                f"select {schema}.dashboard_activity(%s,25,1,null,%s)",
+                (str(uuid4()), key),
+            )
+            assert cur.fetchone()[0]["total"] == 0
+            cur.execute(
+                "select has_function_privilege('authenticated',%s,'EXECUTE'),has_table_privilege('authenticated',%s,'SELECT')",
+                (
+                    f"{schema}.dashboard_activity(uuid,integer,integer,text,uuid,text,timestamptz)",
+                    f"{schema}.request_rejections",
+                ),
+            )
+            assert cur.fetchone() == (False, False)
             cur.execute(
                 f"select count(*) from {schema}.usage_records where user_id=%s", (user,)
             )
@@ -229,6 +303,14 @@ def test_concurrent_reservations_exact_balance_idempotency(database):
                 (user,),
             )
             assert cur.fetchone()[0] == 0
+
+    with pytest.raises(psycopg2.Error):
+        with psycopg2.connect(url, sslmode="require") as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"select {schema}.record_request_rejection(%s,%s,%s,'test','pricing_limit_exceeded',400)",
+                    ("req_" + uuid4().hex, str(uuid4()), key),
+                )
             cur.execute(
                 f"select count(*) from {schema}.wallet_reservations where user_id=%s",
                 (user,),
@@ -253,7 +335,7 @@ def test_duplicate_topup_credits_exactly_payment_amount(database):
                 (wallet, user),
             )
             cur.execute(
-                f"insert into {schema}.topups(user_id,stripe_checkout_session_id,amount_cents,currency,status) values(%s,%s,1000,'USD','PENDING')",
+                f"insert into {schema}.topups(user_id,stripe_checkout_session_id,amount_cents,currency,status,package_id,package_value_usd_cents,stripe_amount_inr,stripe_currency,exchange_rate_used) values(%s,%s,1000,'USD','PENDING','starter_10',1000,83500,'INR',83.5)",
                 (user, session),
             )
 

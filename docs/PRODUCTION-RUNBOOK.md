@@ -2,10 +2,15 @@
 
 Use this runbook before allowing real customer traffic or real payments.
 
+Local API/Stripe **test-mode** verification is recorded in
+[FINAL-E2E-2026-09-10.md](FINAL-E2E-2026-09-10.md); it does not satisfy all
+production gates below. [SETUP-AND-TOPUPS.md](SETUP-AND-TOPUPS.md) covers local steps.
+
 ## 1. Environment Review
 
 - Confirm `.env` values are set for:
   - `SUPABASE_URL`
+  - `SUPABASE_ANON_KEY`
   - `SUPABASE_SERVICE_ROLE_KEY`
   - `STRIPE_SECRET_KEY`
   - `STRIPE_WEBHOOK_SECRET`
@@ -16,6 +21,11 @@ Use this runbook before allowing real customer traffic or real payments.
   - `POSTHOG_KEY`
   - `POSTHOG_HOST`
 - Confirm no secrets are committed to git.
+- Set real public HTTPS URLs for frontend/API and Supabase Auth redirects.
+- Set `API_ENV=production` only in the reviewed production deployment. Keep
+  Stripe test and live keys, endpoints, signing secrets, and financial data separate.
+- Preserve the India domestic INR collection configuration and USD wallet credit
+  conversion. Do not substitute a fixed FX rate or silently change pricing.
 
 ## 2. Database & Backups
 
@@ -39,6 +49,20 @@ Use this runbook before allowing real customer traffic or real payments.
 - Verify Stripe top-up webhook credits exactly once for duplicate delivery.
 - Verify insufficient balance returns HTTP 402 without provider forwarding.
 - Verify usage deduction and topup credit both produce immutable ledger entries.
+- Register an HTTPS Stripe webhook endpoint for `checkout.session.completed` and
+  `checkout.session.async_payment_succeeded`; configure its own signing secret.
+  Stripe CLI forwarding is local development infrastructure, not production delivery.
+- Confirm one paid Checkout session creates one `TOPUP` transaction with
+  `reference_id=stripe:<session_id>` and the expected USD package value.
+- Replay the original event and a distinct event for the same paid session;
+  neither may credit twice. Exercise unpaid, wrong-owner, wrong-amount, wrong-mode,
+  wrong-currency and invalid-signature cases with no credit.
+- Alert on paid-but-PENDING records and failed webhook deliveries; document
+  operator replay and refund/chargeback handling before accepting customer money.
+- Confirm the authenticated billing return page shows the matching session's
+  credit; a successful redirect is never authorization to add funds.
+- Match dashboard account and API-key owner. Display total/reserved/available
+  separately; unresolved historical holds require evidence, not deletion.
 
 ## 5. Security Review
 

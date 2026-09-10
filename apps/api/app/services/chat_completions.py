@@ -24,8 +24,12 @@ def build_provider_payload(
     # OpenAI-compatible SDKs can serialize this Responses-only client option.
     # Chat Completions has no reasoning-summary field; keep reasoning_effort intact.
     payload.pop("reasoningSummary", None)
-    # Preserve the same allowance/precedence as preflight; GPT-5.4 rejects max_tokens.
-    if request.model == "gpt-5.4" and request.max_tokens is not None:
+    # These verified Azure deployments reject the legacy SDK spelling.
+    # Preserve the same allowance/precedence as wallet preflight.
+    if (
+        request.model in {"gpt-5.4", "gpt-5.6-sol", "gpt-6-astra"}
+        and request.max_tokens is not None
+    ):
         payload["max_completion_tokens"] = (
             request.max_completion_tokens or request.max_tokens
         )

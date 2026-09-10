@@ -76,7 +76,17 @@ async def post_stripe_webhook(
     payload = await request.body()
     event = verify_webhook_signature(payload, stripe_signature)
 
-    if event.type == "checkout.session.completed":
+    if event.type in {
+        "checkout.session.completed",
+        "checkout.session.async_payment_succeeded",
+    }:
+        # Delayed payment methods complete Checkout before funds are confirmed.
+        # Acknowledge the pending event; only the later paid event may credit.
+        if (
+            event.type == "checkout.session.completed"
+            and event.data["object"].get("payment_status") == "unpaid"
+        ):
+            return {"received": True, "processed": False, "pending_payment": True}
         result = await handle_checkout_completed(event)
         return {
             "received": True,

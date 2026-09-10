@@ -1,5 +1,10 @@
 # OpenCode balance-check investigation
 
+> Historical original-account investigation; its uncertain holds remain intact.
+> A separate funded test account now has real payment/API verification in
+> [FINAL-E2E-2026-09-10.md](FINAL-E2E-2026-09-10.md). The old top-up fixture failure
+> described below has since been fixed and passed against the current INR RPC.
+
 ## Verified cause
 
 The key in the user's local OpenCode project configuration was matched by its

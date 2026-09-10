@@ -1,5 +1,14 @@
 # **AI Model API Credit Platform — MVP Build Specification**
 
+> This is the original product specification, not a declaration that every item
+> is implemented. Current setup: [SETUP-AND-TOPUPS.md](SETUP-AND-TOPUPS.md).
+> Latest test evidence and remaining launch gates:
+> [FINAL-E2E-2026-09-10.md](FINAL-E2E-2026-09-10.md). Current implementation uses
+> the configured direct Azure gateway for verified requests, USD-cent wallets,
+> domestic INR Checkout, and conservative persistent request reservations.
+> Do not treat planned models, admin/refund features, or early architecture
+> examples below as verified production capabilities.
+
 ## **1\. Objective**
 
 Build a simple paid API platform that allows developers and researchers to access multiple AI models through a single **OpenAI-compatible API**.
@@ -1606,4 +1615,3 @@ The first objective is not to build a massive AI platform.
 The first objective is to prove that people will put their own money into the platform and consume the available model capacity.
 
 **Ship the API, give every new user $5, enable top-ups, and measure how much real cash the platform can generate.**
-

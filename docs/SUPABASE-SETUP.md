@@ -1,18 +1,27 @@
 # Supabase Setup
 
-Use this document when preparing a local or hosted Supabase project for the MVP.
+Use this document when preparing a hosted Supabase project. Start with
+[SETUP-AND-TOPUPS.md](SETUP-AND-TOPUPS.md) for the full application workflow.
 
 ## Apply SQL Files
 
-Run these SQL files in order inside the Supabase SQL editor:
+The canonical migration history is **all files in `supabase/migrations/`, in
+timestamp order**, currently through `202609110001_request_activity.sql`.
+Do not use the seven old `infra/supabase` snapshots as a complete setup.
 
-1. `infra/supabase/001_profiles.sql`
-2. `infra/supabase/002_wallets_transactions.sql`
-3. `infra/supabase/003_api_keys.sql`
-4. `infra/supabase/004_models.sql`
-5. `infra/supabase/005_fix_bootstrap_user_account.sql`
-6. `infra/supabase/006_usage_records_billing.sql`
-7. `infra/supabase/007_customer_pricing_columns.sql`
+From the repository root:
+
+```powershell
+npm exec supabase -- login
+npm exec supabase -- link --project-ref YOUR_PROJECT_REF
+npm exec supabase -- migration list
+npm exec supabase -- db push --dry-run
+```
+
+Verify the target project and review pending SQL, including historical catalog
+seeds, before running `npm exec supabase -- db push`. On an existing project,
+do not rerun already-applied migrations or automatically repair history. Back up
+first. Never run `db reset` on the shared/hosted financial database.
 
 These files create:
 
@@ -25,6 +34,14 @@ These files create:
 - the signup wallet bootstrap RPC for one-time free trial credit
 - the follow-up wallet bootstrap function fix migration
 - the atomic usage charge RPC and model-level customer pricing fields
+- `topups`, `stripe_events`, INR collection/USD credit metadata and `complete_topup`
+- `wallet_reservations`, `wallet_reservation_releases`, `reserve_usage`,
+  `wallet_availability`, and audited `release_unconsumed_usage`
+
+After migration, confirm RLS and service-role-only RPC permissions, then configure
+Supabase Auth email confirmation plus site/redirect URLs matching the frontend.
+Review model rows after applying historical seeds: only verified/priced enabled
+models may be served. Do not infer current model availability from old seed SQL.
 
 ## Required Environment Variables
 
@@ -47,7 +64,7 @@ Copy `.env.example` to `.env` and set at least the following values:
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-### External Services For Later Phases
+### External Services Required For Current Features
 
 - `REDIS_URL`
 - `STRIPE_SECRET_KEY`
@@ -63,5 +80,6 @@ Copy `.env.example` to `.env` and set at least the following values:
 
 - Keep `SUPABASE_SERVICE_ROLE_KEY` on the backend only.
 - Never commit `.env`.
-- `API_KEY_PEPPER` should be a long random secret used when hashing API keys.
+- Set an API-key pepper before first key issuance if desired; never change an
+  existing pepper casually, because it changes authentication hashes.
 - The dashboard uses Supabase sessions, while the model API uses hashed API keys.

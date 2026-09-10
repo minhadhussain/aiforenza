@@ -7,9 +7,10 @@ from app.services.chat_completions import build_provider_payload
 
 
 @pytest.mark.parametrize("stream", [False, True])
-def test_opencode_summary_option_not_forwarded_to_chat_api(stream):
+@pytest.mark.parametrize("slug", ["gpt-5.4", "gpt-5.6-sol", "gpt-6-astra"])
+def test_opencode_summary_option_not_forwarded_to_chat_api(stream, slug):
     request = ChatCompletionRequest(
-        model="gpt-5.4",
+        model=slug,
         messages=[{"role": "user", "content": "Hello"}],
         max_tokens=32000,
         reasoningSummary="auto",
@@ -20,7 +21,7 @@ def test_opencode_summary_option_not_forwarded_to_chat_api(stream):
     )
     before = request.model_dump()
     payload = build_provider_payload(
-        request, SimpleNamespace(provider_model_id="gpt-5.4"), "req_test"
+        request, SimpleNamespace(provider_model_id=slug), "req_test"
     )
     assert "reasoningSummary" not in payload
     assert payload["reasoning_effort"] == "medium"
@@ -44,7 +45,9 @@ def test_standard_chat_request_remains_unchanged():
     assert payload == request.model_dump(exclude_none=True)
 
 
-@pytest.mark.parametrize("slug", ["gpt-5.4", "other-model"])
+@pytest.mark.parametrize(
+    "slug", ["gpt-5.4", "gpt-5.6-sol", "gpt-6-astra", "grok-4.6", "other-model"]
+)
 def test_alias_precedence_and_other_models(slug):
     request = ChatCompletionRequest(
         model=slug,
@@ -56,7 +59,7 @@ def test_alias_precedence_and_other_models(slug):
         request, SimpleNamespace(provider_model_id=slug), "req_test"
     )
     assert payload["max_completion_tokens"] == 500
-    if slug == "gpt-5.4":
+    if slug in {"gpt-5.4", "gpt-5.6-sol", "gpt-6-astra"}:
         assert "max_tokens" not in payload
     else:
         assert payload["max_tokens"] == 1000

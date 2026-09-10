@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { TopupRecord } from "@/lib/topups";
@@ -26,6 +26,7 @@ const packages = [
 export function TopupPanel({ accessToken, balanceCents, totalBalanceCents, reservedCents, initialTopups }: TopupPanelProps) {
   const router = useRouter();
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
+  const refreshAttempts = useRef(0);
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     if (query.get("cancelled") === "true") {
@@ -33,17 +34,31 @@ export function TopupPanel({ accessToken, balanceCents, totalBalanceCents, reser
       return;
     }
     if (query.get("success") !== "true") return;
+    const sessionId = query.get("session_id");
+    const returnedTopup = initialTopups.find((item) => item.stripe_checkout_session_id === sessionId);
+    if (returnedTopup?.status === "COMPLETED") {
+      setPaymentNotice(`Payment verified. ${formatUsdFromCents(returnedTopup.amount_cents)} has been added to this account's wallet.`);
+      return;
+    }
+    if (returnedTopup?.status === "FAILED" || returnedTopup?.status === "REFUNDED") {
+      setPaymentNotice(`This top-up is ${returnedTopup.status.toLowerCase()}. Check the transaction history or contact support.`);
+      return;
+    }
+    const pendingNotice = "Payment is not yet credited. Check the status below; if Stripe shows paid, contact support with the Checkout session ID. Do not pay again just to refresh your balance.";
+    if (refreshAttempts.current >= 20) {
+      setPaymentNotice(pendingNotice);
+      return;
+    }
     setPaymentNotice("Payment submitted. Confirming your payment; balance updates only after verification.");
-    let count = 0;
     const timer = window.setInterval(() => {
       router.refresh();
-      if (++count >= 10) {
+      if (++refreshAttempts.current >= 20) {
         window.clearInterval(timer);
-        setPaymentNotice("Check your top-up status below. If payment is still pending, refresh again shortly.");
+        setPaymentNotice(pendingNotice);
       }
     }, 3000);
     return () => window.clearInterval(timer);
-  }, [router]);
+  }, [router, initialTopups]);
   const [selectedPackage, setSelectedPackage] = useState<string>("starter_10");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +112,8 @@ export function TopupPanel({ accessToken, balanceCents, totalBalanceCents, reser
           <p className="mt-3 text-sm text-[var(--muted)]">Wallet total: {formatUsdFromCents(totalBalanceCents)} · Reserved for requests: {formatUsdFromCents(reservedCents)}</p>
           <p className="mt-5 text-sm leading-7 text-[var(--muted)]">Use prepaid wallet credits for API usage. Wallet crediting occurs only after verified Stripe webhook completion.</p>
           <div className="mt-8 text-sm text-[var(--muted)]">Completed top-ups: {completedCount}</div>
+          <button type="button" onClick={() => router.refresh()} className="mt-4 border border-white/20 px-4 py-2 text-sm text-white">Refresh balance and top-ups</button>
+          <p className="mt-3 text-sm text-[var(--muted)]">Top-ups belong to the signed-in account. API keys from another account do not share these funds.</p>
         </div>
 
         <div className="bg-[#050608] px-6 py-8 lg:px-7">

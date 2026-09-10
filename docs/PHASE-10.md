@@ -1,5 +1,8 @@
 # Phase 10 - Production
 
+> These are foundations and pending release gates, not a production approval.
+> See [PRODUCTION-RUNBOOK.md](PRODUCTION-RUNBOOK.md) and [README.md](README.md).
+
 This phase adds the first practical production-facing work on top of the MVP foundations.
 
 ## Included

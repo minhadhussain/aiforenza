@@ -1,5 +1,8 @@
 # API, billing, and pricing verification
 
+> Historical report. Later tests supersede old pricing/alias, Stripe and browser
+> limitations below. Current evidence: [FINAL-E2E-2026-09-10.md](FINAL-E2E-2026-09-10.md).
+
 ## Verified in this implementation pass
 
 - `python -m pytest -q` with `RUN_DATABASE_TESTS=1 RUN_REDIS_TESTS=1`: **75 passed**.

@@ -31,7 +31,7 @@ export const docsPages: DocPage[] = [
         bullets: [
           "Coding assistants and agent workflows",
           "Python and JavaScript applications",
-          "OpenCode, Claude Code, and Cline-style tooling",
+          "OpenCode and compatible Chat Completions clients; native Claude Code requires an adapter",
           "Research scripts and developer prototypes",
         ],
       },
@@ -70,7 +70,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "1. Create an account",
         body:
-          "Sign up for AI Forenza and log in to the dashboard. New accounts receive starter API credit automatically.",
+          "Sign up, complete email verification if required, and log in. New accounts receive one $5 trial grant. Confirm the account identity and AVAILABLE BALANCE; total balance may include reserved funds.",
       },
       {
         heading: "2. Generate an API key",
@@ -86,7 +86,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "4. Choose a model",
         body:
-          "Start with one of the enabled models such as gpt-5.6-sol or another model from the catalog.",
+          "Start with gpt-5.4, which has been verified with OpenCode, or choose a currently enabled model from GET /v1/models. Model availability and pricing are configuration-driven.",
       },
       {
         heading: "5. Make your first request",
@@ -103,7 +103,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "7. Watch your balance",
         body:
-          "Successful requests consume wallet balance. When your balance runs low, use the dashboard to add prepaid funds and continue using the same API key and endpoint.",
+          "Successful requests deduct the customer charge after usage is measured. Top up the same account that owns your key. Complete Stripe Checkout and wait for a verified COMPLETED top-up and TOPUP transaction; creating a Checkout URL alone adds no funds. See Usage & Billing and Top-up Troubleshooting.",
       },
     ],
   },
@@ -199,7 +199,7 @@ export const docsPages: DocPage[] = [
         heading: "Supported request fields",
         body:
           "The MVP supports the fields most existing developer tooling expects.",
-        bullets: ["model", "messages", "temperature", "max_tokens or max_completion_tokens", "stream"],
+        bullets: ["model", "messages with text content", "max_completion_tokens (recommended) or max_tokens", "stream and stream_options.include_usage", "tools and tool_choice where supported by the model"],
       },
       {
         heading: "Sample request body",
@@ -210,7 +210,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "What happens during a request",
         body:
-          "AI Forenza validates your API key, checks the requested model, confirms balance, creates an internal request ID, forwards the request to the provider path, captures usage, calculates the charge, deducts the wallet, records usage, and returns the response.",
+          "AI Forenza validates the key and model, reserves a conservative maximum customer charge against available USD funds, calls the configured provider, captures authoritative usage, and atomically writes one usage record and ledger debit while removing the hold. Unused reserved capacity becomes available. Without an explicit output limit, 1,024 tokens are enforced. Text-only and one completion per request are currently supported; optional provider parameters vary by model.",
       },
       {
         heading: "Example request",
@@ -294,16 +294,22 @@ export const docsPages: DocPage[] = [
       {
         heading: "Configuration values",
         body:
-          "Use a custom provider named aiforenza with @ai-sdk/openai-compatible in your project's opencode.json. Set AI_FORENZA_API_KEY in your terminal to your generated customer key. Select aiforenza/gpt-5.6-sol, not the built-in OpenAI or Azure provider. localhost must refer to the machine running FastAPI.",
+          "Create a key on the account you intend to fund. Save the configuration below as opencode.json in the directory where OpenCode runs, set AI_FORENZA_API_KEY privately in that terminal, restart OpenCode, and select aiforenza/gpt-5.4. Do not select the built-in Azure/OpenAI provider or use an Azure credential. localhost must refer to the machine running FastAPI. Check for older project configs that override your intended key.",
         code: JSON.stringify({
           "$schema": "https://opencode.ai/config.json",
           provider: { aiforenza: {
             npm: "@ai-sdk/openai-compatible", name: "AI Forenza",
             options: { baseURL: "http://localhost:8000/v1", apiKey: "{env:AI_FORENZA_API_KEY}" },
-            models: { "gpt-5.6-sol": { name: "GPT-5.6 Sol" } },
+            models: {
+              "gpt-5.4": { name: "GPT-5.4", limit: { context: 128000, input: 90000, output: 32000 } },
+              "gpt-5.6-sol": { name: "GPT-5.6 Sol", limit: { context: 128000, input: 90000, output: 32000 } },
+              "gpt-6-astra": { name: "GPT-6 Astra", reasoning: false, options: { reasoningEffort: "none" }, limit: { context: 128000, input: 90000, output: 32000 } },
+              "grok-4.6": { name: "Grok 4.6", limit: { context: 128000, input: 90000, output: 32000 } },
+            },
           } },
-          model: "aiforenza/gpt-5.6-sol",
-          small_model: "aiforenza/gpt-5.6-sol",
+          model: "aiforenza/gpt-5.4",
+          small_model: "aiforenza/gpt-5.4",
+          compaction: { auto: true, prune: true, reserved: 16000 },
         }, null, 2),
       },
       {
@@ -312,9 +318,17 @@ export const docsPages: DocPage[] = [
           "AI Forenza is designed around OpenAI-compatible request and response behavior, so existing tooling can connect without learning a custom application protocol.",
       },
       {
+        heading: "Choose another model",
+        body: "Restart OpenCode after editing the config, then use /models and select aiforenza/gpt-5.6-sol, aiforenza/gpt-6-astra, aiforenza/grok-4.6, or aiforenza/gpt-5.4. GET /v1/models is the supported billable catalog. Azure's larger model listing is not proof that every listed model is deployed, compatible, or priced here. These client limits are conservative application limits, not claims about full provider capacity.",
+      },
+      {
+        heading: "Astra tool compatibility",
+        body: "The configured GPT-6 Astra deployment rejects function tools with reasoning enabled. Keep its reasoningEffort option set to none as shown above for OpenCode coding/tool sessions. This is a client option, not a change to Azure settings or pricing. Sol, Astra and Grok passed streaming settlement checks; Astra also passed an actual OpenCode request with this option.",
+      },
+      {
         heading: "Integration pattern",
         body:
-          "Treat AI Forenza as the API layer between your tool and the enabled model catalog. The important configuration surface remains base URL, bearer key, and model slug.",
+          "Run opencode run --model aiforenza/gpt-5.4 \"Reply briefly: hi\". Even a short greeting includes system prompts, tools and an output allowance. The tested 32,000-token request needed about $0.36 available upfront, not a $0.36 final charge. A new key on the same account does not bypass existing holds. Native Claude Code compatibility is not implied by OpenCode verification.",
       },
     ],
   },
@@ -389,7 +403,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Insufficient balance example",
         body:
-          "When the wallet balance is too low, AI Forenza rejects the request before sending it to the model provider.",
+          "When AVAILABLE balance is below the conservative maximum customer charge, AI Forenza rejects before provider forwarding. Check key ownership, reserved funds and output-token allowance. Creating a fresh key does not create a fresh wallet; funds on another account do not apply.",
         code: `{\n  "error": {\n    "message": "Insufficient balance. Please add funds to continue.",\n    "type": "insufficient_balance",\n    "code": "insufficient_balance"\n  }\n}`,
       },
       {
@@ -401,7 +415,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Error handling guidance",
         body:
-          "Treat insufficient balance and invalid API keys as account-state issues. Treat provider-unavailable errors as upstream or transient failures that may merit retry handling depending on your application.",
+          "401: check/revoke/replace the key as appropriate. 402: verify available funds on its owner account; do not retry blindly. 429: back off. 502/503: retain the request ID and inspect usage before retrying because uncertain provider outcomes may retain holds. Browser Failed to fetch can indicate CORS or an offline backend. SUPABASE_URL errors require checking the root environment and stopping stale dev processes, not adding funds.",
       },
     ],
   },
@@ -414,12 +428,24 @@ export const docsPages: DocPage[] = [
       {
         heading: "Wallet model",
         body:
-          "Every developer account has one wallet. Usage charges are deducted from that wallet after requests are measured and recorded. Balance is represented in integer cents, not floating-point values.",
+          "Each account has one USD-cent wallet shared by all of its API keys. Total is ledger cash; reserved is outstanding request capacity; available is total minus reserved. API authorization and the dashboard use the same database snapshot. Never release an uncertain historical hold merely because it is old.",
       },
       {
         heading: "Ledger and usage records",
         body:
           "Every balance change creates a transaction entry, and every billable request creates a usage record. Those records allow debugging, reconciliation, and a consistent customer-facing usage history.",
+      },
+      {
+        heading: "Find your requests",
+        body: "Open Dashboard → Usage. The page shows the signed-in email/account ID, each request ID, API-key name/ID (never the secret), model, UTC timestamp, measured tokens and charges. Filter by model/key/status and page through history. Refresh usage returns to the latest page; visible tabs poll every 15 seconds with backoff on errors, and refresh on focus. The overview shows only four recent billed requests. If a model is missing, confirm the dashboard account owns the key used in OpenCode.",
+      },
+      {
+        heading: "Billed versus operational activity",
+        body: "Completed · billed comes from settled usage. In progress / unsettled comes from an outstanding reservation and may need reconciliation; a hold is not a charge. Rejected · no inference records authenticated preflight rejections from the activity rollout onward. Released · not billed comes from the existing audited release records. Unknown tokens/charges are shown as not recorded/not billed, never fabricated as zero usage. Anonymous, malformed, oversized pre-authentication requests and older unrecorded failures are not a complete activity history.",
+      },
+      {
+        heading: "Request-size and pricing limits",
+        body: "HTTP transport size is capped separately at 1,000,000 bytes by default. Pricing admission uses the larger of two tokenizer estimates, plus 25% and framing overhead; this is a surrogate, not a guaranteed exact model tokenizer. The reservation still uses at least the prior UTF-8 upper budget, so estimates do not reduce concurrency-spending protection. Actual provider usage alone determines the charge. A limit rejection reports input/output estimates and limits; compact or start a new session rather than top up to fix a size error. The OpenCode template uses a 90,000-token input target and early compaction; unusual Unicode or tool-heavy requests can still need manual compaction.",
       },
       {
         heading: "Usage record shape",
@@ -430,13 +456,37 @@ export const docsPages: DocPage[] = [
       {
         heading: "Pricing",
         body:
-          "Customer-facing pricing is model-driven rather than hard-coded globally. Different models can have different input and output rates while still sharing the same API contract.",
+          "Current catalog pricing applies a 40% discount: customer = reference × 0.60 before rounding. Input, output and cached-input rates are model-specific; cached input is a subset of total input and billed once. Each request's reference/customer total rounds upward once to integer cents, so tiny requests can cost one cent on both sides with zero recorded cent savings. The upfront hold is not the final bill.",
       },
       {
         heading: "Top-ups",
         body:
-          "Prepaid top-ups are handled through Stripe Checkout and the wallet is credited only after verified webhook processing. Frontend redirect alone is not treated as payment confirmation.",
+          "Choose $10, $25, $50, $100, $500 or $1,000 in Billing. Stripe collects domestic INR using a live server FX quote; the wallet receives the chosen USD package value. Complete Checkout and 3DS, then wait for the signed paid webhook. A success URL never credits funds by itself. Confirm COMPLETED plus one TOPUP transaction and the updated available balance. Use Refresh balance and top-ups rather than paying twice.",
       },
+    ],
+  },
+  {
+    slug: "local-setup",
+    title: "Local Setup",
+    summary: "Start the app and the payment listener separately, using one consistent account and origin.",
+    sections: [
+      { heading: "1. Configure dependencies and environment", body: "Use the repository docs/SETUP-AND-TOPUPS.md for installation and migrations. Backend secrets live only in root .env. Next uses apps/web/.env.local with NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/v1 and public Supabase settings. Never expose Azure, Stripe or service-role keys in NEXT_PUBLIC variables." },
+      { heading: "2. Start Docker and the application", body: "Start Docker Desktop first. From the repository root run the command below. It starts local Next/FastAPI and Docker Redis, rejects duplicate ports and validates backend configuration. Keep this terminal open.", code: "npm run dev" },
+      { heading: "3. Start Stripe forwarding", body: "In a second terminal run the payment listener below. It requires the Stripe CLI, the backend test key and the matching webhook signing secret. It validates the match without printing secrets. This separate listener must remain running for local top-ups to credit. Production instead needs a registered HTTPS webhook endpoint.", code: "npm run dev:payments" },
+      { heading: "4. Use one origin", body: "Open http://127.0.0.1:3000 and configure NEXT_PUBLIC_APP_URL/Supabase redirect URLs consistently. localhost and 127.0.0.1 have different browser cookies. Do not run duplicate Next processes on 3001 or an old API on 8001. A health 200 or login redirect is not proof an authenticated dashboard works." },
+    ],
+  },
+  {
+    slug: "topup-troubleshooting",
+    title: "Top-up Troubleshooting",
+    summary: "A Checkout URL is not a payment. Follow the payment, webhook, ledger and account identity to locate missing funds.",
+    sections: [
+      { heading: "Exact customer steps", body: "Log in to the account that owns the API key → Billing → choose a USD package → Add funds → finish Stripe Checkout and required authentication → return to Billing → wait for Payment verified → confirm COMPLETED and one TOPUP transaction → continue using the same key. No key regeneration is required." },
+      { heading: "Creating Checkout through the API", body: "POST /v1/billing/create-checkout-session takes a dashboard session bearer token and a package ID. The response contains checkout_url, session_id, USD package value and INR collection amount. Open checkout_url and finish payment. This endpoint does not charge a card or credit funds by itself.", code: '{ "package_id": "starter_10" }' },
+      { heading: "Payment pending", body: "If Stripe says open/unpaid, finish Checkout; no credit is due yet. If Stripe says paid but AI Forenza says PENDING, support must check the signed webhook delivery, secret, backend/migrations and original event, then resend it. Do not create a second payment merely to make the first appear." },
+      { heading: "Different account or reservations", body: "A top-up credits its signed-in owner account, not every API key on your machine. Compare dashboard identity and API-key owner. Total may increase while available remains lower because of reserved funds. New keys on the same account share those holds; uncertain holds require authoritative reconciliation." },
+      { heading: "Local test card only", body: "In Stripe test mode, use Indian Visa 4000003560000008, a future expiry and test CVC, then complete test 3DS. Keep the webhook listener running. Never test with a real card or a live Stripe secret. Test-mode payments move no real money." },
+      { heading: "Verified checkpoint and limits", body: "On 2026-09-10 a real hosted test checkout collected INR 950.90 for USD 10.00 credit, wallet 4.93 → 14.93; original and repeated signed webhook deliveries returned 200 with exactly one credit. Subsequent streaming/non-streaming API calls left 14.91 and no holds. Browser confirmation/refresh/cancel checks passed. Rates and balances are snapshots, not promises. Live production payments and refund automation are not certified by this test." },
     ],
   },
 ];
@@ -445,8 +495,7 @@ export const docsPages: DocPage[] = [
 const exampleBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
 for (const page of docsPages) {
   for (const section of page.sections) {
-    section.body = section.body.replaceAll("such as gpt-5.6-sol", "such as gpt-5.6-sol");
-    if (section.code) section.code = section.code.replaceAll("http://localhost:8000/v1", exampleBaseUrl).replaceAll("gpt-5.6-sol", "gpt-5.6-sol").replace(/\n\+/g, "\n");
+    if (section.code) section.code = section.code.replaceAll("http://localhost:8000/v1", exampleBaseUrl).replace(/\n\+/g, "\n");
   }
 }
 export const docsPageMap = Object.fromEntries(docsPages.map((page) => [page.slug, page])) as Record<string, DocPage>;

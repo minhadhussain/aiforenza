@@ -24,10 +24,13 @@ async function main() {
   const html = await response.text();
   const text = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ');
-  const expected = '$' + (data.expected_cents / 100).toFixed(2);
+  const money = cents => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(cents / 100);
+  const expected = money(data.expected_available_cents ?? data.expected_cents);
+  const total = money(data.expected_cents);
+  const reserved = money(data.expected_reserved_cents ?? 0);
   const balance = text.match(/AVAILABLE BALANCE\s+(\$[\d,.]+)/)?.[1];
   const verified = response.status === 200 && text.includes(data.email) && balance === expected
-    && text.includes(`Wallet total: ${expected}`) && text.includes('Reserved for requests: $0.00');
+    && text.includes(`Wallet total: ${total}`) && text.includes(`Reserved for requests: ${reserved}`);
   const routes = {};
   for (const route of ['/dashboard/usage', '/dashboard/api-keys']) {
     const page = await fetch('http://localhost:3000' + route, {

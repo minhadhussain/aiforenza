@@ -1,5 +1,7 @@
 # Phase 2 - Authentication
 
+> Historical phase snapshot. Current steps and status: [README.md](README.md).
+
 This phase adds the initial authentication foundation described in the MVP specification.
 
 ## Included

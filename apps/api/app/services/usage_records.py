@@ -15,6 +15,7 @@ from app.repositories.usage import record_usage_charge as record_usage_charge_rp
 from app.services.pricing import calculate_pricing_breakdown
 from app.services.pricing import estimate_customer_charge_cents
 from app.services.pricing import estimate_text_tokens
+from app.services.token_budget import input_budgets
 
 
 class UsageChargeError(Exception):
@@ -71,11 +72,7 @@ def preflight_spending_details(
             code="unsupported_n",
             status_code=400,
         )
-    input_budget = (
-        len(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
-        + 64 * len(request.messages)
-        + 256
-    )
+    input_budget, reservation_input_budget, estimator = input_budgets(request)
     output_budget = request.max_completion_tokens or request.max_tokens or 1024
     if payload.get("service_tier") not in (None, "default"):
         raise OpenAIAPIError(
@@ -89,19 +86,24 @@ def preflight_spending_details(
         or output_budget > model.pricing_max_output_tokens
     ):
         raise OpenAIAPIError(
-            "Request exceeds the configured pricing tier limits.",
+            f"Request exceeds the configured pricing tier limits: estimated input {input_budget} "
+            f"(limit {model.pricing_max_input_tokens}); requested output {output_budget} "
+            f"(limit {model.pricing_max_output_tokens}). Input estimator: {estimator}. "
+            "Compact the conversation (/compact or /new) or reduce the output allowance. "
+            "No inference was started or charge created.",
             error_type="invalid_request_error",
             code="pricing_limit_exceeded",
             status_code=400,
         )
     usage = UsageMetrics(
-        input_tokens=input_budget,
+        input_tokens=reservation_input_budget,
         output_tokens=max(output_budget, 0),
         cached_input_tokens=0,
     )
     pricing = calculate_pricing_breakdown(model, usage)
     return {
         "input_token_estimate": input_budget,
+        "reservation_input_budget": reservation_input_budget,
         "max_output_tokens": output_budget,
         "reference_charge_cents": pricing.reference_charge_cents,
         "customer_charge_cents": pricing.customer_charge_cents,

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 import { CopyChip } from "@/components/dashboard/copy-chip";
+import { OverviewRefresh } from "@/components/dashboard/overview-refresh";
 import { fetchDashboardApiKeys, fetchDashboardOverview, fetchDashboardModels, fetchDashboardUsage, formatDateLabel, formatTransactionAmount, formatUsdFromCents, formatModelRate } from "@/lib/dashboard";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
         <p className="font-mono text-sm uppercase tracking-[0.16em] text-white/70">// WELCOME BACK</p>
         <h1 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-white">Your AI Forenza workspace</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">Signed in as {displayName}</p>
+        <OverviewRefresh />
       </header>
 
       <section>
@@ -184,7 +186,7 @@ export default async function DashboardPage() {
           <div className="mb-4 flex items-center justify-between gap-4">
             <p className="font-mono text-sm uppercase tracking-[0.16em] text-white/70">// RECENT USAGE</p>
             <Link className="text-sm text-white/72 transition hover:text-white" href="/dashboard/usage">
-              View usage →
+              All requests, keys & statuses →
             </Link>
           </div>
 

@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "dev": "python tools/dev.py",
+    "dev:payments": "python tools/verify_payments_e2e.py listener",
     "dev:web": "npm --workspace apps/web run dev",
     "build:web": "npm --workspace apps/web run build",
     "lint:web": "npm --workspace apps/web run lint",

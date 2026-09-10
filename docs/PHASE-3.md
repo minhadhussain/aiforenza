@@ -1,5 +1,8 @@
 # Phase 3 - Wallet
 
+> Historical phase snapshot. Current total/reserved/available semantics and
+> payment evidence: [README.md](README.md).
+
 This phase introduces the financial foundation for the MVP.
 
 ## Included

@@ -47,6 +47,7 @@ def request_payload(normal=False):
 
 @pytest.fixture
 def setup(monkeypatch):
+    monkeypatch.setattr(access_control, "record_rejection", AsyncMock())
     model = build_model()
     model.slug = "gpt-5.4"
     model.input_price_per_million = Decimal("2.5")
