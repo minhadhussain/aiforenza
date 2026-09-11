@@ -17,6 +17,10 @@ the original MVP specification.
 
 ## Current contract
 
+- One active API key accesses all enabled models. Model selection happens in
+  OpenCode or the API request, never as an overview activation step. Configure
+  OpenCode globally to make AI Forenza available from unrelated projects.
+
 - API: `http://127.0.0.1:8000/v1`; web: `http://127.0.0.1:3000` for local development.
 - `npm run dev` starts Next, FastAPI and Docker Redis. It does **not** start Stripe
   forwarding. Keep `npm run dev:payments` running in a second terminal for top-ups.

@@ -30,7 +30,6 @@ export default async function DashboardPage() {
   const activeKey = apiKeys.find((key) => key.status === "active") ?? null;
   const displayName = overview.profile.email;
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
-  const defaultModel = models.find(model => model.slug === "gpt-5.6-sol") ?? models[0];
 
   return (
     <div className="space-y-10">
@@ -75,7 +74,7 @@ export default async function DashboardPage() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-2xl">
               <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">Make your first API request.</h2>
-              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Create a key, choose a model, and connect your app.</p>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">One API key gives access to all enabled models. Connect your app, then choose the model in OpenCode or in each API request.</p>
             </div>
             <Link href="/dashboard/docs" className="inline-flex items-center justify-center border border-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/[0.04]">
               View Docs
@@ -101,16 +100,10 @@ export default async function DashboardPage() {
             </div>
 
             <div>
-              <div className="font-mono text-xs uppercase tracking-[0.18em] text-white/70">[03] MODEL</div>
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex-1 border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white">{defaultModel?.slug ?? "No models currently available"}</div>
-                {defaultModel && <CopyChip value={defaultModel.slug} />}
-              </div>
-            </div>
-
-            <div>
-              <div className="font-mono text-xs uppercase tracking-[0.18em] text-white/70">[04] REQUEST</div>
-              <pre className="mt-3 whitespace-pre-wrap break-words border border-white/10 bg-white/[0.03] px-4 py-4 text-sm leading-7 text-[#edf1f7]">{`from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url=${JSON.stringify(apiBase)}\n)`}</pre>
+              <div className="font-mono text-xs uppercase tracking-[0.18em] text-white/70">[03] CONNECT YOUR CLIENT</div>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]" data-testid="all-model-access">No model activation or selection is required on this dashboard. Use the same key for any model returned by /v1/models, subject to available balance and request limits.</p>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted)]">In OpenCode, configure the AI Forenza provider once, then use /models to switch models. A project-only configuration is not loaded from unrelated folders.</p>
+              <Link href="/dashboard/docs/opencode" className="mt-3 inline-block text-sm text-white underline">OpenCode setup instructions →</Link>
             </div>
           </div>
         </div>

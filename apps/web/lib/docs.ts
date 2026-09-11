@@ -43,7 +43,7 @@ export const docsPages: DocPage[] = [
           "Create an account",
           "Receive $5 in free API credit",
           "Generate an API key",
-          "Choose a model",
+          "Choose a model in your client or API request—no dashboard activation",
           "Send OpenAI-compatible requests",
           "Top up balance when usage becomes real",
         ],
@@ -86,7 +86,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "4. Choose a model",
         body:
-          "Start with gpt-5.4, which has been verified with OpenCode, or choose a currently enabled model from GET /v1/models. Model availability and pricing are configuration-driven.",
+          "Use the same API key for any enabled model from GET /v1/models. Choose the model inside OpenCode or set the model field on each request. There is no overview selection, model activation, or per-model key requirement.",
       },
       {
         heading: "5. Make your first request",
@@ -294,7 +294,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Configuration values",
         body:
-          "Create a key on the account you intend to fund. Save the configuration below as opencode.json in the directory where OpenCode runs, set AI_FORENZA_API_KEY privately in that terminal, restart OpenCode, and select aiforenza/gpt-5.4. Do not select the built-in Azure/OpenAI provider or use an Azure credential. localhost must refer to the machine running FastAPI. Check for older project configs that override your intended key.",
+          "One AI Forenza key accesses all enabled models. Merge this provider configuration into ~/.config/opencode/opencode.json for access from any project, or into a project's opencode.json for that project only. Preserve existing providers and defaults, set AI_FORENZA_API_KEY privately, and restart OpenCode. A config on your Desktop is not loaded from unrelated repositories. No model selection or activation is required on the dashboard. Do not use an Azure credential; localhost must refer to the machine running FastAPI. Project configs and environment overrides can override global settings.",
         code: JSON.stringify({
           "$schema": "https://opencode.ai/config.json",
           provider: { aiforenza: {
@@ -315,7 +315,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Why this works",
         body:
-          "AI Forenza is designed around OpenAI-compatible request and response behavior, so existing tooling can connect without learning a custom application protocol.",
+          "The key identifies your account, not a selected model. GET /v1/models returns the account's available backend catalog, and each chat request chooses its model independently. OpenCode custom providers also need model definitions in the resolved client config; listing them does not grant extra access or change pricing. Run opencode models aiforenza from the actual project directory to verify that config scope.",
       },
       {
         heading: "Choose another model",

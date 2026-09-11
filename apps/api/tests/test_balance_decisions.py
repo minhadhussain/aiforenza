@@ -100,6 +100,33 @@ def test_ten_dollars_funds_small_and_opencode_request(setup, normal):
     assert reserve.call_args.args[-1] <= 1000
 
 
+def test_one_key_can_switch_all_models_without_dashboard_state(setup, monkeypatch):
+    from copy import deepcopy
+
+    model, _, reserve, provider = setup
+
+    async def lookup(slug):
+        item = deepcopy(model)
+        item.slug = item.provider_model_id = slug
+        return item
+
+    monkeypatch.setattr(access_control, "get_model_by_slug", lookup)
+    client = TestClient(app)
+    slugs = ["gpt-5.4", "gpt-5.6-sol", "gpt-6-astra", "grok-4.6"]
+    for slug in slugs:
+        payload = request_payload()
+        payload["model"] = slug
+        response = client.post(
+            "/v1/chat/completions",
+            headers={"Authorization": "Bearer same-key"},
+            json=payload,
+        )
+        assert response.status_code == 200
+    assert [call.args[1].slug for call in provider.call_args_list] == slugs
+    assert all(call.args[1:3] == ("user", "key") for call in reserve.call_args_list)
+    assert access_control.authenticate_api_key.call_count == 4
+
+
 @pytest.mark.parametrize("balance,normal", [(0, False), (1, True)])
 def test_unfunded_request_never_reaches_provider(setup, balance, normal):
     _, wallet, reserve, provider = setup

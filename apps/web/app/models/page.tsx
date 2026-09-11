@@ -10,15 +10,10 @@ import { fetchPublicModels } from "@/lib/public-models";
 import type { DashboardModel } from "@/lib/dashboard";
 import { formatModelRate } from "@/lib/dashboard";
 
-type ModelCategory = "All" | "General" | "Reasoning" | "Coding";
-
-const filters: ModelCategory[] = ["All", "General", "Reasoning", "Coding"];
-
 export default function ModelsPage() {
   const [pricing, setPricing] = useState<Record<string, DashboardModel>>({});
   const [loadState, setLoadState] = useState("Loading model pricing...");
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<ModelCategory>("All");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,20 +41,19 @@ export default function ModelsPage() {
     const normalized = search.trim().toLowerCase();
 
     return Object.values(pricing).map((item) => ({
-      name: item.display_name, slug: item.slug, category: "General",
+      name: item.display_name, slug: item.slug, provider: item.provider,
       inputPrice: "Unavailable", outputPrice: "Unavailable",
       description: "Use this model ID with the AI Forenza API.", capabilities: undefined as string | undefined,
     })).filter((model) => {
-      const matchesFilter = activeFilter === "All" || model.category === activeFilter;
       const matchesSearch =
         !normalized ||
         model.name.toLowerCase().includes(normalized) ||
         model.slug.toLowerCase().includes(normalized) ||
-        model.category.toLowerCase().includes(normalized);
+         model.provider.toLowerCase().includes(normalized);
 
-      return matchesFilter && matchesSearch;
+      return matchesSearch;
     });
-  }, [activeFilter, search, pricing]);
+  }, [search, pricing]);
 
   const visibleSelection = filteredModels.find((model) => model.slug === selectedSlug) ?? filteredModels[0] ?? null;
 
@@ -105,25 +99,7 @@ Keep the interface."
                 />
               </label>
 
-              <div className="flex flex-wrap gap-2">
-                {filters.map((filter) => {
-                  const active = activeFilter === filter;
-
-                  return (
-                    <button
-                      key={filter}
-                      type="button"
-                      onClick={() => setActiveFilter(filter)}
-                      className={`smooth-border rounded-full px-4 py-2 text-sm transition ${
-                        active ? "bg-white text-black" : "bg-white/[0.03] text-[var(--muted)] hover:text-white"
-                      }`}
-                      style={{ ["--smooth-border-color" as string]: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)" }}
-                    >
-                      {filter}
-                    </button>
-                  );
-                })}
-              </div>
+               <p className="text-xs text-[var(--muted)]">All enabled models from the AI Forenza catalog. Search by name, ID, or provider.</p>
             </div>
           </div>
 
@@ -152,7 +128,7 @@ Keep the interface."
                   >
                     <div>
                       <div className="font-[family-name:var(--font-heading)] text-lg">{model.name}</div>
-                      <div className={`mt-1 text-xs uppercase tracking-[0.18em] ${active ? "text-black/60" : "text-[var(--muted)]"}`}>{model.category}</div>
+                      <div className={`mt-1 text-xs uppercase tracking-[0.18em] ${active ? "text-black/60" : "text-[var(--muted)]"}`}>{model.provider}</div>
                       {displayDiscount(model.slug) ? (
                         <div className={`mt-2 text-[11px] ${active ? "text-black/55" : "text-white/40"}`}>{displayDiscount(model.slug)}</div>
                       ) : null}
@@ -183,7 +159,7 @@ Keep the interface."
             <>
               <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Model details</p>
               <h2 className="mt-4 font-[family-name:var(--font-heading)] text-3xl text-white">{visibleSelection.name}</h2>
-              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--muted)]">{visibleSelection.category}</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--muted)]">{visibleSelection.provider}</p>
               {displayDiscount(visibleSelection.slug) ? <p className="mt-2 text-xs text-white/50">{displayDiscount(visibleSelection.slug)}</p> : null}
               <p className="mt-5 text-sm leading-7 text-[var(--muted)]">{visibleSelection.description}</p>
               {visibleSelection.capabilities ? <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{visibleSelection.capabilities}</p> : null}

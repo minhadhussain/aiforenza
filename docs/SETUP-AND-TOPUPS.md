@@ -88,8 +88,10 @@ the secret/restarting the API. Do not run two listeners unnecessarily.
 3. Open `/dashboard/api-keys`, create a key, copy it once into a secret manager.
 4. Confirm the same account is selected when adding funds. A separate test account
    and your personal account have different balances even on the same computer.
-5. Copy `docs/opencode.example.json` to the project directory where OpenCode runs,
-   as `opencode.json`. Merge carefully if one already exists.
+5. Merge `docs/opencode.example.json` into `~/.config/opencode/opencode.json` for
+   user-wide access (Windows: `%USERPROFILE%\.config\opencode\opencode.json`).
+   Preserve existing providers/defaults. A project `opencode.json` is an alternative
+   for that project only; a Desktop config is not used from unrelated repositories.
 6. Set `AI_FORENZA_API_KEY` privately in the terminal environment to that key.
 7. Start/restart OpenCode and choose `aiforenza/gpt-5.4`:
 
@@ -100,6 +102,10 @@ opencode run --model aiforenza/gpt-5.4 "Reply briefly: hi"
 Never use the Azure key here. Project config can override global config; an old
 literal `apiKey` can override the key you intended to use. Do not print full
 `opencode debug config` output when it contains secrets.
+
+The same API key accesses every enabled model. **Do not select or activate a model
+in the dashboard first.** Choose it only inside OpenCode (`/models`) or set the
+`model` field on each API request. No new key is required to switch models.
 
 The template lists GPT-5.4, GPT-5.6 Sol, GPT-6 Astra and Grok 4.6. After restarting
 OpenCode use `/models` to switch. Preserve Astra's `reasoningEffort: "none"`
