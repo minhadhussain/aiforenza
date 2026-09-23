@@ -7,6 +7,7 @@ from app.api.routes import health
 from app.api.routes import models
 from app.api.routes import public_models
 from app.api.routes import topups
+from app.api.routes import hackathon
 
 
 api_router = APIRouter()
@@ -17,3 +18,4 @@ api_router.include_router(topups.router, prefix="/v1", tags=["payments"])
 api_router.include_router(models.router, prefix="/v1", tags=["models"])
 api_router.include_router(public_models.router, prefix="/v1", tags=["public"])
 api_router.include_router(chat.router, prefix="/v1", tags=["chat"])
+api_router.include_router(hackathon.router, prefix="/v1", tags=["hackathon"])

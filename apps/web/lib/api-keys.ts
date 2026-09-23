@@ -1,6 +1,7 @@
 import { apiGet } from "@/lib/api";
 
 export type ApiKeyRecord = {
+  billing_source?: "PAID" | "PROMOTIONAL";
   id: string;
   name: string;
   key_prefix: string;

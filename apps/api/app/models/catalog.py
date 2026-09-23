@@ -4,6 +4,19 @@ from pydantic import BaseModel, Field
 from pydantic import ConfigDict
 
 
+class ModelCapabilities(BaseModel):
+    reasoning: bool = False
+    reasoning_efforts: list[str] = Field(default_factory=list)
+    default_reasoning_effort: str | None = None
+    temperature: bool = True
+    top_p: bool = True
+    context: int | None = Field(default=None, gt=0)
+    tool_call: bool = True
+    responses_for_tools: bool = False
+    responses_efforts: list[str] = Field(default_factory=list)
+    client_request_timeout_ms: int | None = Field(default=None, gt=0)
+
+
 class CatalogModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -13,6 +26,7 @@ class CatalogModel(BaseModel):
     provider: str
     provider_model_id: str
     enabled: bool
+    capabilities: ModelCapabilities = Field(default_factory=ModelCapabilities)
     input_price_per_million: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)
     output_price_per_million: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)
     cached_input_price_per_million: Decimal | None = Field(default=None, ge=0, allow_inf_nan=False)

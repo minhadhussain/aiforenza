@@ -168,10 +168,12 @@ def test_dashboard_usage_returns_usage_rows(monkeypatch) -> None:
 
 
 def test_dashboard_models_returns_customer_pricing(monkeypatch) -> None:
+    from app.models.catalog import ModelCapabilities
     async def fake_fetch_user_for_token(access_token: str) -> dict:
         return {"id": "user-123", "email": "user@example.com"}
 
     class Model:
+        capabilities = ModelCapabilities()
         id = "model-1"
         slug = "gpt-5.6-luna"
         display_name = "GPT-5.6 Luna"

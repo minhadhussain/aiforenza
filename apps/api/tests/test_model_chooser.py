@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from app.models.catalog import ModelCapabilities
 
 
 @pytest.fixture
@@ -40,6 +41,7 @@ def test_merge_preserves_credentials_defaults_and_customizations(sync):
             display_name=s,
             pricing_max_input_tokens=190000,
             pricing_max_output_tokens=32768,
+            capabilities=ModelCapabilities(reasoning=s == "gpt-6-astra", reasoning_efforts=["low", "medium", "high", "xhigh", "max"], default_reasoning_effort="medium", context=128000, temperature=False),
         )
         for s in ("gpt-5.4", "gpt-5.6-sol", "gpt-6-astra", "grok-4.6")
     ]
@@ -64,8 +66,9 @@ def test_merge_preserves_credentials_defaults_and_customizations(sync):
         "input": 90000,
     }
     assert merged["compaction"] == {"auto": True, "prune": True, "reserved": 16000}
-    assert entries["gpt-6-astra"]["options"]["reasoningEffort"] == "none"
-    assert entries["gpt-6-astra"]["reasoning"] is False
+    assert entries["gpt-6-astra"]["options"]["reasoningEffort"] == "medium"
+    assert entries["gpt-6-astra"]["reasoning"] is True
+    assert entries["gpt-6-astra"]["variants"] == {effort: {"reasoningEffort": effort} for effort in ("low", "medium", "high", "xhigh", "max")}
     assert "reasoning_effort" not in entries["gpt-6-astra"]["options"]
     assert sync.merged_config(merged, models) == merged
 
@@ -81,3 +84,15 @@ def test_template_contains_only_supported_models_and_no_literal_key():
         "grok-4.6",
     }
     assert provider["options"]["apiKey"] == "{env:AI_FORENZA_API_KEY}"
+
+
+def test_reasoning_timeouts_come_from_registry_and_preserve_unlimited_override(sync):
+    config = {"provider": {"aiforenza": {"npm": "@ai-sdk/openai-compatible", "options": {"baseURL": "http://localhost:8000/v1", "apiKey": "PRIVATE_FIXTURE", "timeout": False}}}}
+    from app.models.catalog import CatalogModel
+    from test_astra_catalog import catalog_row
+
+    result = sync.merged_config(config, [CatalogModel.model_validate(catalog_row("gpt-6-astra"))])
+    options = result["provider"]["aiforenza"]["options"]
+    assert options["timeout"] is False
+    assert options["chunkTimeout"] == 900000
+    assert options["apiKey"] == "PRIVATE_FIXTURE"

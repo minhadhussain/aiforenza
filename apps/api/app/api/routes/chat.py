@@ -3,6 +3,10 @@ from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
+import json
+
+from app.core.errors import OpenAIAPIError, openai_error_payload
+from app.services.provider_gateway import ProviderGatewayError
 
 from app.models.openai import ChatCompletionRequest
 from app.services.access_control import authorize_api_request
@@ -54,6 +58,7 @@ async def post_chat_completions(
                 api_key_id=authz.api_key["id"],
                 model=authz.model,
                 request_id=authz.request_id,
+                billing_source=authz.api_key.get("billing_source", "PAID"),
             )
             capture_event(
                 authz.api_key["user_id"],
@@ -69,6 +74,10 @@ async def post_chat_completions(
                 try:
                     async for chunk in iterator:
                         yield chunk
+                except (OpenAIAPIError, ProviderGatewayError) as exc:
+                    # Headers are already sent. Emit a safe stream error, never DONE;
+                    # uncertain inference retains its reservation for reconciliation.
+                    yield ("data: " + json.dumps(openai_error_payload(str(exc), "api_error", exc.code)) + "\n\n").encode()
                 finally:
                     await source.aclose()
                     release_authorized_request(authz)
@@ -94,6 +103,7 @@ async def post_chat_completions(
             api_key_id=authz.api_key["id"],
             model=authz.model,
             request_id=authz.request_id,
+            billing_source=authz.api_key.get("billing_source", "PAID"),
         )
         capture_event(
             authz.api_key["user_id"],

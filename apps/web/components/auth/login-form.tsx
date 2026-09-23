@@ -1,39 +1,63 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { ensureAccountReady, safeDashboardPath } from "@/lib/auth";
 
 type LoginFormProps = {
   nextPath: string;
+  initialError?: string;
 };
 
-export function LoginForm({ nextPath }: LoginFormProps) {
-  const router = useRouter();
+export function LoginForm({ nextPath, initialError }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError ?? null);
   const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting.current) return;
+    // Read the submitted inputs, including password-manager/autofill values.
+    const form = new FormData(event.currentTarget);
+    submitting.current = true;
     setLoading(true);
     setError(null);
 
-    const supabase = createSupabaseBrowserClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    let navigating = false;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: String(form.get("email") ?? "").trim(),
+        password: String(form.get("password") ?? ""),
+      });
 
-    setLoading(false);
+      if (signInError) {
+        setError(signInError.name === "AuthRetryableFetchError"
+          ? "Unable to reach the sign-in service. Please try again."
+          : signInError.message);
+        return;
+      }
+      if (!data.session) {
+        setError("Sign-in did not create a session. Please try again.");
+        return;
+      }
 
-    if (signInError) {
-      setError(signInError.message);
-      return;
+      await ensureAccountReady(data.session.access_token);
+      // Begin one fresh server render with the persisted auth cookies. This also
+      // avoids racing router.push with router.refresh against stale guest data.
+      window.location.assign(safeDashboardPath(nextPath));
+      navigating = true;
+    } catch {
+      setError("Unable to sign in right now. Please try again.");
+    } finally {
+      if (!navigating) {
+        submitting.current = false;
+        setLoading(false);
+      }
     }
-
-    router.push(/^\/dashboard(?:\/|\?|$)/.test(nextPath) && !nextPath.includes("\\") ? nextPath : "/dashboard");
-    router.refresh();
   }
 
   return (
@@ -48,6 +72,8 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         <input
           className="w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-3 text-base outline-none ring-0 transition focus:border-[var(--accent)]"
           type="email"
+          name="email"
+          autoComplete="username"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@company.com"
@@ -60,6 +86,8 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         <input
           className="w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-strong)] px-4 py-3 text-base outline-none ring-0 transition focus:border-[var(--accent)]"
           type="password"
+          name="password"
+          autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Your password"
@@ -67,7 +95,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         />
       </label>
 
-      {error ? <p className="rounded-2xl bg-[#f7d9cb] px-4 py-3 text-sm text-[#7f2d12]">{error}</p> : null}
+      {error ? <p role="alert" className="rounded-2xl bg-[#f7d9cb] px-4 py-3 text-sm text-[#7f2d12]">{error}</p> : null}
 
       <button
         className="inline-flex w-full items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-base font-semibold text-black transition hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-60"
@@ -77,9 +105,6 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         {loading ? "Signing in..." : "Log in"}
       </button>
 
-      <p className="text-sm text-[var(--muted)]">
-        Need an account? <Link className="font-semibold text-[var(--accent-strong)]" href="/signup">Create one</Link>
-      </p>
     </form>
   );
 }

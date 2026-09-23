@@ -147,6 +147,7 @@ export function UsageActivity({ initial }: { initial: ActivityPage }) {
         <time dateTime={row.created_at} className="text-xs text-[var(--muted)]">{new Date(row.created_at).toISOString().replace("T", " ").slice(0, 19)} UTC</time>
         <p className="mt-2 break-all font-mono text-xs">Request: {row.request_id}</p>
         <p className="mt-1 break-all text-xs">API key: {row.api_key_name || "Deleted/unknown key"} · ID: {row.api_key_id}</p>
+        <p className="mt-1 text-xs">Billing: {row.billing_source ?? "PAID"}{row.billing_source === "PROMOTIONAL" ? ` · ${row.hackathon_campaign} · Team ${row.hackathon_team_id} · Reference price (no discount)` : ""}</p>
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-[var(--muted)]">
           <span>Input: {row.input_tokens?.toLocaleString() ?? "Not recorded"}</span><span>Output: {row.output_tokens?.toLocaleString() ?? "Not recorded"}</span>
           <span>Cached input: {row.cached_input_tokens?.toLocaleString() ?? "Not recorded"}</span>

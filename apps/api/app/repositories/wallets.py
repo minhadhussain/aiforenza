@@ -19,11 +19,19 @@ async def fetch_wallet(user_id: str) -> dict | None:
     )
 
 
+async def fetch_key_wallet(user_id: str, api_key_id: str) -> dict | None:
+    return await execute_rest_rpc(
+        path="/rest/v1/rpc/api_key_wallet",
+        payload={"target_user_id": user_id, "target_api_key_id": api_key_id},
+    )
+
+
 async def fetch_transactions(user_id: str, limit: int = 20) -> list[dict]:
     return await rest_select(
         path="/rest/v1/transactions",
         params={
             "user_id": f"eq.{user_id}",
+            "billing_source": "eq.PAID",
             "select": "id,type,amount_cents,balance_after_cents,description,reference_id,created_at",
             "order": "created_at.desc",
             "limit": str(limit),

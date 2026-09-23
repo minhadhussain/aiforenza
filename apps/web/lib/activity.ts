@@ -1,4 +1,7 @@
 export type ActivityRecord = {
+  billing_source?: "PAID" | "PROMOTIONAL";
+  hackathon_team_id?: string | null;
+  hackathon_campaign?: string | null;
   request_id: string; created_at: string;
   status: "billed" | "unsettled" | "rejected" | "released";
   api_key_id: string; api_key_name: string | null;

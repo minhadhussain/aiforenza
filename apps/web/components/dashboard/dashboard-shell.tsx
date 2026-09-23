@@ -15,6 +15,7 @@ const navItems = [
   ["API Keys", "/dashboard/api-keys"],
   ["Usage", "/dashboard/usage"],
   ["Billing", "/dashboard/billing"],
+  ["Hackathon", "/dashboard/hackathon"],
   ["Docs", "/dashboard/docs"],
 ] as const;
 

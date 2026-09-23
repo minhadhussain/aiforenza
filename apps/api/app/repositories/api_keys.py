@@ -20,7 +20,7 @@ async def fetch_api_keys_for_user(user_id: str) -> list[dict]:
         path="/rest/v1/api_keys",
         params={
             "user_id": f"eq.{user_id}",
-            "select": "id,name,key_prefix,last_used_at,created_at,revoked_at",
+            "select": "id,name,key_prefix,last_used_at,created_at,revoked_at,billing_source",
             "order": "created_at.desc",
         },
     )
@@ -32,7 +32,7 @@ async def fetch_api_key_for_user(user_id: str, key_id: str) -> dict | None:
         params={
             "id": f"eq.{key_id}",
             "user_id": f"eq.{user_id}",
-            "select": "id,name,key_prefix,last_used_at,created_at,revoked_at",
+            "select": "id,name,key_prefix,last_used_at,created_at,revoked_at,billing_source",
             "limit": "1",
         },
     )
@@ -54,7 +54,7 @@ async def fetch_api_key_by_hash(key_hash: str) -> dict | None:
         path="/rest/v1/api_keys",
         params={
             "key_hash": f"eq.{key_hash}",
-            "select": "id,user_id,name,key_prefix,last_used_at,created_at,revoked_at",
+            "select": "id,user_id,name,key_prefix,last_used_at,created_at,revoked_at,billing_source,hackathon_grant_id",
             "limit": "1",
         },
     )

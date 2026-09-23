@@ -106,8 +106,12 @@ def test_one_key_can_switch_all_models_without_dashboard_state(setup, monkeypatc
     model, _, reserve, provider = setup
 
     async def lookup(slug):
+        from app.models.catalog import ModelCapabilities
+        from test_astra_catalog import catalog_row
+
         item = deepcopy(model)
         item.slug = item.provider_model_id = slug
+        item.capabilities = ModelCapabilities.model_validate(catalog_row(slug)["capabilities"])
         return item
 
     monkeypatch.setattr(access_control, "get_model_by_slug", lookup)

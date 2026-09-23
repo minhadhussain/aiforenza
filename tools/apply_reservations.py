@@ -14,6 +14,9 @@ if filename not in {
     "202609090003_catalog_reference_prices.sql",
     "202609100001_wallet_availability.sql",
     "202609110001_request_activity.sql",
+    "202609120001_hackathon_promotions.sql",
+    "202609130001_astra_capabilities.sql",
+    "202609130002_reasoning_transport.sql",
 }:
     raise SystemExit("Unsupported migration")
 version = filename.split("_", 1)[0]

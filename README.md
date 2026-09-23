@@ -46,12 +46,23 @@ Phase 1 through Phase 10 foundations are in place:
 - `/login` and `/signup` provide the initial account entry flow.
 - `/dashboard` is protected through server checks and middleware refresh.
 - Backend dashboard APIs validate Supabase bearer tokens before returning user data.
+- Login and signup support Supabase Google OAuth and email/password, with shared account setup. See [Google authentication setup](docs/google-auth.md) for required hosted provider credentials and callback URLs.
 
 ## Notes
 
 - Money and billing logic should use integer cents only.
 - LiteLLM handles provider normalization, not business logic.
 - Supabase, Stripe, and Azure remain external services.
+
+## Hackathon Promotional Credits
+
+The dashboard's **Hackathon** section claims one $100 shared-key grant per organizer-issued Team ID. Promotional usage is billed at reference price through the existing wallet, reservation, and ledger infrastructure. Paid keys retain normal customer pricing.
+
+See [Hackathon setup and verification](docs/hackathon-credits.md) for the migration, organizer commands, API contract, security behavior, and test evidence.
+
+## OpenCode Astra Reasoning
+
+GPT-6 Astra supports selectable `low`, `medium`, `high`, `xhigh`, and `max` variants through AI Forenza. See [Astra reasoning compatibility](docs/astra-reasoning.md) for the authoritative registry, Azure transport details, configuration refresh, and real OpenCode verification results.
 
 ## Local Stripe Development
 

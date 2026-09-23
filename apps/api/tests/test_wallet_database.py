@@ -33,7 +33,7 @@ def database():
     from dotenv import dotenv_values
 
     env = dotenv_values(Path(__file__).resolve().parents[3] / ".env")
-    url = env.get("DATABASE_URL")
+    url = os.getenv("DATABASE_URL") or env.get("DATABASE_URL")
     if not url:
         pytest.skip("DATABASE_URL not configured")
     schema = "verify_" + uuid4().hex
@@ -65,6 +65,10 @@ def database():
             ):
                 cur.execute(
                     f"create table {schema}.{table} (like public.{table} including all)"
+                )
+                # Reconstruct the baseline even after the live promotional migration.
+                cur.execute(
+                    f"alter table {schema}.{table} drop column if exists billing_source cascade, drop column if exists hackathon_grant_id cascade, drop column if exists reserved_amount_cents cascade, drop column if exists reservation_created_at cascade, drop column if exists capabilities cascade"
                 )
             for signature in (
                 "public.record_usage_charge(uuid,uuid,uuid,text,integer,integer,integer,integer,bigint,bigint,bigint,bigint,text,text)",
@@ -111,6 +115,21 @@ def database():
                 / "supabase/migrations/202609110001_request_activity.sql"
             ).read_text()
             cur.execute(activity_sql.replace("public.", schema + "."))
+            hackathon_sql = (
+                Path(__file__).resolve().parents[3]
+                / "supabase/migrations/202609120001_hackathon_promotions.sql"
+            ).read_text()
+            cur.execute(hackathon_sql.replace("public.", schema + "."))
+            capabilities_sql = (
+                Path(__file__).resolve().parents[3]
+                / "supabase/migrations/202609130001_astra_capabilities.sql"
+            ).read_text()
+            cur.execute(capabilities_sql.replace("public.", schema + "."))
+            transport_sql = (
+                Path(__file__).resolve().parents[3]
+                / "supabase/migrations/202609130002_reasoning_transport.sql"
+            ).read_text()
+            cur.execute(transport_sql.replace("public.", schema + "."))
         conn.commit()
         yield RedactedDatabaseURL(url), schema
     finally:

@@ -86,10 +86,21 @@ def merged_config(config, models):
         context = min(128000, model.pricing_max_input_tokens + output)
         entry = entries.setdefault(model.slug, {})
         entry["name"] = model.display_name
-        if model.slug == "gpt-6-astra":
-            entry["reasoning"] = False
-            entry["options"] = {**entry.get("options", {}), "reasoningEffort": "none"}
+        caps = model.capabilities
+        if caps.client_request_timeout_ms:
+            for option in ("timeout", "chunkTimeout"):
+                if provider["options"].get(option) is not False:
+                    provider["options"][option] = max(provider["options"].get(option, 0), caps.client_request_timeout_ms)
+        if caps.reasoning:
+            entry["reasoning"] = True
+            entry["temperature"] = caps.temperature
+            entry["tool_call"] = caps.tool_call
+            entry["options"] = {**entry.get("options", {}), "reasoningEffort": caps.default_reasoning_effort}
             entry["options"].pop("reasoning_effort", None)
+            entry["options"].pop("reasoning", None)
+            entry["options"].pop("reasoningSummary", None)
+            entry["variants"] = {effort: {"reasoningEffort": effort} for effort in caps.reasoning_efforts}
+            context = min(context, caps.context or context)
         existing_limits = entry.get("limit", {})
         entry["limit"] = {
             **existing_limits,
@@ -127,8 +138,7 @@ def sync():
     CONFIG.write_text(json.dumps(updated, indent=2) + "\n", encoding="utf-8")
     # Confirm credential/default choices were preserved, without displaying them.
     require(
-        updated["provider"]["aiforenza"]["options"]
-        == config["provider"]["aiforenza"]["options"],
+        all(updated["provider"]["aiforenza"]["options"].get(field) == config["provider"]["aiforenza"]["options"].get(field) for field in ("apiKey", "baseURL")),
         "Provider credentials changed",
     )
     require(
@@ -209,7 +219,7 @@ def client_diagnose():
                         "request_fields": list(payload),
                         "reasoning_effort": payload.get("reasoning_effort")
                         if payload.get("reasoning_effort")
-                        in ("none", "low", "medium", "high")
+                        in ("none", "minimal", "low", "medium", "high", "xhigh", "max")
                         else None,
                         "max_tokens": payload.get("max_tokens")
                         if isinstance(payload.get("max_tokens"), int)
@@ -393,7 +403,7 @@ def diagnose():
                     "model": slug,
                     "messages": [{"role": "user", "content": "Reply OK."}],
                     "max_completion_tokens": 32,
-                    "reasoning_effort": "none",
+                    "reasoning_effort": "medium",
                     "stream": True,
                     "stream_options": {"include_usage": True},
                     "tools": [
@@ -501,7 +511,7 @@ def smoke():
                 json={
                     "model": model.slug,
                     **(
-                        {"reasoning_effort": "none"}
+                        {"reasoning_effort": model.capabilities.default_reasoning_effort}
                         if model.slug == "gpt-6-astra"
                         else {}
                     ),

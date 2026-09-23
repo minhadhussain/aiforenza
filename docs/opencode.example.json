@@ -6,12 +6,28 @@
       "name": "AI Forenza (local)",
       "options": {
         "baseURL": "http://localhost:8000/v1",
+        "timeout": 900000,
+        "chunkTimeout": 900000,
         "apiKey": "{env:AI_FORENZA_API_KEY}"
       },
       "models": {
         "gpt-5.4": { "name": "GPT-5.4", "limit": { "context": 128000, "input": 90000, "output": 32000 } },
         "gpt-5.6-sol": { "name": "GPT-5.6 Sol", "limit": { "context": 128000, "input": 90000, "output": 32000 } },
-        "gpt-6-astra": { "name": "GPT-6 Astra", "reasoning": false, "options": { "reasoningEffort": "none" }, "limit": { "context": 128000, "input": 90000, "output": 32000 } },
+        "gpt-6-astra": {
+          "name": "GPT-6 Astra",
+          "reasoning": true,
+          "temperature": false,
+          "tool_call": true,
+          "options": { "reasoningEffort": "medium" },
+          "variants": {
+            "low": { "reasoningEffort": "low" },
+            "medium": { "reasoningEffort": "medium" },
+            "high": { "reasoningEffort": "high" },
+            "xhigh": { "reasoningEffort": "xhigh" },
+            "max": { "reasoningEffort": "max" }
+          },
+          "limit": { "context": 128000, "input": 90000, "output": 32000 }
+        },
         "grok-4.6": { "name": "Grok 4.6", "limit": { "context": 128000, "input": 90000, "output": 32000 } }
       }
     }

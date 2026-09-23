@@ -12,7 +12,7 @@ from app.models.catalog import CatalogModel
 from app.models.openai import ChatCompletionRequest
 from app.repositories.profiles import fetch_profile
 from app.repositories.supabase_rest import SupabaseRepositoryError
-from app.repositories.wallets import fetch_wallet
+from app.repositories.wallets import fetch_wallet, fetch_key_wallet
 from app.repositories.reservations import reserve_usage, release_unconsumed_usage
 from app.services.api_keys import ApiKeyServiceError
 from app.services.api_keys import authenticate_api_key
@@ -23,6 +23,7 @@ from app.services.rate_limit import acquire_concurrency_slot
 from app.services.rate_limit import check_api_rate_limit
 from app.services.rate_limit import release_concurrency_slot
 from app.services.usage_records import preflight_spending_details
+from app.services.chat_completions import build_provider_payload
 from app.repositories.activity import record_rejection
 
 logger = logging.getLogger("aiforenza.balance")
@@ -160,7 +161,11 @@ async def _authorize_api_request(
 
     try:
         profile = await fetch_profile(api_key["user_id"])
-        wallet = await fetch_wallet(api_key["user_id"])
+        wallet = (
+            (await fetch_key_wallet(api_key["user_id"], api_key["id"]))
+            if api_key.get("billing_source") == "PROMOTIONAL"
+            else (await fetch_wallet(api_key["user_id"]))
+        )
     except SupabaseRepositoryError as exc:
         raise OpenAIAPIError(
             "Account validation temporarily unavailable.",
@@ -201,7 +206,11 @@ async def _authorize_api_request(
         )
 
     try:
-        spending = preflight_spending_details(request, model)
+        # Reject invalid model options before creating a financial hold.
+        build_provider_payload(request, model, request_id)
+        spending = preflight_spending_details(
+            request, model, billing_source=api_key.get("billing_source", "PAID")
+        )
         estimated_charge_cents = spending["customer_charge_cents"]
     except BaseException:
         release_concurrency_slot(user_id=api_key["user_id"], api_key_id=api_key["id"])
@@ -226,6 +235,8 @@ async def _authorize_api_request(
         "reserved_cents": wallet.get("reserved_cents", 0),
         "available_balance_cents": available_cents,
         "model": model.slug,
+        "billing_source": api_key.get("billing_source", "PAID"),
+        "hackathon_grant_id": api_key.get("hackathon_grant_id"),
         **spending,
     }
     if estimated_charge_cents > available_cents or available_cents <= 0:

@@ -18,7 +18,7 @@ export function AuthShell({ eyebrow, title, copy, footer, children }: AuthShellP
           <p className="mt-4 max-w-xl text-base leading-8 text-[var(--muted)]">{copy}</p>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
-              ["$5 credit", "Granted after account creation in the wallet phase"],
+              ["$5 credit", "Added to your wallet when you first sign in"],
               ["OpenAI-compatible", "Use one base URL and model name across tools"],
               ["Prepaid billing", "Top up only when the trial is not enough"],
             ].map(([label, detail]) => (

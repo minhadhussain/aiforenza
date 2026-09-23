@@ -20,8 +20,11 @@ class ApiKeyServiceError(Exception):
     pass
 
 
-def generate_api_key() -> str:
-    return f"{API_KEY_PREFIX}{secrets.token_urlsafe(24)}"
+def generate_api_key(*, billing_source: str = "PAID") -> str:
+    if billing_source not in {"PAID", "PROMOTIONAL"}:
+        raise ValueError("Unknown billing source")
+    prefix = "sk_af_hackathon_" if billing_source == "PROMOTIONAL" else API_KEY_PREFIX
+    return f"{prefix}{secrets.token_urlsafe(24)}"
 
 
 def key_prefix_for(api_key: str) -> str:
@@ -29,7 +32,9 @@ def key_prefix_for(api_key: str) -> str:
 
 
 def hash_api_key(api_key: str) -> str:
-    payload = f"{settings.api_key_pepper}:{api_key}" if settings.api_key_pepper else api_key
+    payload = (
+        f"{settings.api_key_pepper}:{api_key}" if settings.api_key_pepper else api_key
+    )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -116,6 +121,18 @@ async def authenticate_api_key(api_key: str) -> dict | None:
 
     if record.get("revoked_at"):
         return None
+
+    if record.get("billing_source") == "PROMOTIONAL":
+        from app.repositories.hackathon import fetch_active_key_grant
+
+        try:
+            grant = await fetch_active_key_grant(
+                record["id"], record["hackathon_grant_id"], record["user_id"]
+            )
+        except SupabaseRepositoryError as exc:
+            raise ApiKeyServiceError("Promotional key validation unavailable.") from exc
+        if grant is None:
+            return None
 
     return record
 

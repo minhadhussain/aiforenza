@@ -11,6 +11,7 @@ from app.repositories import models as registry
 from app.services.chat_completions import build_provider_payload
 from app.models.openai import ChatCompletionRequest
 from test_pricing import build_model
+from app.models.catalog import ModelCapabilities
 
 
 def catalog_row(slug):
@@ -19,10 +20,17 @@ def catalog_row(slug):
     model.display_name = slug
     model.provider = "azure"
     model.provider_model_id = slug
+    if slug == "gpt-6-astra":
+        model.capabilities = ModelCapabilities(reasoning=True, reasoning_efforts=["low", "medium", "high", "xhigh", "max"], default_reasoning_effort="medium", temperature=False, top_p=False, context=128000, responses_for_tools=True, responses_efforts=["max"], client_request_timeout_ms=900000)
+    elif slug == "gpt-5.6-sol":
+        model.capabilities = ModelCapabilities(responses_for_tools=True)
     model.enabled = model.pricing_verified = True
     model.reference_price_source = "fixture-reference"
     model.reference_price_valid_until = datetime.now(timezone.utc) + timedelta(days=1)
-    return model.model_dump(mode="json")
+    row = model.model_dump(mode="json")
+    # Match database JSON: absent capabilities remain unspecified, not false.
+    row["capabilities"] = model.capabilities.model_dump(exclude_unset=True)
+    return row
 
 
 def test_public_and_dashboard_share_authoritative_astra_registry(monkeypatch):

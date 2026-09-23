@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
+import httpx
 from app.repositories.activity import fetch_activity
 
 from app.repositories.dashboard import fetch_usage_summary
@@ -18,6 +19,18 @@ from app.services.stripe_payments import list_user_topups
 
 
 router = APIRouter()
+
+
+@router.post("/account/bootstrap")
+async def initialize_account(user: dict = Depends(get_current_dashboard_user)) -> dict:
+    """Same idempotent Supabase profile/wallet setup for password and OAuth users."""
+    if not user.get("id") or not user.get("email"):
+        raise HTTPException(status_code=400, detail="Authenticated user is missing required account data.")
+    try:
+        await bootstrap_user_account(user["id"], user["email"])
+    except (SupabaseRepositoryError, httpx.HTTPError):
+        raise HTTPException(status_code=503, detail="Account setup is temporarily unavailable. Please try again.") from None
+    return {"ready": True}
 
 
 @router.get("/account/me")

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { CopyChip } from "@/components/dashboard/copy-chip";
 
 type ApiKeyRecord = {
+  billing_source?: "PAID" | "PROMOTIONAL";
   id: string;
   name: string;
   key_prefix: string;
@@ -181,6 +182,7 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                       <div className="text-sm font-semibold text-white">{key.name}</div>
+                      <div className="mt-1 text-xs text-[var(--muted)]">{key.billing_source === "PROMOTIONAL" ? "Hackathon shared key · promotional funds only · reference pricing" : "Personal wallet · normal customer pricing"}</div>
                       <div className="mt-2 font-mono text-sm text-[var(--muted)]">{key.masked_key}</div>
                     </div>
 

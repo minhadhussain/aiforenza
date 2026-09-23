@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.middleware.error_handlers import register_error_handlers
 from app.services.observability import init_posthog
 from app.services.observability import init_sentry
+from app.services.observability import init_provider_logging
 from app.middleware.request_safety import RequestSafetyMiddleware
 
 
@@ -26,6 +27,7 @@ app.add_middleware(
 )
 
 init_sentry()
+init_provider_logging()
 init_posthog()
 
 register_error_handlers(app)

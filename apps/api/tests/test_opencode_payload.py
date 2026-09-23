@@ -1,9 +1,9 @@
-from types import SimpleNamespace
-
 import pytest
 
 from app.models.openai import ChatCompletionRequest
 from app.services.chat_completions import build_provider_payload
+from app.models.catalog import CatalogModel
+from test_astra_catalog import catalog_row
 
 
 @pytest.mark.parametrize("stream", [False, True])
@@ -21,7 +21,7 @@ def test_opencode_summary_option_not_forwarded_to_chat_api(stream, slug):
     )
     before = request.model_dump()
     payload = build_provider_payload(
-        request, SimpleNamespace(provider_model_id=slug), "req_test"
+        request, CatalogModel.model_validate(catalog_row(slug)), "req_test"
     )
     assert "reasoningSummary" not in payload
     assert payload["reasoning_effort"] == "medium"
@@ -40,7 +40,7 @@ def test_standard_chat_request_remains_unchanged():
         max_completion_tokens=32000,
     )
     payload = build_provider_payload(
-        request, SimpleNamespace(provider_model_id="gpt-5.4"), "req_test"
+        request, CatalogModel.model_validate(catalog_row("gpt-5.4")), "req_test"
     )
     assert payload == request.model_dump(exclude_none=True)
 
@@ -56,7 +56,7 @@ def test_alias_precedence_and_other_models(slug):
         max_completion_tokens=500,
     )
     payload = build_provider_payload(
-        request, SimpleNamespace(provider_model_id=slug), "req_test"
+        request, CatalogModel.model_validate(catalog_row(slug)), "req_test"
     )
     assert payload["max_completion_tokens"] == 500
     if slug in {"gpt-5.4", "gpt-5.6-sol", "gpt-6-astra"}:

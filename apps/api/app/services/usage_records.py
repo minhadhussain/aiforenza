@@ -1,4 +1,5 @@
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -20,6 +21,19 @@ from app.services.token_budget import input_budgets
 
 class UsageChargeError(Exception):
     pass
+
+
+def public_choices(choices):
+    """Preserve visible messages/tools, excluding private reasoning fields."""
+    private = {"reasoning", "reasoning_content", "reasoning_text", "reasoning_details", "encrypted_content"}
+    result = []
+    for choice in choices:
+        safe = {k: v for k, v in choice.items() if k not in private}
+        for key in ("message", "delta"):
+            if isinstance(safe.get(key), dict):
+                safe[key] = {k: v for k, v in safe[key].items() if k not in private}
+        result.append(safe)
+    return result
 
 
 def extract_usage_metrics(
@@ -53,7 +67,7 @@ def extract_usage_metrics(
 
 
 def preflight_spending_details(
-    request: ChatCompletionRequest, model: CatalogModel
+    request: ChatCompletionRequest, model: CatalogModel, *, billing_source: str = "PAID"
 ) -> dict[str, int]:
     # Conservative text-only budget includes tool schemas and message overhead.
     payload = request.model_dump(exclude_none=True)
@@ -100,7 +114,7 @@ def preflight_spending_details(
         output_tokens=max(output_budget, 0),
         cached_input_tokens=0,
     )
-    pricing = calculate_pricing_breakdown(model, usage)
+    pricing = calculate_pricing_breakdown(model, usage, billing_source=billing_source)
     return {
         "input_token_estimate": input_budget,
         "reservation_input_budget": reservation_input_budget,
@@ -154,6 +168,8 @@ async def record_usage_charge(
     usage: UsageMetrics,
     provider_cost_reference: str,
     status: str,
+    billing_source: str = "PAID",
+    reasoning_effort: str | None = None,
 ) -> UsageChargeResult:
     if (
         usage.input_tokens > model.pricing_max_input_tokens
@@ -165,7 +181,7 @@ async def record_usage_charge(
             code="usage_reconciliation_required",
             status_code=502,
         )
-    pricing = calculate_pricing_breakdown(model, usage)
+    pricing = calculate_pricing_breakdown(model, usage, billing_source=billing_source)
     try:
         payload = await record_usage_charge_rpc(
             user_id=user_id,
@@ -199,7 +215,9 @@ async def record_usage_charge(
             status_code=503,
         ) from exc
 
-    return UsageChargeResult.model_validate(payload)
+    result = UsageChargeResult.model_validate(payload)
+    logging.getLogger("aiforenza.provider").info(json.dumps({"event": "usage_settled", "request_id": request_id, "model": model.slug, "provider": model.provider, "reasoning_effort": reasoning_effort, "usage": usage.model_dump(), "billing_source": billing_source, "reference_charge_cents": pricing.reference_charge_cents, "customer_charge_cents": pricing.customer_charge_cents}))
+    return result
 
 
 async def stream_and_charge(
@@ -210,6 +228,8 @@ async def stream_and_charge(
     user_id: str,
     api_key_id: str,
     request_id: str,
+    billing_source: str = "PAID",
+    reasoning_effort: str | None = None,
 ) -> AsyncIterator[bytes]:
     usage_payload = None
     buffer = b""
@@ -257,6 +277,8 @@ async def stream_and_charge(
                 in {"id", "object", "created", "choices", "usage", "system_fingerprint"}
             }
             safe["model"] = model.slug
+            if model.capabilities.reasoning and isinstance(safe.get("choices"), list):
+                safe["choices"] = public_choices(safe["choices"])
             yield ("data: " + json.dumps(safe) + "\n\n").encode()
     if not done:
         raise OpenAIAPIError(
@@ -275,6 +297,8 @@ async def stream_and_charge(
         usage=usage,
         provider_cost_reference=request_id,
         status="completed",
+        billing_source=billing_source,
+        reasoning_effort=reasoning_effort,
     )
     # A client must not see successful completion before billing succeeds.
     yield b"data: [DONE]\n\n"
