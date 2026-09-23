@@ -65,9 +65,9 @@ async def check_status(response, context):
         safe_code = code if code in {"unsupported_value", "unsupported_parameter", "invalid_request_error", "model_not_found", "DeploymentNotFound"} else "provider_rejected"
         diagnostic(context, "provider_rejection", response.status_code, safe_code)
         message = str(error.get("message", "")) if isinstance(error, dict) else ""
-        if context and context.get("model") == "gpt-6-astra" and response.status_code == 400 and ("reasoning" in message.lower() or error.get("param") in {"reasoning.effort", "reasoning_effort"}):
+        if context and context.get("model") in {"gpt-6-astra", "gpt-5.4", "gpt-5.6-sol"} and response.status_code == 400 and ("reasoning" in message.lower() or error.get("param") in {"reasoning.effort", "reasoning_effort"}):
             effort = context.get("reasoning_effort")
-            raise ProviderGatewayError(f"Requested reasoning effort '{effort}' is unavailable for the configured Astra deployment/API. Verify the Azure deployment version and capabilities.", code="provider_reasoning_unavailable", status_code=400) from exc
+            raise ProviderGatewayError(f"Requested reasoning effort '{effort}' is unavailable for the configured {context['model']} deployment/API. Verify the Azure deployment version and capabilities.", code="provider_reasoning_unavailable", status_code=400) from exc
         raise ProviderGatewayError("Model provider rejected the request. Check model capabilities or contact support.") from exc
 
 

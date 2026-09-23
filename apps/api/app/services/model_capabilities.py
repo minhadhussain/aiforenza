@@ -38,6 +38,13 @@ def normalize_model_payload(request: ChatCompletionRequest, model: CatalogModel)
     effort = reasoning_effort(request, model)
     if effort is None:
         return payload
+    if not model.capabilities.strict_chat_parameters:
+        # Add canonical effort validation without narrowing the established GPT-5
+        # Chat contract (including legacy function and explicit sampling fields).
+        payload.pop("reasoningEffort", None)
+        payload.pop("reasoning", None)
+        payload["reasoning_effort"] = effort
+        return payload
     # Chat controls only. SDK/Responses-only extras never reach Azure blindly.
     allowed = {"model", "messages", "max_tokens", "max_completion_tokens", "stream", "stream_options", "tools", "tool_choice", "parallel_tool_calls", "response_format", "service_tier", "n"}
     if model.capabilities.temperature:

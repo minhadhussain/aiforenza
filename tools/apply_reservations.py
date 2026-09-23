@@ -17,6 +17,7 @@ if filename not in {
     "202609120001_hackathon_promotions.sql",
     "202609130001_astra_capabilities.sql",
     "202609130002_reasoning_transport.sql",
+    "202609230001_opencode_gpt5_efforts.sql",
 }:
     raise SystemExit("Unsupported migration")
 version = filename.split("_", 1)[0]

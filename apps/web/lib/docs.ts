@@ -3,6 +3,7 @@ export type DocSection = {
   body: string;
   bullets?: string[];
   code?: string;
+  widget?: "opencode-setup";
 };
 
 export type DocPage = {
@@ -38,7 +39,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Core workflow",
         body:
-          "The MVP intentionally focuses on the shortest route from account creation to real API usage.",
+           "Start with your account and key, then connect your preferred client. The OpenCode guide provides a downloadable model configuration and the complete connection workflow.",
         bullets: [
           "Create an account",
           "Receive $5 in free API credit",
@@ -198,8 +199,8 @@ export const docsPages: DocPage[] = [
       {
         heading: "Supported request fields",
         body:
-          "The MVP supports the fields most existing developer tooling expects.",
-        bullets: ["model", "messages with text content", "max_completion_tokens (recommended) or max_tokens", "stream and stream_options.include_usage", "tools and tool_choice where supported by the model"],
+          "Request options are normalized according to the selected model's backend capabilities.",
+        bullets: ["model", "messages with text content", "max_completion_tokens (recommended) or max_tokens", "stream and stream_options.include_usage", "reasoning_effort for models advertising reasoning support", "tools and tool_choice where supported by the model"],
       },
       {
         heading: "Sample request body",
@@ -287,48 +288,64 @@ export const docsPages: DocPage[] = [
   },
   {
     slug: "opencode",
-    title: "OpenCode",
+    title: "OpenCode setup and reasoning efforts",
     summary:
-      "Use AI Forenza with OpenCode through the same OpenAI-compatible interface pattern.",
+      "Connect a new OpenCode installation using your AI Forenza key, download the current model configuration, and choose the model's supported reasoning effort.",
     sections: [
       {
-        heading: "Configuration values",
+        heading: "1. Get your AI Forenza key",
         body:
-          "One AI Forenza key accesses all enabled models. Merge this provider configuration into ~/.config/opencode/opencode.json for access from any project, or into a project's opencode.json for that project only. Preserve existing providers and defaults, set AI_FORENZA_API_KEY privately, and restart OpenCode. A config on your Desktop is not loaded from unrelated repositories. No model selection or activation is required on the dashboard. Do not use an Azure credential; localhost must refer to the machine running FastAPI. Project configs and environment overrides can override global settings.",
-        code: JSON.stringify({
-          "$schema": "https://opencode.ai/config.json",
-          provider: { aiforenza: {
-            npm: "@ai-sdk/openai-compatible", name: "AI Forenza",
-            options: { baseURL: "http://localhost:8000/v1", apiKey: "{env:AI_FORENZA_API_KEY}" },
-            models: {
-              "gpt-5.4": { name: "GPT-5.4", limit: { context: 128000, input: 90000, output: 32000 } },
-              "gpt-5.6-sol": { name: "GPT-5.6 Sol", limit: { context: 128000, input: 90000, output: 32000 } },
-              "gpt-6-astra": { name: "GPT-6 Astra", reasoning: false, options: { reasoningEffort: "none" }, limit: { context: 128000, input: 90000, output: 32000 } },
-              "grok-4.6": { name: "Grok 4.6", limit: { context: 128000, input: 90000, output: 32000 } },
-            },
-          } },
-          model: "aiforenza/gpt-5.4",
-          small_model: "aiforenza/gpt-5.4",
-          compaction: { auto: true, prune: true, reserved: 16000 },
-        }, null, 2),
+          "Sign up or log in to AI Forenza. Open API Keys and generate a personal key, or open Hackathon and claim your organizer-issued Team ID to receive a shared promotional key. Save the full secret when it is first shown. If your team already shared its key with you, you can use that credential directly. No dashboard model activation is required.",
       },
       {
-        heading: "Why this works",
+        heading: "2. Install and open OpenCode",
         body:
-          "The key identifies your account, not a selected model. GET /v1/models returns the account's available backend catalog, and each chat request chooses its model independently. OpenCode custom providers also need model definitions in the resolved client config; listing them does not grant extra access or change pricing. Run opencode models aiforenza from the actual project directory to verify that config scope.",
+          "Install OpenCode with Node.js/npm if it is not already installed, then open it in a terminal. Customers connect to the hosted AI Forenza API; the Local Setup guide is for developers running this service.",
+        code: "npm install -g opencode-ai\nopencode",
       },
       {
-        heading: "Choose another model",
-        body: "Restart OpenCode after editing the config, then use /models and select aiforenza/gpt-5.6-sol, aiforenza/gpt-6-astra, aiforenza/grok-4.6, or aiforenza/gpt-5.4. GET /v1/models is the supported billable catalog. Azure's larger model listing is not proof that every listed model is deployed, compatible, or priced here. These client limits are conservative application limits, not claims about full provider capacity.",
+        heading: "3. Save your key with /connect",
+        body: "In OpenCode enter /connect, choose Other, enter the provider ID aiforenza exactly, and paste your AI Forenza key. If AI Forenza is already listed, select that provider to update its credential. This uses OpenCode's native credential store. The ID connects the saved key to provider.aiforenza in the configuration; it is not a second API key. /connect saves the credential but does not configure the base URL or model list.",
+        code: "/connect\n\nProvider: Other\nProvider ID: aiforenza\nAPI key: paste your AI Forenza key at the secure prompt",
       },
       {
-        heading: "Astra tool compatibility",
-        body: "The configured GPT-6 Astra deployment rejects function tools with reasoning enabled. Keep its reasoningEffort option set to none as shown above for OpenCode coding/tool sessions. This is a client option, not a change to Azure settings or pricing. Sol, Astra and Grok passed streaming settlement checks; Astra also passed an actual OpenCode request with this option.",
+        heading: "4. Download and save your configuration",
+        body: "Download opencode.json below. It is generated from the current enabled, priced backend catalog, including supported effort variants and conservative token limits. It contains no credentials and uses the key you saved in step 3. Save it at the global path below for all projects, or as opencode.json in your coding project's root. If you already have a config, merge provider.aiforenza and review the suggested default-model/compaction settings instead of replacing unrelated providers.",
+        widget: "opencode-setup",
+        code: "Windows: %USERPROFILE%\\.config\\opencode\\opencode.json\nmacOS/Linux: ~/.config/opencode/opencode.json\n\nProject-only: <your-project>/opencode.json",
       },
       {
-        heading: "Integration pattern",
-        body:
-          "Run opencode run --model aiforenza/gpt-5.4 \"Reply briefly: hi\". Even a short greeting includes system prompts, tools and an output allowance. The tested 32,000-token request needed about $0.36 available upfront, not a $0.36 final charge. A new key on the same account does not bypass existing holds. Native Claude Code compatibility is not implied by OpenCode verification.",
+        heading: "5. Restart, choose your model, and select effort",
+        body: "Quit and restart OpenCode after saving the configuration. Enter /models and explicitly select the model under AI Forenza. In the terminal UI, Ctrl+T cycles the effort shown beside the selected model in the prompt footer; it is not a separate model entry. GPT-5.4 offers none/low/medium/high/xhigh, Sol additionally offers max, and Astra offers low/medium/high/xhigh/max. Defaults follow the backend registry: GPT-5.4 none, Sol medium, Astra medium. Astra rejects none and minimal. Grok currently has no advertised effort variants. The live table above is authoritative.",
+        code: "/models\n\nSelect: AI Forenza → GPT-6 Astra\nCtrl+T: cycle reasoning effort",
+      },
+      {
+        heading: "6. Make a request and verify your setup",
+        body: "Ask a short coding question first, then ask OpenCode to read a file in your project to check a tool-use round trip. For a CLI request, --variant selects the same configured effort as the TUI selector. Use a model and variant shown in your downloaded configuration. The request examples below use the credential stored through /connect.",
+        code: 'opencode models aiforenza\nopencode run --model aiforenza/gpt-5.4 "Explain binary search briefly."\nopencode run --model aiforenza/gpt-6-astra --variant high "Read README.md and summarize this project."',
+      },
+      {
+        heading: "7. Understand effort, output limits, and billing",
+        body: "The selected effort reaches the provider unchanged. AI Forenza accepts OpenCode's reasoning_effort and performs any model-specific provider translation behind the same public Chat Completions API. Higher effort can take longer and consume more reasoning/output tokens. Actual provider usage sets the bill; there is no fixed price per effort. Paid keys retain the 40% discount; hackathon keys spend promotional credit at reference price and never fall back to a personal wallet. Check the corresponding account's Usage page and the Hackathon balance for shared-key usage.",
+        bullets: [
+          "Preflight reserves against the requested maximum output; choosing high or max does not add an effort multiplier.",
+          "Reasoning tokens are already included in provider output usage. A small output cap can be consumed by reasoning before visible text; finish_reason=length indicates the cap was reached.",
+          "Long MAX requests need sufficient output allowance and client timeout. The downloaded config includes the registry's timeout recommendation.",
+          "Known provider rejections release holds. Timeouts or interrupted responses retain holds for reconciliation; inspect usage before retrying.",
+        ],
+      },
+      {
+        heading: "8. Troubleshoot connection and effort selection",
+        body: "A model appearing in /models proves the configuration loaded, not that an API call succeeded. Diagnose the exact error and keep the request ID for support.",
+        bullets: [
+          "AI Forenza missing: confirm the provider ID is aiforenza in both /connect and provider.aiforenza, save the file in the correct scope, and restart OpenCode.",
+          "Effort selector missing: choose an AI Forenza GPT model using /models, replace its stale definition with the current download, fully quit/restart OpenCode, then press Ctrl+T. Already running terminal/desktop/server instances cache model definitions. Project files and OPENCODE_CONFIG/OPENCODE_CONFIG_CONTENT can override global settings. Astra must not offer none/minimal; none is valid for GPT-5.4 and Sol.",
+          "401: re-enter the correct AI Forenza key through /connect. Remove an old options.apiKey entry when using the saved credential; an environment placeholder or literal key can override it.",
+          "402: check available funds for that key, including outstanding holds and its output allowance. A hackathon key can spend only its grant.",
+          "Connection refused: localhost refers to your own computer. A remote customer needs the administrator's public HTTPS API URL ending in /v1, not the website's login URL or an Azure endpoint.",
+          "400 unsupported_reasoning_effort: use an advertised variant. provider_reasoning_unavailable means the configured deployment rejected it; the server does not silently downgrade.",
+          "429: back off. 502/503 or interrupted streams: inspect Usage before retrying because inference may have started.",
+        ],
       },
     ],
   },
@@ -428,7 +445,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Wallet model",
         body:
-          "Each account has one USD-cent wallet shared by all of its API keys. Total is ledger cash; reserved is outstanding request capacity; available is total minus reserved. API authorization and the dashboard use the same database snapshot. Never release an uncertain historical hold merely because it is old.",
+          "Personal API keys share their owner's paid USD-cent wallet. Each hackathon shared key resolves only to its promotional grant wallet. Total is the ledger balance; reserved is outstanding request capacity; available is total minus reserved. API authorization and dashboard balances use the same database logic. Never release an uncertain hold merely because it is old.",
       },
       {
         heading: "Ledger and usage records",
@@ -456,7 +473,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Pricing",
         body:
-          "Current catalog pricing applies a 40% discount: customer = reference × 0.60 before rounding. Input, output and cached-input rates are model-specific; cached input is a subset of total input and billed once. Each request's reference/customer total rounds upward once to integer cents, so tiny requests can cost one cent on both sides with zero recorded cent savings. The upfront hold is not the final bill.",
+          "Paid usage applies the current 40% discount: customer = reference × 0.60 before rounding. Hackathon PROMOTIONAL usage is charged at reference price, with no discount or paid-wallet fallback. Input, output and cached-input rates are model-specific; cached input is a subset of total input and billed once. Totals round upward once per request to integer cents. The upfront hold is not the final bill, and effort selection never replaces actual-token billing.",
       },
       {
         heading: "Top-ups",

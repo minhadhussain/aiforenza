@@ -23,6 +23,7 @@ from opencode_live_test import (
 from app.core.config import settings
 from app.repositories.models import fetch_enabled_models
 from app.repositories.supabase_rest import rest_select
+from app.services.opencode_config import model_entry, apply_timeouts, validate_api_base_url
 
 CONFIG = Path.home() / "OneDrive/Desktop/opencode.json"
 
@@ -74,50 +75,11 @@ def merged_config(config, models):
     updated = copy.deepcopy(config)
     provider = updated["provider"]["aiforenza"]
     require(provider["npm"] == "@ai-sdk/openai-compatible", "Unexpected provider SDK")
-    require(
-        provider["options"]["baseURL"]
-        in ("http://localhost:8000/v1", "http://127.0.0.1:8000/v1"),
-        "Unexpected provider base URL",
-    )
+    validate_api_base_url(provider["options"]["baseURL"])
     entries = provider.setdefault("models", {})
+    apply_timeouts(provider["options"], models)
     for model in models:
-        # Conservative client limits; never exceed the backend's verified pricing band.
-        output = min(32000, model.pricing_max_output_tokens)
-        context = min(128000, model.pricing_max_input_tokens + output)
-        entry = entries.setdefault(model.slug, {})
-        entry["name"] = model.display_name
-        caps = model.capabilities
-        if caps.client_request_timeout_ms:
-            for option in ("timeout", "chunkTimeout"):
-                if provider["options"].get(option) is not False:
-                    provider["options"][option] = max(provider["options"].get(option, 0), caps.client_request_timeout_ms)
-        if caps.reasoning:
-            entry["reasoning"] = True
-            entry["temperature"] = caps.temperature
-            entry["tool_call"] = caps.tool_call
-            entry["options"] = {**entry.get("options", {}), "reasoningEffort": caps.default_reasoning_effort}
-            entry["options"].pop("reasoning_effort", None)
-            entry["options"].pop("reasoning", None)
-            entry["options"].pop("reasoningSummary", None)
-            entry["variants"] = {effort: {"reasoningEffort": effort} for effort in caps.reasoning_efforts}
-            context = min(context, caps.context or context)
-        existing_limits = entry.get("limit", {})
-        entry["limit"] = {
-            **existing_limits,
-            "context": min(existing_limits.get("context", context), context),
-            "output": min(existing_limits.get("output", output), output),
-        }
-        input_limit = max(
-            1,
-            min(
-                90000,
-                (model.pricing_max_input_tokens - 8192) // 2,
-                entry["limit"]["context"] - entry["limit"]["output"],
-            ),
-        )
-        entry["limit"]["input"] = min(
-            existing_limits.get("input", input_limit), input_limit
-        )
+        entries[model.slug] = model_entry(model, entries.get(model.slug))
     updated["compaction"] = {
         **updated.get("compaction", {}),
         "auto": True,

@@ -23,7 +23,9 @@ def catalog_row(slug):
     if slug == "gpt-6-astra":
         model.capabilities = ModelCapabilities(reasoning=True, reasoning_efforts=["low", "medium", "high", "xhigh", "max"], default_reasoning_effort="medium", temperature=False, top_p=False, context=128000, responses_for_tools=True, responses_efforts=["max"], client_request_timeout_ms=900000)
     elif slug == "gpt-5.6-sol":
-        model.capabilities = ModelCapabilities(responses_for_tools=True)
+        model.capabilities = ModelCapabilities(reasoning=True, reasoning_efforts=["none", "low", "medium", "high", "xhigh", "max"], default_reasoning_effort="medium", temperature=False, top_p=False, context=128000, responses_for_tools=True, responses_efforts=["max"], client_request_timeout_ms=900000, strict_chat_parameters=False)
+    elif slug == "gpt-5.4":
+        model.capabilities = ModelCapabilities(reasoning=True, reasoning_efforts=["none", "low", "medium", "high", "xhigh"], default_reasoning_effort="none", temperature=False, top_p=False, context=128000, strict_chat_parameters=False)
     model.enabled = model.pricing_verified = True
     model.reference_price_source = "fixture-reference"
     model.reference_price_valid_until = datetime.now(timezone.utc) + timedelta(days=1)

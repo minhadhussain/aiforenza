@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     api_env: str = Field(default="development", alias="API_ENV")
     api_host: str = Field(default="0.0.0.0", alias="API_HOST")
     api_port: int = Field(default=8000, alias="API_PORT")
+    public_api_base_url: str = Field(default="http://localhost:8000/v1", alias="NEXT_PUBLIC_API_BASE_URL")
     api_cors_origins: str = Field(
         default="http://localhost:3000", alias="API_CORS_ORIGINS"
     )

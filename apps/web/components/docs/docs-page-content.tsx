@@ -1,4 +1,5 @@
 import type { DocPage } from "@/lib/docs";
+import { OpenCodeSetup } from "@/components/docs/opencode-setup";
 
 type DocsPageContentProps = {
   page: DocPage;
@@ -18,6 +19,7 @@ export function DocsPageContent({ page }: DocsPageContentProps) {
           <section key={section.heading} className="border border-white/8 bg-white/[0.025] px-6 py-6 shadow-[var(--shadow)]">
             <h2 className="text-xl font-semibold text-white">{section.heading}</h2>
             <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{section.body}</p>
+            {section.widget === "opencode-setup" && <OpenCodeSetup />}
 
             {section.bullets?.length ? (
               <ul className="mt-4 space-y-3 text-sm leading-7 text-[var(--muted)]">

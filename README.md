@@ -64,6 +64,10 @@ See [Hackathon setup and verification](docs/hackathon-credits.md) for the migrat
 
 GPT-6 Astra supports selectable `low`, `medium`, `high`, `xhigh`, and `max` variants through AI Forenza. See [Astra reasoning compatibility](docs/astra-reasoning.md) for the authoritative registry, Azure transport details, configuration refresh, and real OpenCode verification results.
 
+New users can follow **Dashboard → Docs → OpenCode setup and reasoning efforts**, save their key with `/connect → Other → aiforenza`, and download a credential-free `opencode.json`. The configuration endpoint, `GET /v1/public/opencode-config`, derives models, variants, defaults, and limits from the backend catalog. Configure `NEXT_PUBLIC_API_BASE_URL` on both the API and web deployments with the customer-facing HTTPS `/v1` URL. See [fresh-user setup verification](docs/opencode-onboarding.md).
+
+GPT-5.4 and GPT-5.6 Sol also expose their verified effort variants. Existing installations can refresh model definitions with `python tools/refresh_opencode_configs.py`, then fully restart OpenCode and use **Ctrl+T** on an AI Forenza GPT model.
+
 ## Local Stripe Development
 
 Use Stripe test mode only for local development.

@@ -171,8 +171,7 @@ def test_other_models_keep_existing_chat_contract(slug):
     payload = build_provider_payload(request, model, "req_test")
     assert payload["reasoning_effort"] == "none" and payload["temperature"] == 0.7
     assert payload["tools"] == TOOLS and payload["max_completion_tokens"] == 1200
-    # Unspecified capability metadata is not advertised as a false capability.
-    assert "reasoning" not in serialize_openai_models([model])["data"][0]["capabilities"]
+    assert serialize_openai_models([model])["data"][0]["capabilities"]["reasoning"] is True
 
 
 def test_stateless_tool_result_conversation_and_schema_preserved():
@@ -236,3 +235,43 @@ def test_max_output_incomplete_is_accounted_as_length_not_invented_success():
 def test_diagnostics_do_not_log_unknown_legacy_effort_or_extra_fields(caplog):
     provider_gateway.diagnostic({"model": "gpt-5.4", "request_id": "req_fixture", "reasoning_effort": "PRIVATE_EFFORT", "prompt": "PRIVATE_PROMPT", "api_key": "PRIVATE_KEY"}, "provider_request")
     assert "PRIVATE" not in caplog.text
+
+
+@pytest.mark.parametrize("slug,effort", [
+    (slug, effort)
+    for slug, efforts in (("gpt-5.4", ["none", "low", "medium", "high", "xhigh"]), ("gpt-5.6-sol", ["none", "low", "medium", "high", "xhigh", "max"]))
+    for effort in efforts
+])
+@pytest.mark.parametrize("source,charge", [("PAID", 60), ("PROMOTIONAL", 100)])
+def test_gpt5_variants_reach_provider_with_actual_usage_billing(flow, slug, effort, source, charge):
+    model, key, reserve, rpc, seen, _ = flow
+    model.slug = model.provider_model_id = slug
+    model.capabilities = CatalogModel.model_validate(catalog_row(slug)).capabilities
+    key["billing_source"] = source
+    result = post(request_body(model=slug, reasoning_effort=effort, tools=TOOLS, stream=True))
+    assert result.status_code == 200 and "data: [DONE]" in result.text
+    path, outgoing = seen[0]
+    expected_responses = slug == "gpt-5.6-sol" and effort != "none"
+    assert path.endswith("responses") == expected_responses
+    assert (outgoing["reasoning"]["effort"] if expected_responses else outgoing["reasoning_effort"]) == effort
+    assert rpc.call_args.kwargs["customer_charge_cents"] == charge
+    assert rpc.call_args.kwargs["output_tokens"] == 1000
+
+
+@pytest.mark.parametrize("slug,effort", [("gpt-5.4", "max"), ("gpt-5.4", "minimal"), ("gpt-5.6-sol", "minimal")])
+def test_gpt5_unsupported_efforts_rejected_before_reservation(flow, slug, effort):
+    flow[0].slug = flow[0].provider_model_id = slug
+    flow[0].capabilities = CatalogModel.model_validate(catalog_row(slug)).capabilities
+    result = post(request_body(model=slug, reasoning_effort=effort))
+    assert result.status_code == 400
+    flow[2].assert_not_called()
+
+
+def test_gpt54_legacy_function_and_sampling_fields_are_preserved():
+    model = CatalogModel.model_validate(catalog_row("gpt-5.4"))
+    request = ChatCompletionRequest(**request_body(model=model.slug, functions=[{"name": "legacy"}], function_call="auto", temperature=0.7, top_p=0.9))
+    payload = build_provider_payload(request, model, "req_fixture")
+    assert payload["reasoning_effort"] == "none"
+    assert payload["functions"] == [{"name": "legacy"}]
+    assert payload["function_call"] == "auto"
+    assert payload["temperature"] == 0.7 and payload["top_p"] == 0.9

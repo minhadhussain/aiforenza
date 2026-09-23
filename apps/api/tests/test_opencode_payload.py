@@ -42,7 +42,7 @@ def test_standard_chat_request_remains_unchanged():
     payload = build_provider_payload(
         request, CatalogModel.model_validate(catalog_row("gpt-5.4")), "req_test"
     )
-    assert payload == request.model_dump(exclude_none=True)
+    assert payload == {**request.model_dump(exclude_none=True), "reasoning_effort": "none"}
 
 
 @pytest.mark.parametrize(

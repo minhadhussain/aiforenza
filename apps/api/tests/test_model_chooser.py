@@ -83,7 +83,7 @@ def test_template_contains_only_supported_models_and_no_literal_key():
         "gpt-6-astra",
         "grok-4.6",
     }
-    assert provider["options"]["apiKey"] == "{env:AI_FORENZA_API_KEY}"
+    assert "apiKey" not in provider["options"]  # Credential comes from /connect.
 
 
 def test_reasoning_timeouts_come_from_registry_and_preserve_unlimited_override(sync):

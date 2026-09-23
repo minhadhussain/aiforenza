@@ -31,7 +31,7 @@ def serialize_openai_models(models: list[CatalogModel]) -> dict:
                 "id": model.slug,
                 "object": "model",
                 "owned_by": "your-platform",
-                "capabilities": model.capabilities.model_dump(exclude_unset=True, exclude={"responses_for_tools", "responses_efforts"}),
+                "capabilities": model.capabilities.model_dump(exclude_unset=True, exclude={"responses_for_tools", "responses_efforts", "strict_chat_parameters"}),
                 "limit": {"context": model.capabilities.context or model.pricing_max_input_tokens + model.pricing_max_output_tokens, "output": model.pricing_max_output_tokens},
             }
             for model in models
@@ -46,7 +46,7 @@ def serialize_dashboard_models(models: list[CatalogModel]) -> list[dict]:
             "slug": model.slug,
             "display_name": model.display_name,
             "provider": model.provider,
-            "capabilities": model.capabilities.model_dump(exclude_unset=True, exclude={"responses_for_tools", "responses_efforts"}),
+            "capabilities": model.capabilities.model_dump(exclude_unset=True, exclude={"responses_for_tools", "responses_efforts", "strict_chat_parameters"}),
             **{f"{name}_price_per_million": str(rate) for name,rate in resolve_model_rates(model).items()},
             "discount_percent": str(model.discount_percent),
             "pricing_basis": "Standard text benchmark; USD per million tokens",

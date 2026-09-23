@@ -14,6 +14,8 @@ def compatibility_error(message="Unsupported Astra tool conversation."):
 
 
 def to_responses(payload: dict) -> dict:
+    if "functions" in payload or "function_call" in payload:
+        raise compatibility_error("Use tools and tool_choice for reasoning requests that require Responses transport.")
     inputs = []
     for message in payload["messages"]:
         role = message["role"]

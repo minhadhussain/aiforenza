@@ -130,6 +130,11 @@ def database():
                 / "supabase/migrations/202609130002_reasoning_transport.sql"
             ).read_text()
             cur.execute(transport_sql.replace("public.", schema + "."))
+            gpt5_sql = (
+                Path(__file__).resolve().parents[3]
+                / "supabase/migrations/202609230001_opencode_gpt5_efforts.sql"
+            ).read_text()
+            cur.execute(gpt5_sql.replace("public.", schema + "."))
         conn.commit()
         yield RedactedDatabaseURL(url), schema
     finally:

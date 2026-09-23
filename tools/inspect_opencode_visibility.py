@@ -24,6 +24,16 @@ def summary(config):
         else None,
         "astra_name": provider.get("models", {}).get("gpt-6-astra", {}).get("name"),
         "default_is_astra": config.get("model") == "aiforenza/gpt-6-astra",
+        "default_model": config.get("model") if str(config.get("model", "")).startswith("aiforenza/") else "other_provider",
+        "reasoning_config": {
+            slug: {
+                "reasoning": model.get("reasoning") is True,
+                "efforts": [effort for effort in model.get("variants", {}) if effort in {"none", "minimal", "low", "medium", "high", "xhigh", "max"}],
+                "default_effort": model.get("options", {}).get("reasoningEffort") if model.get("options", {}).get("reasoningEffort") in {"none", "minimal", "low", "medium", "high", "xhigh", "max"} else None,
+            }
+            for slug, model in provider.get("models", {}).items()
+            if slug in {"gpt-5.4", "gpt-5.6-sol", "gpt-6-astra", "grok-4.6"}
+        },
     }
 
 

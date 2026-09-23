@@ -15,6 +15,7 @@ class ModelCapabilities(BaseModel):
     responses_for_tools: bool = False
     responses_efforts: list[str] = Field(default_factory=list)
     client_request_timeout_ms: int | None = Field(default=None, gt=0)
+    strict_chat_parameters: bool = True
 
 
 class CatalogModel(BaseModel):
