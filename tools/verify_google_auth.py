@@ -39,11 +39,15 @@ def main():
                     require(not signups, "Invalid email was sent to signup")
                 page.get_by_role("button", name="Continue with Google", exact=True).click()
                 if google_enabled:
-                    page.wait_for_url(lambda url: url.hostname == "accounts.google.com", timeout=45000)
+                    page.wait_for_url(lambda url: urlsplit(url).hostname == "accounts.google.com", timeout=45000)
+                    # A redirect to Google's domain alone can also be an OAuth
+                    # error page. Verify the actual sign-in form and PKCE cookie.
+                    expect(page.locator('input[type="email"]')).to_be_visible(timeout=30000)
+                    require(any("code-verifier" in cookie["name"] for cookie in context.cookies(args.url)), "OAuth PKCE verifier cookie missing")
                 else:
                     expect(page.locator("form").get_by_role("alert")).to_contain_text("Google sign-in is not enabled", timeout=45000)
                     require(urlsplit(page.url).path == "/" + intent, "OAuth error returned to wrong auth page")
-                print(json.dumps({"page": intent, "google_button": True, "single_account_switch_link": True, "outdated_copy_removed": True, "google_enabled": google_enabled, "google_handoff": google_enabled, "disabled_provider_error": not google_enabled}))
+                print(json.dumps({"page": intent, "google_button": True, "single_account_switch_link": True, "outdated_copy_removed": True, "google_enabled": google_enabled, "google_handoff": google_enabled, "google_signin_form_visible": google_enabled, "pkce_cookie_verified": google_enabled, "disabled_provider_error": not google_enabled}))
                 context.close()
             context = browser.new_context()
             page = context.new_page()
