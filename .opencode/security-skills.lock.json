@@ -1,0 +1,383 @@
+{
+  "version": 1,
+  "hash_normalization": "CRLF to LF",
+  "skills": [
+    {
+      "name": "security-best-practices",
+      "repository": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "path": "skills/.curated/security-best-practices",
+      "license": "Apache-2.0",
+      "include": [
+        "SKILL.md",
+        "LICENSE.txt",
+        "references/python-fastapi-web-server-security.md",
+        "references/javascript-general-web-frontend-security.md",
+        "references/javascript-typescript-nextjs-web-server-security.md",
+        "references/javascript-typescript-react-web-frontend-security.md"
+      ],
+      "files": [
+        {
+          "path": "LICENSE.txt",
+          "upstream_path": "skills/.curated/security-best-practices/LICENSE.txt",
+          "git_blob_sha": "13e25df86ce06eb6488e6a6bc5c5847f5dedc352",
+          "sha256_lf": "4dd13869245e356246a5b770723247bbb80a8f07a181d1d3d873a1734297cdb9"
+        },
+        {
+          "path": "SKILL.md",
+          "upstream_path": "skills/.curated/security-best-practices/SKILL.md",
+          "git_blob_sha": "45ccbd8d671c4c4cc3e7e0645a16a3f80ec50de7",
+          "sha256_lf": "7b3dae1ffc5434d890f3c65c8f552af52d0307fab3b35dec13013c9ca3844c4f"
+        },
+        {
+          "path": "references/javascript-general-web-frontend-security.md",
+          "upstream_path": "skills/.curated/security-best-practices/references/javascript-general-web-frontend-security.md",
+          "git_blob_sha": "d8b696f363ea54661791c048ba19a57933d20825",
+          "sha256_lf": "3a7bc7b3f6e7ff043db9dbaa8933894d7a19d987d0607e4ddae5d70184a63d63"
+        },
+        {
+          "path": "references/javascript-typescript-nextjs-web-server-security.md",
+          "upstream_path": "skills/.curated/security-best-practices/references/javascript-typescript-nextjs-web-server-security.md",
+          "git_blob_sha": "44cc8213b11feda2eac8283dfd6a11fe93a68965",
+          "sha256_lf": "71c773f7a97ce60c853adfa100b3d88b3b7bc4c6b8acaef1432ffabd923ee182"
+        },
+        {
+          "path": "references/javascript-typescript-react-web-frontend-security.md",
+          "upstream_path": "skills/.curated/security-best-practices/references/javascript-typescript-react-web-frontend-security.md",
+          "git_blob_sha": "33fb693282a40754a081a499cda3d471aa23da28",
+          "sha256_lf": "d3030c0f24bddb56b9bbb91bbec1ee49eb7778bce4d3e0297b2641b2fc6b0d9c"
+        },
+        {
+          "path": "references/python-fastapi-web-server-security.md",
+          "upstream_path": "skills/.curated/security-best-practices/references/python-fastapi-web-server-security.md",
+          "git_blob_sha": "d394a55bb86b3b2e5c2b73e65cb115a2a0ce1c05",
+          "sha256_lf": "7383c7f4fc271190b05e562ada7e825982a2c76b6c79a9f95a1da7687b65a616"
+        }
+      ]
+    },
+    {
+      "name": "security-threat-model",
+      "repository": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "path": "skills/.curated/security-threat-model",
+      "license": "Apache-2.0",
+      "include": [
+        "SKILL.md",
+        "LICENSE.txt",
+        "references/*.md"
+      ],
+      "files": [
+        {
+          "path": "LICENSE.txt",
+          "upstream_path": "skills/.curated/security-threat-model/LICENSE.txt",
+          "git_blob_sha": "13e25df86ce06eb6488e6a6bc5c5847f5dedc352",
+          "sha256_lf": "4dd13869245e356246a5b770723247bbb80a8f07a181d1d3d873a1734297cdb9"
+        },
+        {
+          "path": "SKILL.md",
+          "upstream_path": "skills/.curated/security-threat-model/SKILL.md",
+          "git_blob_sha": "abd3c1c95d49c4e0e0664f198f4bf168c6291aec",
+          "sha256_lf": "1283c0dd62a8104d9edda4583569b5d8510b4ddaa45120687c999250fd96bad2"
+        },
+        {
+          "path": "references/prompt-template.md",
+          "upstream_path": "skills/.curated/security-threat-model/references/prompt-template.md",
+          "git_blob_sha": "b6affb0d2f873ffe398f7a8df00095dc0ff01f59",
+          "sha256_lf": "81a59aa3fb3ac3a739d6a26ab38e4015965f215581ee54becef21a2b121ec29b"
+        },
+        {
+          "path": "references/security-controls-and-assets.md",
+          "upstream_path": "skills/.curated/security-threat-model/references/security-controls-and-assets.md",
+          "git_blob_sha": "63d1455aeacfc97eaca4e371040dbadfbd791635",
+          "sha256_lf": "d536cfa9acad2523dc39134bcf33b9566c29dd9a57b407cbc9901637230c6b98"
+        }
+      ]
+    },
+    {
+      "name": "supabase-postgres-best-practices",
+      "repository": "supabase/agent-skills",
+      "commit": "8331f910845103c08d51f6ca1d86ebb7d1f745e3",
+      "path": "skills/supabase-postgres-best-practices",
+      "license": "MIT",
+      "license_path": "LICENSE",
+      "include": [
+        "SKILL.md",
+        "references/*.md"
+      ],
+      "files": [
+        {
+          "path": "LICENSE.txt",
+          "upstream_path": "LICENSE",
+          "git_blob_sha": "d3c9e94fbc6c28f66ecb5a01407d543c99c811b6",
+          "sha256_lf": "b65e575eb4f04a13c187d64e958321298e2ab84d67aa8428819f362056ba292c"
+        },
+        {
+          "path": "SKILL.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/SKILL.md",
+          "git_blob_sha": "6400792389dfcc82c81953054e546bd72ebcd259",
+          "sha256_lf": "ad65e776f45e761bafc609d3f506c77c1032225aa65e0c4c02f241b8071e5855"
+        },
+        {
+          "path": "references/_contributing.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/_contributing.md",
+          "git_blob_sha": "1c055aff9ad2bf12cfe7edc0002f2f77fe6980d2",
+          "sha256_lf": "191e039e7d94764e6073410b513b559f9a594e0fdf0252a30c2a2986df2ab3bc"
+        },
+        {
+          "path": "references/_sections.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/_sections.md",
+          "git_blob_sha": "8ba57c23e8119e411fcc8a230cda08e695792cac",
+          "sha256_lf": "c9e992612b422c7122de0b7542ebc2450db283edaab08cfe86c6d657fcccccd5"
+        },
+        {
+          "path": "references/_template.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/_template.md",
+          "git_blob_sha": "91ace90e10a4d8ef354a82bb1994842e6979ebed",
+          "sha256_lf": "6299954250f212caabe339d752c3e5313a8e07d1a182a4e4b425baee91df1bd2"
+        },
+        {
+          "path": "references/advanced-full-text-search.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/advanced-full-text-search.md",
+          "git_blob_sha": "582cbeaada9378a280ad61f57e06c10d258e3c43",
+          "sha256_lf": "40c2606bbb4c4dce31308f201b24cc7f58c7df05b1d9c6856fe2b888d3b7cf28"
+        },
+        {
+          "path": "references/advanced-jsonb-indexing.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md",
+          "git_blob_sha": "e3d261ea117fd7b1ad9c4f0d45308407b898ed5a",
+          "sha256_lf": "24cacf6a8bc35901dd566d24502ce8e57f810a5c196b897e61d52726e521d106"
+        },
+        {
+          "path": "references/conn-idle-timeout.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/conn-idle-timeout.md",
+          "git_blob_sha": "40b9cc50dd12cf347ed189fac965673b533f3f99",
+          "sha256_lf": "630588902c00fcec59a5988cc5d042f76dcf2c923a535abfd8c47dca205eaed5"
+        },
+        {
+          "path": "references/conn-limits.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/conn-limits.md",
+          "git_blob_sha": "cb3e400c0234e7e9196c1650423faad66375b70b",
+          "sha256_lf": "11b2a67a7c7679cbbc5d807bbb17e69c98484a581d0c8b929c03408f412b81b2"
+        },
+        {
+          "path": "references/conn-pooling.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/conn-pooling.md",
+          "git_blob_sha": "e2ebd581d3c85bff0a077e8d9a2cb562d2513d03",
+          "sha256_lf": "88cf086bf98ba865d2e9d0579974e1366b14157619d6a93e7da77be91084e4a5"
+        },
+        {
+          "path": "references/conn-prepared-statements.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/conn-prepared-statements.md",
+          "git_blob_sha": "555547d834e35b5059152dfb2288eca5e9838ea0",
+          "sha256_lf": "174e9332fe3dda5c99b2b00159fb1915ae36c00bab3a7882c14e73e4344e946e"
+        },
+        {
+          "path": "references/data-batch-inserts.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/data-batch-inserts.md",
+          "git_blob_sha": "997947cb17bfed67f29eaa8da2a58de2306cc2c1",
+          "sha256_lf": "531933b82d6a622d0fae29e0ea80be6fe5d78655adf2804c271ea84a1930de37"
+        },
+        {
+          "path": "references/data-n-plus-one.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/data-n-plus-one.md",
+          "git_blob_sha": "2109186ff88b3ba1cc32789f81e2a00d345c6e3f",
+          "sha256_lf": "21a44905e5b16a42741892ec34bb1bfef124d049b140a76934a9acd0f46f5fc2"
+        },
+        {
+          "path": "references/data-pagination.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/data-pagination.md",
+          "git_blob_sha": "633d839323612e212a833dd96828cb31fdfb39f8",
+          "sha256_lf": "73c9fa10a3d439bedea0e11b640bd25bf30dd50f0d9006cf85baf7c3151543fa"
+        },
+        {
+          "path": "references/data-upsert.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/data-upsert.md",
+          "git_blob_sha": "bc95e2305d955679446c70854cb2b56b183aa56d",
+          "sha256_lf": "2612af83b20a2701dde30ef1f8d7efd26b7e9eef84717226b8f038a2d2150ff7"
+        },
+        {
+          "path": "references/lock-advisory.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/lock-advisory.md",
+          "git_blob_sha": "572eaf0dcf518ac925c4cde41beb60b62852b79c",
+          "sha256_lf": "c88d259dbf81c3771438f59a165f7eab8acd09999dd370bdf807521c73f35aab"
+        },
+        {
+          "path": "references/lock-deadlock-prevention.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md",
+          "git_blob_sha": "974da5edec32f79de0fcdc771d4ef759dc3e049d",
+          "sha256_lf": "09aee46f51d7178c8e55fe056cd5a94a64ba2c122fe418e6900cd99f297b2347"
+        },
+        {
+          "path": "references/lock-short-transactions.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/lock-short-transactions.md",
+          "git_blob_sha": "e6b8ef2633248a4aa4394628e48d8cb693e7e6ab",
+          "sha256_lf": "5aa7f61095916986d39644b446cdbcd2bacca7ef698a3bb50b3f82dd60207602"
+        },
+        {
+          "path": "references/lock-skip-locked.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/lock-skip-locked.md",
+          "git_blob_sha": "77bdbb97045010ce2fdbd90733e8f764be82881a",
+          "sha256_lf": "6c45077f430f29cd9cd8f448c94d578e827e7bd023fcdaf717a756acb116fa4b"
+        },
+        {
+          "path": "references/monitor-explain-analyze.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md",
+          "git_blob_sha": "542978c3bafc510fa8d7a8864cff994ad40be4d7",
+          "sha256_lf": "4cb67ffbf8e57f2e5b380b0beb4242528b513723ce314a2c2ffcf083bd4203d7"
+        },
+        {
+          "path": "references/monitor-pg-stat-statements.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md",
+          "git_blob_sha": "d7e82f1aacd105d53789eb6188d11e8ea39e7310",
+          "sha256_lf": "89dca99d4e894fcbdcac136be7ad9fbc03d1342904f065c1b198dc9cf495f098"
+        },
+        {
+          "path": "references/monitor-vacuum-analyze.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md",
+          "git_blob_sha": "e0e8ea0b7db8c1513a0d1605be477192bc21d91d",
+          "sha256_lf": "2892272011710eb49b3f185ec12f15ce9ce4c365792c672f6e2a9c90da426a1a"
+        },
+        {
+          "path": "references/query-composite-indexes.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/query-composite-indexes.md",
+          "git_blob_sha": "fea64523fd5bb3696f943d486ccaf2aea75d27b8",
+          "sha256_lf": "73e42424e671f0266e74fdb220db3196790f69fb43e2b19c7b9483eb4971b554"
+        },
+        {
+          "path": "references/query-covering-indexes.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/query-covering-indexes.md",
+          "git_blob_sha": "9d2a4947b94516dd975e1044d132bb007280f478",
+          "sha256_lf": "daf2a7f0477fb7357b62b5fb5b185b1995a77a186347e45cb780e25e7a7589b6"
+        },
+        {
+          "path": "references/query-index-types.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/query-index-types.md",
+          "git_blob_sha": "93b32590f4bfe377869274f45414ae6e43d168fa",
+          "sha256_lf": "472a74f22c2df203bd0154999b3a5a0187cca2ab3d9a3978e305bb7c32f1a282"
+        },
+        {
+          "path": "references/query-missing-indexes.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/query-missing-indexes.md",
+          "git_blob_sha": "e6daace7dd368c75cdf87dc61be4afd6ff66cbbe",
+          "sha256_lf": "91ad8b0ff4365704b4830a7f077c6f140f7140fd5d3ce5cd0b92b160cf9e25f1"
+        },
+        {
+          "path": "references/query-partial-indexes.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/query-partial-indexes.md",
+          "git_blob_sha": "3e61a3417b9cce3c8cee99b39b78b7ebf495dd1f",
+          "sha256_lf": "6448982bc8558c6555284958edc331b29239c6a0130e6b4501dd6d4da607a6dd"
+        },
+        {
+          "path": "references/schema-constraints.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/schema-constraints.md",
+          "git_blob_sha": "1d2ef8f9a968cd6fa882c7299134c30ace06373c",
+          "sha256_lf": "90e8efda3e9e81095e642911ad4aae2809d160f29414338fa997253238f510f8"
+        },
+        {
+          "path": "references/schema-data-types.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/schema-data-types.md",
+          "git_blob_sha": "f253a5819d05531371e04485ab84f552fbb32fbe",
+          "sha256_lf": "e01b58c14c7f3f65d8ead580b9a4fcf70b83baaab0f9a5f83c569c9fd113e8c8"
+        },
+        {
+          "path": "references/schema-foreign-key-indexes.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md",
+          "git_blob_sha": "6c3d6ff622b8a9df358f6673f323292e682ce87c",
+          "sha256_lf": "7587713d12a65a212365459b3d39e4717d8a79e4073b10bd62f1054d8192c0dd"
+        },
+        {
+          "path": "references/schema-lowercase-identifiers.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/schema-lowercase-identifiers.md",
+          "git_blob_sha": "f0072940b159ff64e0c2d4fbb499133cb8f49a66",
+          "sha256_lf": "4bc80f70865f2390872591f326c8a6be6456a0aeb5a7e5a2475d7cd9d43059ab"
+        },
+        {
+          "path": "references/schema-partitioning.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/schema-partitioning.md",
+          "git_blob_sha": "13137a03275fa45001c870a40b0069204d44e005",
+          "sha256_lf": "541e13fbeaf4bb1485c9059d4c9417dbdb766cf16f4237cd63a04ada7ec45b90"
+        },
+        {
+          "path": "references/schema-primary-keys.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/schema-primary-keys.md",
+          "git_blob_sha": "fb0fbb166fac9ea38c127d807a263282acc2dc93",
+          "sha256_lf": "3c8beabef82066f9a0838b926da0885117fd2d9a263aaf84cb5ca9e5f0d400e9"
+        },
+        {
+          "path": "references/security-privileges.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/security-privileges.md",
+          "git_blob_sha": "448ec345fab6c5a0116c584d65638b86d758c558",
+          "sha256_lf": "095909274a4fb43df785d7144cf674eeb40284d2d45628f14af4108737b93663"
+        },
+        {
+          "path": "references/security-rls-basics.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/security-rls-basics.md",
+          "git_blob_sha": "c61e1a8503de113be0981759b82f5e37090f344c",
+          "sha256_lf": "e04dd1a3a382aafdaaa73fe9f7976352acdde6e90c2a2470d281b94d4f44b096"
+        },
+        {
+          "path": "references/security-rls-performance.md",
+          "upstream_path": "skills/supabase-postgres-best-practices/references/security-rls-performance.md",
+          "git_blob_sha": "c3c7c416d57d9a46a9993f4e0c20f772fb64483d",
+          "sha256_lf": "2e1faeca7d5746e246b1c78f9492fe2a9cfa41c4d7fa1e23c402d58fa18ea014"
+        }
+      ]
+    },
+    {
+      "name": "property-based-testing",
+      "repository": "trailofbits/skills",
+      "commit": "32e34f8173796e3566a51aee877dc96bc5191f64",
+      "path": "plugins/property-based-testing/skills/property-based-testing",
+      "license": "CC-BY-SA-4.0",
+      "license_path": "LICENSE",
+      "include": [
+        "SKILL.md",
+        "references/*.md"
+      ],
+      "files": [
+        {
+          "path": "LICENSE.txt",
+          "upstream_path": "LICENSE",
+          "git_blob_sha": "3b7b82d0da2db857eda1a798dbd908ea136f07b5",
+          "sha256_lf": "7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297"
+        },
+        {
+          "path": "SKILL.md",
+          "upstream_path": "plugins/property-based-testing/skills/property-based-testing/SKILL.md",
+          "git_blob_sha": "1cc39d8d8cba5955bf9c8d7c9a2aef348722a55e",
+          "sha256_lf": "9448cacb65c6237a7c22dc59602667177ecae405524079ae9ff92240590b995a"
+        },
+        {
+          "path": "references/generating.md",
+          "upstream_path": "plugins/property-based-testing/skills/property-based-testing/references/generating.md",
+          "git_blob_sha": "0133ccd27580a6f68d662807832de67cb1d91514",
+          "sha256_lf": "c0e72dfc89babe3c32de718b81b94044362c85e776d7475e950dfeaab78bb58e"
+        },
+        {
+          "path": "references/interpreting-failures.md",
+          "upstream_path": "plugins/property-based-testing/skills/property-based-testing/references/interpreting-failures.md",
+          "git_blob_sha": "10aeac48d239da352206b8c49f72ee776e5ca5be",
+          "sha256_lf": "dbae7db8773712ba03268a3d56ea5aa6720af0650a5189580bfd88aa2edc3f9a"
+        },
+        {
+          "path": "references/libraries.md",
+          "upstream_path": "plugins/property-based-testing/skills/property-based-testing/references/libraries.md",
+          "git_blob_sha": "6b9964a46c014f5ecee78cd356fb0bdc4cbcd830",
+          "sha256_lf": "f7218acf8e668130ef3048983472579d04e12030c5401926f666363e5f69c686"
+        },
+        {
+          "path": "references/refactoring.md",
+          "upstream_path": "plugins/property-based-testing/skills/property-based-testing/references/refactoring.md",
+          "git_blob_sha": "d4be7fb1fd4f00e53fde109254dd6dc937248011",
+          "sha256_lf": "6eb5c206f575704791f089608bb06e41d6eed91b9d3c7fb27912f969aed07a18"
+        },
+        {
+          "path": "references/reviewing.md",
+          "upstream_path": "plugins/property-based-testing/skills/property-based-testing/references/reviewing.md",
+          "git_blob_sha": "a2ca783a7dabaece9e383f0ace972bb4fe2f7881",
+          "sha256_lf": "110b08118a1e7b1a2566def6e9d2a0bf43fc2deefce857d2ce3b4382b07bc774"
+        }
+      ]
+    }
+  ]
+}
