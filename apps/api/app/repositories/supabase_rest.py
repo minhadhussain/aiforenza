@@ -1,4 +1,5 @@
 import httpx
+import re
 
 from app.core.config import settings
 
@@ -7,7 +8,17 @@ class SupabaseRepositoryError(Exception):
     pass
 
 
-def build_rest_url(path: str) -> str:
+_TABLE_PATH = re.compile(r"/rest/v1/[a-z][a-z0-9_]*")
+_RPC_PATH = re.compile(r"/rest/v1/rpc/[a-z][a-z0-9_]*")
+_PUBLIC_RPC_ERRORS = {"insufficient_balance", "team_already_claimed", "invalid_team_id", "campaign_inactive"}
+
+
+def build_rest_url(path: str, *, rpc: bool = False) -> str:
+    # Resource names are application-owned identifiers. Values belong in encoded
+    # query parameters or JSON RPC arguments, never in a URL/SQL fragment.
+    pattern = _RPC_PATH if rpc else _TABLE_PATH
+    if not isinstance(path, str) or not pattern.fullmatch(path):
+        raise SupabaseRepositoryError("Invalid database endpoint.")
     if not settings.supabase_url:
         raise SupabaseRepositoryError("SUPABASE_URL is not configured.")
     if not settings.supabase_service_role_key:
@@ -24,9 +35,10 @@ def build_service_headers() -> dict[str, str]:
 
 
 async def rest_select(path: str, params: dict[str, str]) -> list[dict]:
+    url = build_rest_url(path)
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(
-            build_rest_url(path),
+            url,
             headers={**build_service_headers(), "Accept": "application/json"},
             params=params,
         )
@@ -37,13 +49,21 @@ async def rest_select(path: str, params: dict[str, str]) -> list[dict]:
     return response.json()
 
 
-async def execute_rest_mutation(path: str, method: str, json: dict, prefer: str) -> dict | list[dict] | None:
+async def execute_rest_mutation(path: str, method: str, json: dict, prefer: str, *, params: dict[str, str] | None = None) -> dict | list[dict] | None:
+    url = build_rest_url(path)
+    if method not in {"POST", "PATCH"}:
+        raise SupabaseRepositoryError("Unsupported database mutation.")
+    if method == "PATCH":
+        identifier = (params or {}).get("id", "")
+        if not isinstance(identifier, str) or not identifier.startswith("eq.") or len(identifier) == 3:
+            raise SupabaseRepositoryError("Database updates require an explicit record filter.")
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.request(
             method,
-            build_rest_url(path),
+            url,
             headers={**build_service_headers(), "Prefer": prefer, "Accept": "application/json"},
             json=json,
+            params=params,
         )
 
     if response.status_code not in {200, 201, 204}:
@@ -56,9 +76,10 @@ async def execute_rest_mutation(path: str, method: str, json: dict, prefer: str)
 
 
 async def execute_rest_rpc(path: str, payload: dict) -> dict:
+    url = build_rest_url(path, rpc=True)
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.post(
-            build_rest_url(path),
+            url,
             headers=build_service_headers(),
             json=payload,
         )
@@ -76,7 +97,11 @@ def _error_message(response: httpx.Response, fallback: str) -> str:
     except ValueError:
         return fallback
 
-    if isinstance(payload, dict):
-        return payload.get("message") or payload.get("details") or payload.get("hint") or fallback
+    if isinstance(payload, dict) and payload.get("code") == "P0001":
+        message = payload.get("message")
+        if isinstance(message, str) and message in _PUBLIC_RPC_ERRORS:
+            return message
 
+    # Do not reflect SQL syntax, schema details, query fragments, or returned
+    # database values through routes that expose repository error messages.
     return fallback

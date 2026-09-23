@@ -7,10 +7,14 @@ from uuid import UUID
 
 
 async def fetch_profile(user_id: str) -> dict | None:
+    try:
+        identifier = str(UUID(user_id))
+    except (ValueError, TypeError, AttributeError):
+        raise SupabaseRepositoryError("Invalid account identifier.") from None
     payload = await rest_select(
         path="/rest/v1/profiles",
         params={
-            "id": f"eq.{user_id}",
+            "id": f"eq.{identifier}",
             "select": "id,email,created_at,updated_at",
             "limit": "1",
         },
@@ -18,7 +22,6 @@ async def fetch_profile(user_id: str) -> dict | None:
     if not payload:
         return None
     try:
-        identifier = str(UUID(user_id))
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.get(f"{settings.supabase_url.rstrip('/')}/auth/v1/admin/users/{identifier}", headers=build_service_headers())
         if response.status_code == 404:

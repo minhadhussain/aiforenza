@@ -1,4 +1,3 @@
-from app.repositories.supabase_rest import SupabaseRepositoryError
 from app.repositories.supabase_rest import execute_rest_mutation
 from app.repositories.supabase_rest import execute_rest_rpc
 from app.repositories.supabase_rest import rest_select
@@ -45,7 +44,8 @@ async def attach_checkout_session_to_topup(
     stripe_payment_intent_id: str | None,
 ) -> dict:
     response = await execute_rest_mutation(
-        path=f"/rest/v1/topups?id=eq.{topup_id}",
+        path="/rest/v1/topups",
+        params={"id": f"eq.{topup_id}"},
         method="PATCH",
         json={
             "stripe_checkout_session_id": stripe_checkout_session_id,

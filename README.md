@@ -54,6 +54,14 @@ Phase 1 through Phase 10 foundations are in place:
 - LiteLLM handles provider normalization, not business logic.
 - Supabase, Stripe, and Azure remain external services.
 
+## Security Review Skills
+
+Project-local OpenCode skills cover FastAPI/Next.js security, threat modeling, Supabase RLS/privileges, and property-based testing. Restart OpenCode in this repository and run `/security-review` for an evidence-based system review. Add explicit instructions to implement confirmed fixes when that is the intended scope.
+
+See [.opencode/skills/README.md](.opencode/skills/README.md) for usage, publisher attribution, and pinned revisions. `python tools/verify_security_skills.py` verifies the downloaded contents and checks actual OpenCode discovery. Installing the skills does not itself perform an audit or apply application security fixes.
+
+Database access uses bound SQL/RPC values, encoded mutation filters, validated resource paths, and identifier validation. See [SQL/filter injection prevention](docs/sql-injection-prevention.md) for the implementation scope and regression evidence.
+
 ## Hackathon Promotional Credits
 
 The dashboard's **Hackathon** section claims one $100 shared-key grant per organizer-issued Team ID. Promotional usage is billed at reference price through the existing wallet, reservation, and ledger infrastructure. Paid keys retain normal customer pricing.

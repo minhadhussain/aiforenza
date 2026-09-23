@@ -41,7 +41,8 @@ async def fetch_api_key_for_user(user_id: str, key_id: str) -> dict | None:
 
 async def revoke_api_key_record(user_id: str, key_id: str) -> dict:
     payload = await execute_rest_mutation(
-        path=f"/rest/v1/api_keys?id=eq.{key_id}&user_id=eq.{user_id}",
+        path="/rest/v1/api_keys",
+        params={"id": f"eq.{key_id}", "user_id": f"eq.{user_id}"},
         method="PATCH",
         json={"revoked_at": datetime.now(timezone.utc).isoformat()},
         prefer="return=representation",
@@ -63,7 +64,8 @@ async def fetch_api_key_by_hash(key_hash: str) -> dict | None:
 
 async def touch_api_key(key_id: str) -> None:
     await execute_rest_mutation(
-        path=f"/rest/v1/api_keys?id=eq.{key_id}",
+        path="/rest/v1/api_keys",
+        params={"id": f"eq.{key_id}"},
         method="PATCH",
         json={"last_used_at": datetime.now(timezone.utc).isoformat()},
         prefer="return=minimal",
