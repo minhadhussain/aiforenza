@@ -76,6 +76,8 @@ New users can follow **Dashboard → Docs → OpenCode setup and reasoning effor
 
 GPT-5.4 and GPT-5.6 Sol also expose their verified effort variants. Existing installations can refresh model definitions with `python tools/refresh_opencode_configs.py`, then fully restart OpenCode and use **Ctrl+T** on an AI Forenza GPT model.
 
+OpenCode remembers explicit effort choices separately from model defaults. If Astra keeps returning to Low, choose Medium/Default in the client, or close OpenCode and run `python tools/reset_astra_effort.py` to clear only the stale Astra Low selection. Picker verification now uses isolated selection state. `python tools/verify_model_defaults.py` tests the enabled models and Astra's real TUI default using a temporary key that is revoked afterward.
+
 ## Local Stripe Development
 
 Use Stripe test mode only for local development.

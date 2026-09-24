@@ -6,10 +6,11 @@ import os
 import re
 import select
 import subprocess
+import tempfile
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
-from winpty import PtyProcess
 from configure_opencode_global import ROOT, executable
 
 
@@ -38,11 +39,32 @@ def stop_tui(process):
         pass  # ConPTY may report access denied for the already terminated handle.
 
 
+@contextmanager
+def isolated_picker_state(environment=None):
+    """Never let a UI verification change the user's remembered model/effort."""
+    env = (environment if environment is not None else os.environ).copy()
+    with tempfile.TemporaryDirectory(prefix="forenza-picker-", dir=Path.home() / "AppData/Local/Temp/opencode", ignore_cleanup_errors=True) as directory:
+        env["XDG_STATE_HOME"] = directory
+        yield env, Path(directory) / "opencode/model.json"
+
+
+def saved_variant(path, model_slug):
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8")).get("variant", {}).get("aiforenza/" + model_slug)
+
+
 def main(directory, verify_variants=False, environment=None, model_slug="gpt-6-astra", efforts=None):
+    with isolated_picker_state(environment) as (env, state_path):
+        return run_picker(directory, verify_variants, env, model_slug, efforts, state_path)
+
+
+def run_picker(directory, verify_variants, env, model_slug, efforts, state_path):
+    from winpty import PtyProcess
+
     labels = {"gpt-5.4": ("GPT-5.4", "gpt-5.4"), "gpt-5.6-sol": ("GPT-5.6 Sol", "sol"), "gpt-6-astra": ("GPT-6 Astra", "astra")}
     label, search = labels[model_slug]
     expected = set(efforts or ["low", "medium", "high", "xhigh"] + ([] if model_slug == "gpt-5.4" else ["max"]) + ([] if model_slug == "gpt-6-astra" else ["none"]))
-    env = (environment if environment is not None else os.environ).copy()
     env.update(OPENCODE_DISABLE_AUTOUPDATE="true", TERM="xterm-256color")
     if verify_variants:
         env["OPENCODE_CONFIG_CONTENT"] = json.dumps({"enabled_providers": ["aiforenza"]})
@@ -100,14 +122,23 @@ def main(directory, verify_variants=False, environment=None, model_slug="gpt-6-a
             raise RuntimeError("Requested model not observed in terminal picker search")
         if verify_variants:
             proc.write("\r")  # Select the AI Forenza model, without a prompt.
-            read_for(proc, 3)
+            proc.setwinsize(50, 160)
+            screen = read_for(proc, 3)
+            if "select variant" in screen.lower():
+                proc.write("\r")  # Fresh selection: accept Default, not the first explicit effort.
+                read_for(proc, 2)
+            initial = saved_variant(state_path, model_slug)
+            if initial not in (None, "default"):
+                raise RuntimeError("Fresh model selection unexpectedly saved an explicit effort")
             observed = set()
             for step in range(len(expected) + 2):
                 proc.write("\x14")  # Default Ctrl+T: cycle model reasoning variant.
                 proc.setwinsize(50 + step % 2, 160 + step % 2)
-                footer = read_for(proc, 2)
-                observed.update(re.findall(r"\b(none|low|medium|high|xhigh|max)\b", footer.lower()))
-            print(json.dumps({"selected_model": "aiforenza/" + model_slug, "observed_effort_labels": sorted(observed), "no_inference_submitted": True}), flush=True)
+                read_for(proc, 2)
+                actual = saved_variant(state_path, model_slug)
+                if actual is not None and actual != "default":
+                    observed.add(actual)
+            print(json.dumps({"selected_model": "aiforenza/" + model_slug, "initial_variant": initial or "default", "observed_effort_selections": sorted(observed), "isolated_selection_state": True, "no_inference_submitted": True}), flush=True)
             if observed != expected:
                 raise RuntimeError("Not every reasoning variant appeared in the TUI")
         else:

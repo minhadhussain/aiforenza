@@ -22,6 +22,30 @@ For an existing local installation, run `python tools/refresh_opencode_configs.p
 
 Then **fully quit and reopen OpenCode**, use `/models` to select a model under **AI Forenza**, and press **Ctrl+T**. A running terminal, desktop app, or OpenCode server retains its old model definitions until restarted. Identically named models under another provider use that provider's configuration.
 
+## Astra starts on Low instead of the Medium default
+
+OpenCode keeps two separate settings: the configured default (`options.reasoningEffort`, Medium for Astra) and the last explicitly selected variant, stored in its state directory's `model.json`. A remembered Low selection wins over the configured default when switching away and back.
+
+The earlier picker verification cycled variants in the normal user profile and could leave Low saved. The verifier now always uses a temporary `XDG_STATE_HOME`, explicitly selects the real Default option, and checks the saved selection rather than merely searching the menu for labels.
+
+In the current OpenCode UI, choose Medium with Ctrl+T, or cycle back to Default to use the registry default. To repair the stale remembered Low from a terminal, **close OpenCode first**, then from this repository run:
+
+```powershell
+python tools/reset_astra_effort.py
+```
+
+Reopen OpenCode afterward. The command changes only a saved `aiforenza/gpt-6-astra: low` entry to `default`; it preserves other models and explicit non-Low choices. A still-running client can write its cached Low choice back, so editing the state while that client remains open is not a reliable reset. Low remains available when intentionally selected; the API never silently upgrades it to Medium.
+
+### Default and model smoke verification
+
+`python tools/verify_model_defaults.py` creates one temporary key and a short-lived local test API in the verification process. It uses the real Supabase, Redis, provider, usage, and ledger implementations without restarting the developer's API/web stack. The key is revoked in `finally`, and a subsequent authenticated model-list request must return 401.
+
+The final live run passed non-streaming and streaming requests for **GPT-5.4, GPT-5.6 Sol, GPT-6 Astra, and Grok 4.6**. A fresh OpenCode TUI selected Default for Astra and sent Medium (`req_fd88595fd24d4176b7926fa01a37ae51`); explicitly selecting Low sent Low (`req_9bd2973429454466aaab9f0bbe053ca7`) and remained selected after switching models. Ten requests settled for 16 cents, with matching ledger/wallet deltas and no new holds. The temporary key was revoked and rejected with 401.
+
+Regression checks for this repair: **353 backend tests passed**, including PostgreSQL and Redis; the frontend production build/type-check and targeted Ruff checks passed.
+
+An initial Grok non-streaming attempt returned 502. Both the focused retry and the final whole-model run passed. The initial request's one-cent hold (`req_268c4c11d4b846a18d3e5b270a43a6ad`) remains for reconciliation under the existing uncertain-outcome policy; no usage or refund was invented to clear it. Its test key was also revoked.
+
 ## Server configuration
 
 `GET /v1/public/opencode-config` is public and returns an OpenCode configuration attachment with `Cache-Control: no-store`. It uses the same enabled, verified-price model repository as model discovery/inference. It does not contain secrets, dashboard sessions, wallet IDs, or Azure deployment identifiers.

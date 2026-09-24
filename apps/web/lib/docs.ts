@@ -340,6 +340,7 @@ export const docsPages: DocPage[] = [
         bullets: [
           "AI Forenza missing: confirm the provider ID is aiforenza in both /connect and provider.aiforenza, save the file in the correct scope, and restart OpenCode.",
           "Effort selector missing: choose an AI Forenza GPT model using /models, replace its stale definition with the current download, fully quit/restart OpenCode, then press Ctrl+T. Already running terminal/desktop/server instances cache model definitions. Project files and OPENCODE_CONFIG/OPENCODE_CONFIG_CONTENT can override global settings. Astra must not offer none/minimal; none is valid for GPT-5.4 and Sol.",
+          "Astra keeps starting on Low: OpenCode remembers the last explicit effort per provider/model, and that choice overrides the configuration's Medium default. Choose Medium with Ctrl+T, or cycle back to Default to use the configured value. Selecting another model and returning preserves an explicit choice; downloading a config alone does not clear it.",
           "401: re-enter the correct AI Forenza key through /connect. Remove an old options.apiKey entry when using the saved credential; an environment placeholder or literal key can override it.",
           "402: check available funds for that key, including outstanding holds and its output allowance. A hackathon key can spend only its grant.",
           "Connection refused: localhost refers to your own computer. A remote customer needs the administrator's public HTTPS API URL ending in /v1, not the website's login URL or an Azure endpoint.",

@@ -1,5 +1,6 @@
 # OpenCode's local runtime dependencies are not part of the vendored skills.
 node_modules/
 package.json
+package-lock.json
 bun.lock
 bun.lockb
