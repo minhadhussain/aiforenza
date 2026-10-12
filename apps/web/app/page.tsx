@@ -53,15 +53,15 @@ export default function HomePage() {
             </nav>
 
             <div className="hidden items-center gap-3 sm:flex">
-              <Link className="px-3 py-2 text-sm text-[var(--muted)] transition hover:text-white" href="/login">
+              <a className="px-3 py-2 text-sm text-[var(--muted)] transition hover:text-white" href="/login">
                 Log in
-              </Link>
-              <Link
+              </a>
+              <a
                 className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
                 href="/signup"
               >
                 Start Free
-              </Link>
+              </a>
             </div>
 
             <MobileNav />
@@ -93,12 +93,12 @@ export default function HomePage() {
           </p>
 
           <div className="mt-9 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link
+            <a
               className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
               href="/signup"
             >
               Start Free →
-            </Link>
+            </a>
             <Link
               className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-6 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
               href="/models"
@@ -206,9 +206,9 @@ export default function HomePage() {
             Get $5 in free API credit and make your first request in minutes.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90" href="/signup">
+            <a className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90" href="/signup">
               Start with $5 Free →
-            </Link>
+            </a>
             <Link className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-6 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]" href="/docs">
               Read the Docs
             </Link>

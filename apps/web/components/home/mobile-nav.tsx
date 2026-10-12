@@ -91,20 +91,20 @@ export function MobileNav() {
             </nav>
 
             <div className="mt-6 grid gap-3 border-t border-white/8 pt-5">
-              <Link
+              <a
                 href="/login"
                 onClick={handleClose}
                 className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium text-white transition hover:border-white/20 hover:bg-white/[0.06]"
               >
                 Log in
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/signup"
                 onClick={handleClose}
                 className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
               >
                 Start Free
-              </Link>
+              </a>
             </div>
           </div>
         </div>

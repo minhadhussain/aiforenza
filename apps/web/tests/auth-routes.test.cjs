@@ -25,6 +25,60 @@ function load(relative, imports = {}, fetch = async () => new Response(null, { s
 const auth = load("lib/auth.ts");
 const config = { getSupabaseConfig: () => ({ url: "https://fixture.supabase.co", anonKey: "public-fixture-key" }) };
 
+test("public auth pages open even when the saved-session service is unavailable", async () => {
+  const { NextRequest } = require("next/server");
+  const { middleware } = load("middleware.ts", {
+    "@/lib/supabase/middleware": {
+      refreshAuthSession: async () => { throw new Error("Session service is unavailable"); },
+    },
+  });
+  for (const route of ["/login", "/signup"]) {
+    const request = new NextRequest(`http://localhost:3000${route}`, {
+      headers: { Cookie: "sb-fixture-auth-token=expired-session" },
+    });
+    const response = await middleware(request);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Location"), null);
+  }
+});
+
+test("protected navigation still checks the session and clears stale cookies on redirect", async () => {
+  const { NextRequest, NextResponse } = require("next/server");
+  let checked = false;
+  const { middleware } = load("middleware.ts", {
+    "@/lib/supabase/middleware": {
+      refreshAuthSession: async () => {
+        checked = true;
+        const response = NextResponse.next();
+        response.cookies.set("sb-fixture-auth-token", "", { maxAge: 0 });
+        return { response, user: null };
+      },
+    },
+  });
+  const response = await middleware(new NextRequest("http://localhost:3000/dashboard/api-keys"));
+  assert.equal(checked, true);
+  assert.equal(response.status, 307);
+  const target = new URL(response.headers.get("Location"));
+  assert.equal(target.pathname, "/login");
+  assert.equal(target.searchParams.get("next"), "/dashboard/api-keys");
+  assert.equal(response.cookies.get("sb-fixture-auth-token").maxAge, 0);
+});
+
+test("authenticated dashboard navigation preserves refreshed session cookies", async () => {
+  const { NextRequest, NextResponse } = require("next/server");
+  const refreshed = NextResponse.next();
+  refreshed.cookies.set("sb-fixture-auth-token", "refreshed-session");
+  const { middleware } = load("middleware.ts", {
+    "@/lib/supabase/middleware": {
+      refreshAuthSession: async () => ({ response: refreshed, user: { id: "fixture" } }),
+    },
+  });
+  const response = await middleware(new NextRequest("http://localhost:3000/dashboard"));
+  assert.equal(response, refreshed);
+  assert.equal(response.headers.get("Location"), null);
+  assert.equal(response.cookies.get("sb-fixture-auth-token").value, "refreshed-session");
+});
+
 test("the actual Supabase SSR SDK creates a PKCE challenge and verifier cookie", async () => {
   const { createServerClient } = require("@supabase/ssr");
   const cookies = new Map();

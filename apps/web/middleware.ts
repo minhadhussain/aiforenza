@@ -3,13 +3,16 @@ import { type NextRequest, NextResponse } from "next/server";
 import { refreshAuthSession } from "@/lib/supabase/middleware";
 
 const protectedPrefixes = ["/dashboard"];
-const guestOnlyRoutes = new Set(["/login", "/signup"]);
 
 export async function middleware(request: NextRequest) {
-  const { response, user } = await refreshAuthSession(request);
   const { pathname } = request.nextUrl;
+  // Public auth pages must remain reachable when an old session cannot refresh.
+  if (!protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    return NextResponse.next();
+  }
+  const { response, user } = await refreshAuthSession(request);
 
-  if (protectedPrefixes.some((prefix) => pathname.startsWith(prefix)) && !user) {
+  if (!user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);
@@ -18,18 +21,9 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (guestOnlyRoutes.has(pathname) && user) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    dashboardUrl.search = "";
-    const redirectResponse = NextResponse.redirect(dashboardUrl);
-    response.cookies.getAll().forEach(cookie => redirectResponse.cookies.set(cookie));
-    return redirectResponse;
-  }
-
   return response;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/signup"],
+  matcher: ["/dashboard/:path*"],
 };
