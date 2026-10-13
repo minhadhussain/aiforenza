@@ -86,7 +86,7 @@ Keep the interface."
 
       <section className="mt-12 grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
         <div>
-          <div className="smooth-border mb-5 rounded-[1.5rem] bg-white/[0.025] p-4" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+          <div className="smooth-border mb-5 rounded-[1.5rem] bg-white/[0.025] p-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <label className="block flex-1">
                 <span className="sr-only">Search models</span>
@@ -103,7 +103,7 @@ Keep the interface."
             </div>
           </div>
 
-          <div className="smooth-border overflow-hidden rounded-[2rem] bg-white/[0.025] p-3 shadow-[var(--shadow)]" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+          <div className="smooth-border overflow-hidden rounded-[2rem] bg-white/[0.025] p-3 shadow-[var(--shadow)]">
             <div className="hidden md:block">
               <div className="grid grid-cols-[1.55fr_0.7fr_0.7fr] gap-4 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
                 <div>Model</div>
@@ -122,9 +122,8 @@ Keep the interface."
                     type="button"
                     onClick={() => setSelectedSlug(model.slug)}
                     className={`smooth-border grid w-full gap-4 rounded-[1.5rem] px-4 py-4 text-left transition md:grid-cols-[1.55fr_0.7fr_0.7fr] ${
-                      active ? "bg-white text-black" : "bg-white/[0.035] text-white hover:bg-white/[0.05]"
+                      active ? "smooth-border-active bg-white text-black" : "bg-white/[0.035] text-white hover:bg-white/[0.05]"
                     }`}
-                    style={{ ["--smooth-border-color" as string]: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)" }}
                   >
                     <div>
                       <div className="font-[family-name:var(--font-heading)] text-lg">{model.name}</div>
@@ -154,7 +153,7 @@ Keep the interface."
           </div>
         </div>
 
-        <aside className="smooth-border rounded-[2rem] bg-white/[0.025] p-6 shadow-[var(--shadow)]" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+        <aside className="smooth-border rounded-[2rem] bg-white/[0.025] p-6 shadow-[var(--shadow)]">
           {visibleSelection ? (
             <>
               <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">Model details</p>
@@ -165,11 +164,11 @@ Keep the interface."
               {visibleSelection.capabilities ? <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{visibleSelection.capabilities}</p> : null}
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                <div className="smooth-border rounded-[1.25rem] bg-white/[0.03] p-4" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+                <div className="smooth-border rounded-[1.25rem] bg-white/[0.03] p-4">
                   <div className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Input pricing</div>
                   <div className="mt-2 text-lg text-white">{displayInputPrice(visibleSelection.slug, visibleSelection.inputPrice)}</div>
                 </div>
-                <div className="smooth-border rounded-[1.25rem] bg-white/[0.03] p-4" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+                <div className="smooth-border rounded-[1.25rem] bg-white/[0.03] p-4">
                   <div className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Output pricing</div>
                   <div className="mt-2 text-lg text-white">{displayOutputPrice(visibleSelection.slug, visibleSelection.outputPrice)}</div>
                 </div>

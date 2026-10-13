@@ -31,7 +31,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col px-4 pb-20 pt-5 sm:px-6 lg:px-8">
       <header className="sticky top-0 z-20 mb-14">
-        <div className="smooth-border rounded-full bg-black/35 px-4 py-3 shadow-[var(--shadow)] backdrop-blur-md sm:px-5" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+        <div className="smooth-border rounded-full bg-black/35 px-4 py-3 shadow-[var(--shadow)] backdrop-blur-md sm:px-5">
           <div className="flex items-center justify-between gap-4">
             <Link href="/" className="font-[family-name:var(--font-heading)] text-base font-semibold tracking-[-0.035em] text-white sm:text-[1.06rem]">
               AI Forenza
@@ -69,7 +69,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="smooth-border relative flex min-h-[78vh] flex-col items-center justify-center overflow-hidden rounded-[2.25rem] px-6 py-20 text-center sm:px-10 lg:px-16" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.06)" }}>
+      <section className="smooth-border smooth-border-subtle relative flex min-h-[78vh] flex-col items-center justify-center overflow-hidden rounded-[2.25rem] px-6 py-20 text-center sm:px-10 lg:px-16">
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute left-1/2 top-[18%] h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-white/[0.06] blur-[120px]" />
           <div className="absolute left-[18%] top-[30%] h-40 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
@@ -109,7 +109,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="smooth-border mt-10 overflow-x-auto rounded-full bg-white/[0.02] px-5 py-4 shadow-[var(--shadow)] backdrop-blur-sm" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.06)" }}>
+      <section className="smooth-border smooth-border-subtle mt-10 overflow-x-auto rounded-full bg-white/[0.02] px-5 py-4 shadow-[var(--shadow)] backdrop-blur-sm">
         <div className="flex min-w-max items-center justify-between gap-8 text-xs uppercase tracking-[0.28em] text-white/45 sm:text-sm">
           {trustModels.map((model) => (
             <span key={model}>{model}</span>
@@ -135,7 +135,6 @@ export default function HomePage() {
             <article
               key={card.title}
               className="smooth-border rounded-[1.75rem] bg-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.035]"
-              style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
             >
               <p className="text-sm uppercase tracking-[0.24em] text-white/50">{card.title}</p>
               <p className="mt-4 text-sm leading-7 text-[var(--muted)]">{card.copy}</p>
@@ -152,7 +151,7 @@ export default function HomePage() {
 
         <div className="mt-10 grid gap-4 lg:grid-cols-4">
           {steps.map(([index, title, copy]) => (
-            <article key={index} className="smooth-border relative rounded-[1.75rem] bg-white/[0.025] p-6" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+            <article key={index} className="smooth-border relative rounded-[1.75rem] bg-white/[0.025] p-6">
               <div className="mb-6 flex items-center justify-between">
                 <span className="text-xs uppercase tracking-[0.3em] text-white/40">{index}</span>
                 <span className="hidden h-px flex-1 bg-gradient-to-r from-white/12 to-transparent lg:block" />
@@ -196,7 +195,7 @@ export default function HomePage() {
         </Link>
       </section>
 
-      <section className="smooth-border mt-24 rounded-[2.5rem] px-6 py-20 text-center shadow-[var(--shadow)] sm:px-10" style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}>
+      <section className="smooth-border mt-24 rounded-[2.5rem] px-6 py-20 text-center shadow-[var(--shadow)] sm:px-10">
         <div className="mx-auto max-w-3xl">
           <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Start Building</p>
           <h2 className="mt-4 font-[family-name:var(--font-heading)] text-4xl leading-tight text-white sm:text-5xl">

@@ -5,6 +5,9 @@ import { MouseGlow } from "@/components/mouse-glow";
 
 import "./globals.css";
 
+// CSP nonces are per request; static HTML cannot carry a reusable nonce.
+export const dynamic = "force-dynamic";
+
 const bodyFont = IBM_Plex_Sans({
   subsets: ["latin"],
   variable: "--font-body",

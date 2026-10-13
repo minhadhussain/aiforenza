@@ -80,6 +80,12 @@ def main():
     )
     if ping.stdout.strip() != "PONG":
         raise RuntimeError("Redis did not pass readiness check")
+    # npm may hoist Next or install it under the web workspace after an update.
+    next_cli = subprocess.check_output(
+        ["node", "-p", "require.resolve('next/dist/bin/next')"],
+        cwd=ROOT / "apps/web",
+        text=True,
+    ).strip()
     children = []
     try:
         options = {"cwd": ROOT, "start_new_session": os.name != "nt"}
@@ -124,7 +130,7 @@ def main():
             subprocess.Popen(
                 [
                     "node",
-                    str(ROOT / "node_modules/next/dist/bin/next"),
+                    next_cli,
                     "dev",
                     "--hostname",
                     "127.0.0.1",

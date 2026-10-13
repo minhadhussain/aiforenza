@@ -56,6 +56,12 @@ The complete backend suite passed **350 tests**, including PostgreSQL and Redis 
 
 ## Rules for future database access
 
+### Additional query-grammar enforcement (2026-10-13)
+
+`validate_query_params` in `apps/api/app/repositories/supabase_rest.py` now checks every repository SELECT and mutation before HTTP I/O. It allows the application's equality filters, timestamp lower bound, simple column projections (plus the existing model relationship projection), approved sort fields, and bounded numeric limits. Logical groups (`or`/`and`), broad filter operators, arbitrary relationship expressions, casts, duplicate-value lists, and mutation query controls fail closed. Mutation `Prefer` values are also allowlisted.
+
+Literal values are still passed intact through HTTPX's `params` encoding. This is query-grammar enforcement, not SQL text sanitization: SQL-shaped names/prompts remain supported and RPC values remain JSON-bound data. Table/RPC names and query construction are application-owned; never use this helper as a public general-purpose query API. See [the focused security review](security-review.md) for the latest regression results.
+
 1. Keep table names, RPC names, selected columns, ordering, and filter operators application-owned. Never forward an entire client query dictionary to the service-role database client.
 2. Put PostgREST filter values in `params` and RPC arguments in JSON. Do not concatenate values into endpoint paths.
 3. Bind SQL values with the driver's parameter mechanism. If identifiers must vary, select them from a closed allowlist and use the driver's identifier-quoting API or PostgreSQL `%I`.

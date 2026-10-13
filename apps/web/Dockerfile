@@ -1,9 +1,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package.json ./package.json
+COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/shared/package.json ./packages/shared/package.json
-RUN npm install
+RUN npm ci
 
 FROM node:20-alpine AS builder
 WORKDIR /app

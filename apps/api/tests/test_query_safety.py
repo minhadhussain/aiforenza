@@ -87,6 +87,65 @@ def test_patch_requires_an_explicit_equality_target(wire, params):
     assert not wire[0]
 
 
+@pytest.mark.parametrize("params", [
+    {"or": "(user_id.neq.owner,id.not.is.null)"},
+    {"and": "(id.not.is.null)"},
+    {"user_id": "not.is.null"},
+    {"user_id": "neq.owner"},
+    {"id": "in.(owner,victim)"},
+    {"id&user_id": "eq.victim"},
+    {"select": "id,user_id; DROP TABLE wallets;--"},
+    {"select": "*,wallets(*)"},
+    {"select": "id::text"},
+    {"order": "created_at.desc;SELECT pg_sleep(10)"},
+    {"order": "user_id.asc"},
+    {"limit": "1&user_id=not.is.null"},
+    {"limit": "10001"},
+    {"limit": "-1"},
+    {"limit": "1\n"},
+    {"user_id": ["eq.owner", "neq.victim"]},
+    [("user_id", "eq.owner"), ("user_id", "neq.victim")],
+])
+def test_unexpected_query_grammar_rejected_before_database_io(wire, params):
+    with pytest.raises(supabase_rest.SupabaseRepositoryError):
+        asyncio.run(supabase_rest.rest_select("/rest/v1/api_keys", params))
+    assert not wire[0]
+
+
+@pytest.mark.parametrize("extra", [
+    {"or": "(user_id.neq.owner)"},
+    {"user_id": "not.is.null"},
+    {"limit": "1"},
+    {"select": "*"},
+    {"order": "created_at.desc"},
+])
+def test_mutations_cannot_add_query_controls_or_broaden_owner_filter(wire, extra):
+    with pytest.raises(supabase_rest.SupabaseRepositoryError):
+        asyncio.run(supabase_rest.execute_rest_mutation("/rest/v1/api_keys", "PATCH", {"name": "fixture"}, "return=representation", params={"id": "eq.fixture", **extra}))
+    assert not wire[0]
+
+
+def test_duplicate_mutation_filter_values_are_rejected_before_io(wire):
+    with pytest.raises(supabase_rest.SupabaseRepositoryError, match="Invalid database query parameters"):
+        asyncio.run(supabase_rest.execute_rest_mutation("/rest/v1/api_keys", "PATCH", {"name": "fixture"}, "return=representation", params=[("id", "eq.fixture"), ("id", "not.is.null")]))
+    assert not wire[0]
+
+
+def test_existing_projections_and_pagination_remain_supported(wire):
+    projection = "id,request_id,model:models(slug,display_name)"
+    params = {"user_id": "eq.owner", "billing_source": "eq.PAID", "created_at": "gte.2026-10-01T00:00:00+00:00", "select": projection, "order": "created_at.desc", "limit": "5000"}
+    asyncio.run(supabase_rest.rest_select("/rest/v1/usage_records", params))
+    assert dict(wire[0][0].url.params) == params
+
+
+@pytest.mark.parametrize("literal", ["", "O'Reilly", "eq.false", "a,b.(c)", '"quoted"', "\u00e9\u4e2d\u6587", "\n\r\t", "%2526or%253D", "</style><style>body{display:none}</style>"])
+def test_literal_filter_values_survive_encoding_without_new_parameters(wire, literal):
+    asyncio.run(supabase_rest.rest_select("/rest/v1/models", {"slug": "eq." + literal, "enabled": "eq.true"}))
+    request = wire[0][0]
+    assert request.url.params.multi_items() == [("slug", "eq." + literal), ("enabled", "eq.true")]
+    assert request.url.fragment == ""
+
+
 def test_rpc_accepts_only_rpc_paths_and_json_arguments(wire):
     payload = "quote'); SELECT pg_sleep(10); -- &target_user_id=other#"
     asyncio.run(supabase_rest.execute_rest_rpc("/rest/v1/rpc/hackathon_status", {"target_user_id": payload}))

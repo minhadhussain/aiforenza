@@ -11,6 +11,46 @@ class SupabaseRepositoryError(Exception):
 _TABLE_PATH = re.compile(r"/rest/v1/[a-z][a-z0-9_]*")
 _RPC_PATH = re.compile(r"/rest/v1/rpc/[a-z][a-z0-9_]*")
 _PUBLIC_RPC_ERRORS = {"insufficient_balance", "team_already_claimed", "invalid_team_id", "campaign_inactive"}
+_SELECT = re.compile(r"[a-z][a-z0-9_]*(?:,[a-z][a-z0-9_]*)*(?:,model:models\(slug,display_name\))?")
+_ORDER = re.compile(r"(?:created_at|released_at|display_name|slug)\.(?:asc|desc)")
+_EQUALITY_FILTERS = {
+    "id", "user_id", "api_key_id", "model_id", "key_hash", "slug", "enabled",
+    "billing_source", "claimed_by_user_id", "status", "request_id", "reference_id",
+    "stripe_checkout_session_id",
+}
+
+
+def validate_query_params(params: dict[str, str], *, mutation: bool = False) -> dict[str, str]:
+    """Allow only the query grammar used by repositories, with literal values.
+
+    URL encoding alone does not constrain PostgREST's operators/projections.
+    Never forward client-supplied query dictionaries to the service-role client.
+    This gate supplements PostgreSQL's parameter binding; it does not sanitize SQL.
+    """
+    if not isinstance(params, dict):
+        raise SupabaseRepositoryError("Invalid database query parameters.")
+    validated = {}
+    for name, value in params.items():
+        if not isinstance(name, str) or not isinstance(value, str):
+            raise SupabaseRepositoryError("Invalid database query parameters.")
+        if name == "select" and not mutation:
+            valid = value == "*" or _SELECT.fullmatch(value) is not None
+        elif name == "order" and not mutation:
+            valid = _ORDER.fullmatch(value) is not None
+        elif name == "limit" and not mutation:
+            valid = re.fullmatch(r"[1-9][0-9]{0,4}", value) is not None and int(value) <= 10_000
+        elif name in _EQUALITY_FILTERS:
+            # The suffix is data, including quotes, SQL text, '&', and '#'.
+            # HTTPX encodes it as one value instead of appending URL fragments.
+            valid = value.startswith("eq.")
+        elif name == "created_at" and not mutation:
+            valid = value.startswith("gte.") and len(value) > 4
+        else:
+            valid = False
+        if not valid:
+            raise SupabaseRepositoryError("Unsupported database query structure.")
+        validated[name] = value
+    return validated
 
 
 def build_rest_url(path: str, *, rpc: bool = False) -> str:
@@ -36,6 +76,7 @@ def build_service_headers() -> dict[str, str]:
 
 async def rest_select(path: str, params: dict[str, str]) -> list[dict]:
     url = build_rest_url(path)
+    params = validate_query_params(params)
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(
             url,
@@ -53,10 +94,15 @@ async def execute_rest_mutation(path: str, method: str, json: dict, prefer: str,
     url = build_rest_url(path)
     if method not in {"POST", "PATCH"}:
         raise SupabaseRepositoryError("Unsupported database mutation.")
+    if params is not None and not isinstance(params, dict):
+        raise SupabaseRepositoryError("Invalid database query parameters.")
     if method == "PATCH":
         identifier = (params or {}).get("id", "")
         if not isinstance(identifier, str) or not identifier.startswith("eq.") or len(identifier) == 3:
             raise SupabaseRepositoryError("Database updates require an explicit record filter.")
+    params = validate_query_params(params if params is not None else {}, mutation=True)
+    if prefer not in {"return=minimal", "return=representation"}:
+        raise SupabaseRepositoryError("Unsupported database mutation preference.")
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.request(
             method,

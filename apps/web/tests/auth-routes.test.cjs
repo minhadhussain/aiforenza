@@ -1,26 +1,6 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
-const fs = require("node:fs");
-const path = require("node:path");
-const vm = require("node:vm");
-const ts = require("typescript");
-
-// Execute the actual route/helper source with only external I/O substituted.
-// Type-checking of that same source is also performed by next build / tsc.
-function load(relative, imports = {}, fetch = async () => new Response(null, { status: 200 })) {
-  const source = fs.readFileSync(path.join(__dirname, "..", relative), "utf8");
-  const compiled = ts.transpileModule(source, {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  }).outputText;
-  const module = { exports: {} };
-  vm.runInNewContext(compiled, {
-    module, exports: module.exports,
-    require: (name) => imports[name] ?? require(name),
-    URL, URLSearchParams, Request, Response, Headers, AbortSignal, fetch,
-    process: { env: { NEXT_PUBLIC_API_BASE_URL: "http://api.fixture/v1" } },
-  }, { filename: relative });
-  return module.exports;
-}
+const { load } = require("./helpers.cjs");
 
 const auth = load("lib/auth.ts");
 const config = { getSupabaseConfig: () => ({ url: "https://fixture.supabase.co", anonKey: "public-fixture-key" }) };

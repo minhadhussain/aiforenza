@@ -62,6 +62,8 @@ See [.opencode/skills/README.md](.opencode/skills/README.md) for usage, publishe
 
 Database access uses bound SQL/RPC values, encoded mutation filters, validated resource paths, and identifier validation. See [SQL/filter injection prevention](docs/sql-injection-prevention.md) for the implementation scope and regression evidence.
 
+The web app enforces a nonce-based Content Security Policy in production, blocks style attributes, and renders user-controlled content as text. See [CSS/SQL injection hardening](docs/security-review.md) for the policy, development exceptions, query allowlists, and verification commands.
+
 ## Hackathon Promotional Credits
 
 The dashboard's **Hackathon** section claims one $100 shared-key grant per organizer-issued Team ID. Promotional usage is billed at reference price through the existing wallet, reservation, and ledger infrastructure. Paid keys retain normal customer pricing.

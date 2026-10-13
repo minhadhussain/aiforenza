@@ -45,7 +45,6 @@ export function DeveloperTabs() {
   return (
     <div
       className="smooth-border rounded-[2rem] bg-[rgba(12,14,18,0.9)] p-3 shadow-[var(--shadow)] backdrop-blur"
-      style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
     >
       <div className="flex gap-2 overflow-x-auto pb-2">
         {tabNames.map((tab) => (
@@ -55,10 +54,9 @@ export function DeveloperTabs() {
             onClick={() => setActive(tab)}
             className={`smooth-border whitespace-nowrap rounded-full px-4 py-2 text-sm transition ${
               active === tab
-                ? "bg-white text-black"
+                ? "smooth-border-active bg-white text-black"
                 : "bg-white/[0.03] text-[var(--muted)] hover:text-white"
             }`}
-            style={{ ["--smooth-border-color" as string]: active === tab ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)" }}
           >
             {tab}
           </button>
@@ -68,7 +66,6 @@ export function DeveloperTabs() {
       <div className="grid gap-4 p-3 lg:grid-cols-[0.92fr_1.08fr]">
         <div
           className="smooth-border rounded-[1.5rem] bg-[#0b0d10] p-5"
-          style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -77,7 +74,6 @@ export function DeveloperTabs() {
             </div>
             <button
               className="smooth-border rounded-full px-3 py-1 text-xs text-[var(--muted)] transition hover:text-white"
-              style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
             >
               Copy
             </button>
@@ -87,13 +83,11 @@ export function DeveloperTabs() {
 
         <div
           className="smooth-border rounded-[1.5rem] bg-[#090b0d] p-5"
-          style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
         >
           <div className="mb-4 flex items-center justify-between">
             <div className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">OpenAI-Compatible Request</div>
             <button
               className="smooth-border rounded-full px-3 py-1 text-xs text-[var(--muted)] transition hover:text-white"
-              style={{ ["--smooth-border-color" as string]: "rgba(255,255,255,0.08)" }}
             >
               Copy
             </button>
