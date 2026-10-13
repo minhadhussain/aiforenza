@@ -28,6 +28,17 @@ type CreateResponse = {
   plaintext_key: string;
 };
 
+function keyRequestError(error: unknown, fallback: string) {
+  if (error instanceof TypeError) {
+    return "Cannot reach the API. Check your connection and that the API server is running, then try again.";
+  }
+  if (error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name)) {
+    // A timed-out write may have completed; never automatically repeat creation.
+    return "The API request timed out. Refresh the key list before trying again.";
+  }
+  return error instanceof Error ? error.message : fallback;
+}
+
 function formatCreatedLabel(value: string | null) {
   if (!value) {
     return "Unknown";
@@ -40,6 +51,7 @@ function formatCreatedLabel(value: string | null) {
 }
 
 export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
   const [keys, setKeys] = useState<ApiKeyRecord[]>(initialKeys);
   const [name, setName] = useState("Production");
   const [loading, setLoading] = useState(false);
@@ -52,15 +64,17 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setRevealedKey(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api-keys`, {
+      const response = await fetch(`${apiBaseUrl}/api-keys`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ name }),
+        signal: AbortSignal.timeout(20_000),
       });
 
       const payload = (await response.json()) as CreateResponse | { detail?: string };
@@ -86,7 +100,7 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
       ]);
       setName("Production");
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "Failed to create API key.");
+      setError(keyRequestError(caughtError, "Failed to create API key."));
     } finally {
       setLoading(false);
     }
@@ -97,12 +111,13 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api-keys/${keyId}/revoke`, {
+      const response = await fetch(`${apiBaseUrl}/api-keys/${keyId}/revoke`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
+        signal: AbortSignal.timeout(20_000),
       });
 
       const payload = (await response.json()) as { data?: ApiKeyRecord; detail?: string };
@@ -113,7 +128,7 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
 
       setKeys((current) => current.map((item) => (item.id === keyId ? payload.data! : item)));
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "Failed to revoke API key.");
+      setError(keyRequestError(caughtError, "Failed to revoke API key."));
     } finally {
       setLoading(false);
     }
@@ -142,7 +157,7 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
             </div>
           ) : null}
 
-          {error ? <div className="mt-6 border border-[#7f2d12] bg-[#f7d9cb] px-4 py-4 text-sm text-[#7f2d12]">{error}</div> : null}
+          {error ? <div role="alert" className="mt-6 border border-[#7f2d12] bg-[#f7d9cb] px-4 py-4 text-sm text-[#7f2d12]">{error}</div> : null}
         </div>
 
         <div className="bg-[#050608] px-6 py-8 lg:px-7">
