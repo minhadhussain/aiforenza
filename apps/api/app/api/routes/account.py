@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from datetime import datetime
 from typing import Literal
@@ -58,9 +60,11 @@ async def get_dashboard_overview(
 
     try:
         bootstrap = await bootstrap_user_account(user_id, email)
-        wallet = await fetch_wallet(user_id)
-        transactions = await fetch_transactions(user_id)
-        usage_summary = await fetch_usage_summary(user_id)
+        wallet, transactions, usage_summary = await asyncio.gather(
+            fetch_wallet(user_id),
+            fetch_transactions(user_id),
+            fetch_usage_summary(user_id),
+        )
     except SupabaseRepositoryError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

@@ -3,9 +3,9 @@
   "provider": {
     "aiforenza": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "AI Forenza (local)",
+      "name": "AI Forenza",
       "options": {
-        "baseURL": "http://localhost:8000/v1",
+        "baseURL": "http://127.0.0.1:8000/v1",
         "timeout": 900000,
         "chunkTimeout": 900000
       },
@@ -55,6 +55,6 @@
     }
   },
   "compaction": { "auto": true, "prune": true, "reserved": 16000 },
-  "model": "aiforenza/gpt-5.4",
+  "model": "aiforenza/gpt-6-astra",
   "small_model": "aiforenza/gpt-5.4"
 }

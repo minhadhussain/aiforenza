@@ -5,6 +5,22 @@ export function safeDashboardPath(value?: string | null): string {
     : "/dashboard";
 }
 
+export function accountSetupPath(nextPath?: string | null, retry = false): string {
+  const params = new URLSearchParams({ next: safeDashboardPath(nextPath) });
+  if (retry) params.set("retry", "1");
+  return `/auth/complete?${params}`;
+}
+
+export function isTemporaryAuthError(error: { name?: string; status?: number } | null): boolean {
+  return Boolean(error && (
+    error.name === "AuthRetryableFetchError"
+    || error.name === "AbortError"
+    || error.name === "TimeoutError"
+    || error.status === 429
+    || (error.status !== undefined && error.status >= 500)
+  ));
+}
+
 export function authErrorMessage(code?: string | string[]): string | undefined {
   switch (code) {
     case "confirmation_failed":

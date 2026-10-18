@@ -8,7 +8,7 @@ const quickstart = docsPageMap["quickstart"];
 export default function DashboardDocsPage() {
   return (
     <div className="space-y-8">
-      <DocsPageContent page={quickstart} />
+      <DocsPageContent page={quickstart} basePath="/dashboard/docs" />
 
       <section className="border border-white/8 bg-white/[0.025] px-6 py-6 shadow-[var(--shadow)]">
         <h2 className="text-xl font-semibold text-white">All documentation</h2>

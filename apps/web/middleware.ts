@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createSecurityPolicy } from "@/lib/security-headers";
+import { accountSetupPath, isTemporaryAuthError } from "@/lib/auth";
 import { refreshAuthSession } from "@/lib/supabase/middleware";
 
 const protectedPrefixes = ["/dashboard"];
@@ -16,15 +17,25 @@ export async function middleware(request: NextRequest) {
 
   // Public auth pages remain independent of saved-session refresh/network I/O.
   if (protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
-    const refreshed = await refreshAuthSession(request, requestHeaders);
-    response = refreshed.response;
-    if (!refreshed.user) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = "/login";
-      loginUrl.searchParams.set("next", pathname);
-      const redirectResponse = NextResponse.redirect(loginUrl);
-      response.cookies.getAll().forEach(cookie => redirectResponse.cookies.set(cookie));
-      response = redirectResponse;
+    const nextPath = pathname + request.nextUrl.search;
+    try {
+      const refreshed = await refreshAuthSession(request, requestHeaders);
+      response = refreshed.response;
+      if (isTemporaryAuthError(refreshed.error)) {
+        const recovery = NextResponse.redirect(new URL(accountSetupPath(nextPath, true), request.url));
+        response.cookies.getAll().forEach(cookie => recovery.cookies.set(cookie));
+        response = recovery;
+      } else if (!refreshed.user) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("next", nextPath);
+        const redirectResponse = NextResponse.redirect(loginUrl);
+        response.cookies.getAll().forEach(cookie => redirectResponse.cookies.set(cookie));
+        response = redirectResponse;
+      }
+    } catch {
+      // An unavailable auth service is not a logged-out user. Keep cookies and
+      // offer recovery outside the protected layout instead of hanging/erroring.
+      response = NextResponse.redirect(new URL(accountSetupPath(nextPath, true), request.url));
     }
   }
 

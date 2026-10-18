@@ -2,12 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { getSupabaseConfig } from "./config";
+import { authFetch } from "./fetch";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
   const { url, anonKey } = getSupabaseConfig();
 
   return createServerClient(url, anonKey, {
+    global: { fetch: authFetch },
     cookies: {
       getAll() {
         return cookieStore.getAll();

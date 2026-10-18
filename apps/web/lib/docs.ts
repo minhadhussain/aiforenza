@@ -3,7 +3,8 @@ export type DocSection = {
   body: string;
   bullets?: string[];
   code?: string;
-  widget?: "opencode-setup";
+  widget?: "opencode-setup" | "opencode-quickstart";
+  links?: ({ label: string; href: string } | { label: string; slug: string })[];
 };
 
 export type DocPage = {
@@ -39,7 +40,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Core workflow",
         body:
-           "Start with your account and key, then connect your preferred client. The OpenCode guide provides a downloadable model configuration and the complete connection workflow.",
+           "Start with your account and key, then connect your preferred client. Quickstart provides a copyable command that creates your OpenCode configuration automatically, followed by key connection and a first request.",
         bullets: [
           "Create an account",
           "Receive $5 in free API credit",
@@ -66,45 +67,47 @@ export const docsPages: DocPage[] = [
     slug: "quickstart",
     title: "Quickstart",
     summary:
-      "Go from signup to first request in minutes using one API key and one OpenAI-compatible base URL.",
+      "Generate an API key, paste one setup command, and connect OpenCode. Your models and reasoning settings are configured for you.",
     sections: [
       {
-        heading: "1. Create an account",
+        heading: "1. Generate your API key",
         body:
-          "Sign up, complete email verification if required, and log in. New accounts receive one $5 trial grant. Confirm the account identity and AVAILABLE BALANCE; total balance may include reserved funds.",
+          "Open API Keys and generate a personal key, or claim your organizer-issued Team ID in Hackathon for a shared promotional key. Copy and save the full key when it appears; it is shown only once. Already have a key? Continue to step 2.",
+        links: [
+          { label: "Generate an API key", href: "/dashboard/api-keys" },
+          { label: "Claim a hackathon key", href: "/dashboard/hackathon" },
+        ],
       },
       {
-        heading: "2. Generate an API key",
+        heading: "2. Set up OpenCode with one paste",
         body:
-          "Open the dashboard and create an API key. The full key is shown only once, so store it immediately in your local environment or secret manager.",
+          "Choose your terminal below, click Copy setup command, and paste the whole block. It downloads the current configuration and creates opencode.json in the right folder. If OpenCode is already running, quit it before setup and reopen afterward. Existing configurations can use the assistant merge prompt below.",
+        widget: "opencode-quickstart",
       },
       {
-        heading: "3. Set the base URL",
+        heading: "3. Connect your key and choose a model",
         body:
-          "Point your existing OpenAI-compatible tooling to the AI Forenza endpoint.",
-        code: `http://localhost:8000/v1`,
+          "Run opencode in your terminal. Inside OpenCode, enter /connect, select AI Forenza, and paste your full API key. Then enter /models and select an AI Forenza model. Use Ctrl+T to choose a supported reasoning effort. The same key works across the available models.",
+        code: "/connect\nSelect: AI Forenza → paste your full API key\n\n/models\nSelect: AI Forenza → GPT-6 Astra",
+        links: [{ label: "Full OpenCode setup and troubleshooting", slug: "opencode" }],
       },
       {
-        heading: "4. Choose a model",
+        heading: "4. Send your first request",
         body:
-          "Use the same API key for any enabled model from GET /v1/models. Choose the model inside OpenCode or set the model field on each request. There is no overview selection, model activation, or per-model key requirement.",
+          "Paste this short prompt into OpenCode. A reply containing OK confirms your configuration, key, and selected model work together. Then ask it to read a file in your project. Requests use the balance associated with your key; see Usage for the recorded tokens and charge.",
+        code: "Reply with exactly OK.",
+        links: [{ label: "View usage", href: "/dashboard/usage" }],
       },
       {
-        heading: "5. Make your first request",
+        heading: "Building an application? Use the same key",
         body:
-          "A minimal Python example using the OpenAI SDK looks like this.",
-        code: `from openai import OpenAI\n\nclient = OpenAI(\n    api_key="YOUR_API_KEY",\n    base_url="http://localhost:8000/v1"\n)\n\nresponse = client.chat.completions.create(\n    model="gpt-5.6-sol",\n    messages=[\n        {"role": "user", "content": "Hello"}\n    ]\n)\n\nprint(response.choices[0].message.content)`,
-      },
-      {
-        heading: "6. Expected response shape",
-        body:
-          "Responses follow the OpenAI chat completion structure where practical.",
-        code: `{\n  "id": "chatcmpl_...",\n  "object": "chat.completion",\n  "choices": [\n    {\n      "index": 0,\n      "message": {\n        "role": "assistant",\n        "content": "Hello"\n      },\n      "finish_reason": "stop"\n    }\n  ],\n  "usage": {\n    "prompt_tokens": 12,\n    "completion_tokens": 8,\n    "total_tokens": 20\n  }\n}`,
-      },
-      {
-        heading: "7. Watch your balance",
-        body:
-          "Successful requests deduct the customer charge after usage is measured. Top up the same account that owns your key. Complete Stripe Checkout and wait for a verified COMPLETED top-up and TOPUP transaction; creating a Checkout URL alone adds no funds. See Usage & Billing and Top-up Troubleshooting.",
+          "AI Forenza also works with OpenAI-compatible SDKs and direct HTTP requests. Use your API key, the API base URL shown above, and a model ID from the catalog. Choose a guide for copyable request examples.",
+        links: [
+          { label: "Python SDK", slug: "python" },
+          { label: "JavaScript SDK", slug: "javascript" },
+          { label: "curl and Chat Completions", slug: "chat-completions" },
+          { label: "Available models", slug: "models" },
+        ],
       },
     ],
   },
@@ -290,7 +293,7 @@ export const docsPages: DocPage[] = [
     slug: "opencode",
     title: "OpenCode setup and reasoning efforts",
     summary:
-      "Connect a new OpenCode installation using your AI Forenza key, download the current model configuration, and choose the model's supported reasoning effort.",
+      "Generate a key, paste one setup command to create opencode.json, and connect AI Forenza. No manual JSON editing needed for a new installation.",
     sections: [
       {
         heading: "1. Get your AI Forenza key",
@@ -298,31 +301,30 @@ export const docsPages: DocPage[] = [
           "Sign up or log in to AI Forenza. Open API Keys and generate a personal key, or open Hackathon and claim your organizer-issued Team ID to receive a shared promotional key. Save the full secret when it is first shown. If your team already shared its key with you, you can use that credential directly. No dashboard model activation is required.",
       },
       {
-        heading: "2. Install and open OpenCode",
+        heading: "2. Install OpenCode",
         body:
-          "Install OpenCode with Node.js/npm if it is not already installed, then open it in a terminal. Customers connect to the hosted AI Forenza API; the Local Setup guide is for developers running this service.",
-        code: "npm install -g opencode-ai\nopencode",
+          "Install OpenCode with Node.js/npm if it is not already installed. If OpenCode is running, quit it before the next step so it loads the new configuration when reopened. Customers connect to the hosted AI Forenza API; the Local Setup guide is for developers running this service.",
+        code: "npm install -g @opencode/cli",
       },
       {
-        heading: "3. Save your key with /connect",
-        body: "In OpenCode enter /connect, choose Other, enter the provider ID aiforenza exactly, and paste your AI Forenza key. If AI Forenza is already listed, select that provider to update its credential. This uses OpenCode's native credential store. The ID connects the saved key to provider.aiforenza in the configuration; it is not a second API key. /connect saves the credential but does not configure the base URL or model list.",
-        code: "/connect\n\nProvider: Other\nProvider ID: aiforenza\nAPI key: paste your AI Forenza key at the secure prompt",
-      },
-      {
-        heading: "4. Download and save your configuration",
-        body: "Download opencode.json below. It is generated from the current enabled, priced backend catalog, including supported effort variants and conservative token limits. It contains no credentials and uses the key you saved in step 3. Save it at the global path below for all projects, or as opencode.json in your coding project's root. If you already have a config, merge provider.aiforenza and review the suggested default-model/compaction settings instead of replacing unrelated providers.",
+        heading: "3. Create your configuration with one paste",
+        body: "Choose Windows PowerShell or macOS / Linux, click Copy setup command, and paste it into your terminal. It finds OpenCode's configuration folder, downloads the current models and reasoning settings, and creates opencode.json. For an existing configuration, use Copy setup prompt to have a file-editing coding assistant merge the settings. Download and manual-copy options are also available below.",
         widget: "opencode-setup",
-        code: "Windows: %USERPROFILE%\\.config\\opencode\\opencode.json\nmacOS/Linux: ~/.config/opencode/opencode.json\n\nProject-only: <your-project>/opencode.json",
       },
       {
-        heading: "5. Restart, choose your model, and select effort",
-        body: "Quit and restart OpenCode after saving the configuration. Enter /models and explicitly select the model under AI Forenza. In the terminal UI, Ctrl+T cycles the effort shown beside the selected model in the prompt footer; it is not a separate model entry. GPT-5.4 offers none/low/medium/high/xhigh, Sol additionally offers max, and Astra offers low/medium/high/xhigh/max. Defaults follow the backend registry: GPT-5.4 none, Sol medium, Astra medium. Astra rejects none and minimal. Grok currently has no advertised effort variants. The live table above is authoritative.",
+        heading: "4. Open OpenCode and paste your key",
+        body: "Run opencode in your terminal. Enter /connect, select AI Forenza, and paste the full key you saved in step 1. OpenCode stores it in its native credential store. Older clients offer Other: enter the provider ID aiforenza exactly, then paste your key. If OpenCode was running during setup, fully quit and reopen it to load the provider.",
+        code: "/connect\n\nProvider: AI Forenza\nAPI key: paste your full AI Forenza key at the secure prompt",
+      },
+      {
+        heading: "5. Choose your model and reasoning effort",
+        body: "Enter /models and select a model under AI Forenza. In the terminal UI, Ctrl+T cycles the effort shown beside the selected model in the prompt footer; it is not a separate model entry. GPT-5.4 offers none/low/medium/high/xhigh, Sol additionally offers max, and Astra offers low/medium/high/xhigh/max. Defaults follow the backend registry: GPT-5.4 none, Sol medium, Astra medium. Astra rejects none and minimal. Grok currently has no advertised effort variants. The live table above is authoritative.",
         code: "/models\n\nSelect: AI Forenza → GPT-6 Astra\nCtrl+T: cycle reasoning effort",
       },
       {
         heading: "6. Make a request and verify your setup",
-        body: "Ask a short coding question first, then ask OpenCode to read a file in your project to check a tool-use round trip. For a CLI request, --variant selects the same configured effort as the TUI selector. Use a model and variant shown in your downloaded configuration. The request examples below use the credential stored through /connect.",
-        code: 'opencode models aiforenza\nopencode run --model aiforenza/gpt-5.4 "Explain binary search briefly."\nopencode run --model aiforenza/gpt-6-astra --variant high "Read README.md and summarize this project."',
+        body: "Ask a short coding question first, then ask OpenCode to read a file in your project to check a tool-use round trip. The commands below are for OpenCode V2: --standalone starts a private server using this project's configuration, and #high selects the effort. V1 uses opencode models aiforenza and --variant high instead. Use a model and variant shown in your downloaded configuration. These requests use the credential stored through /connect.",
+        code: 'opencode models --standalone\nopencode run --standalone --model aiforenza/gpt-6-astra "Reply with exactly OK."\nopencode run --standalone --model "aiforenza/gpt-6-astra#high" "Read README.md and summarize this project."',
       },
       {
         heading: "7. Understand effort, output limits, and billing",

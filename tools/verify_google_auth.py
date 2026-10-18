@@ -42,7 +42,8 @@ def main():
                     page.wait_for_url(lambda url: urlsplit(url).hostname == "accounts.google.com", timeout=45000)
                     # A redirect to Google's domain alone can also be an OAuth
                     # error page. Verify the actual sign-in form and PKCE cookie.
-                    expect(page.locator('input[type="email"]')).to_be_visible(timeout=30000)
+                    # Google accepts email or phone in a text-type identifier field.
+                    expect(page.locator('input[name="identifier"]')).to_be_visible(timeout=30000)
                     require(any("code-verifier" in cookie["name"] for cookie in context.cookies(args.url)), "OAuth PKCE verifier cookie missing")
                 else:
                     expect(page.locator("form").get_by_role("alert")).to_contain_text("Google sign-in is not enabled", timeout=45000)

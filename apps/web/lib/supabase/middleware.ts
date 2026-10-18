@@ -2,12 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getSupabaseConfig } from "./config";
+import { authFetch } from "./fetch";
 
 export async function refreshAuthSession(request: NextRequest, requestHeaders = new Headers(request.headers)) {
   let response = NextResponse.next({ request: { headers: requestHeaders } });
   const { url, anonKey } = getSupabaseConfig();
 
   const supabase = createServerClient(url, anonKey, {
+    global: { fetch: authFetch },
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -23,7 +25,8 @@ export async function refreshAuthSession(request: NextRequest, requestHeaders = 
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  return { response, user };
+  return { response, user, error };
 }

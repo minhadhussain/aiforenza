@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { ensureAccountReady, safeDashboardPath } from "@/lib/auth";
+import { accountSetupPath, ensureAccountReady, safeDashboardPath } from "@/lib/auth";
 
 export function SignupForm({ nextPath = "/dashboard", initialError }: { nextPath?: string; initialError?: string }) {
   const [email, setEmail] = useState("");
@@ -11,6 +11,7 @@ export function SignupForm({ nextPath = "/dashboard", initialError }: { nextPath
   const [error, setError] = useState<string | null>(initialError ?? null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState("Creating account...");
   const submitting = useRef(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -19,6 +20,7 @@ export function SignupForm({ nextPath = "/dashboard", initialError }: { nextPath
     const form = new FormData(event.currentTarget);
     submitting.current = true;
     setLoading(true);
+    setProgress("Creating account...");
     setError(null);
     setSuccess(null);
 
@@ -37,7 +39,17 @@ export function SignupForm({ nextPath = "/dashboard", initialError }: { nextPath
         return;
       }
       if (data.user && data.session) {
-        await ensureAccountReady(data.session.access_token);
+        setProgress("Setting up account...");
+        try {
+          await ensureAccountReady(data.session.access_token);
+        } catch {
+          // The user already exists. Retry initialization with this session,
+          // rather than offering another signUp request for the same address.
+          window.location.assign(accountSetupPath(nextPath, true));
+          navigating = true;
+          return;
+        }
+        setProgress("Opening dashboard...");
         window.location.assign(safeDashboardPath(nextPath));
         navigating = true;
         return;
@@ -99,7 +111,7 @@ export function SignupForm({ nextPath = "/dashboard", initialError }: { nextPath
         type="submit"
         disabled={loading}
       >
-        {loading ? "Creating account..." : "Create account"}
+        {loading ? progress : "Create account"}
       </button>
 
     </form>

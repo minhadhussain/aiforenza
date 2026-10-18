@@ -75,6 +75,7 @@ export function HackathonPanel({ initial, userId }: { initial: HackathonStatus; 
       <button type="button" className="border border-white/20 px-4 py-2 text-sm" onClick={async () => { try { await navigator.clipboard.writeText(secret); setCopied(true); } catch { setError("Clipboard unavailable; copy the displayed key manually."); } }}>{copied ? "Copied" : "Copy API Key"}</button>
       <button type="button" className="ml-3 text-sm underline" onClick={() => setSecret(null)}>I saved it — hide key</button>
       <p className="text-sm text-[var(--muted)]">Anyone who has this key can use the remaining team credit. Share it privately with your team only. It cannot spend your personal paid wallet.</p>
+      <a href="/dashboard/docs/opencode#quick-setup" target="_blank" rel="noopener noreferrer" className="inline-block border border-white/20 px-4 py-2 text-sm">Set up OpenCode → (new tab)</a>
     </div>}
     {data.campaign ? <form onSubmit={claim} className="space-y-3 border border-white/10 p-4">
       <p className="text-sm">{data.campaign.name}</p>

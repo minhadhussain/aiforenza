@@ -154,6 +154,8 @@ export function ApiKeyPanel({ initialKeys, accessToken }: ApiKeyPanelProps) {
                 <CopyChip value={revealedKey} />
                 <button type="button" onClick={() => setRevealedKey(null)}>Hide key</button>
               </div>
+              <p className="mt-4">Next: create your OpenCode configuration with one terminal paste, then connect this key.</p>
+              <a href="/dashboard/docs/opencode#quick-setup" target="_blank" rel="noopener noreferrer" className="mt-3 inline-block bg-[#050608] px-4 py-2 font-semibold text-white">Set up OpenCode → <span className="font-normal">(new tab)</span></a>
             </div>
           ) : null}
 

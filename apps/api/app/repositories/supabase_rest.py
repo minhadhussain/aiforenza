@@ -2,6 +2,7 @@ import httpx
 import re
 
 from app.core.config import settings
+from app.services.supabase_http import supabase_http_client
 
 
 class SupabaseRepositoryError(Exception):
@@ -77,7 +78,7 @@ def build_service_headers() -> dict[str, str]:
 async def rest_select(path: str, params: dict[str, str]) -> list[dict]:
     url = build_rest_url(path)
     params = validate_query_params(params)
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with supabase_http_client() as client:
         response = await client.get(
             url,
             headers={**build_service_headers(), "Accept": "application/json"},
@@ -103,7 +104,7 @@ async def execute_rest_mutation(path: str, method: str, json: dict, prefer: str,
     params = validate_query_params(params if params is not None else {}, mutation=True)
     if prefer not in {"return=minimal", "return=representation"}:
         raise SupabaseRepositoryError("Unsupported database mutation preference.")
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with supabase_http_client() as client:
         response = await client.request(
             method,
             url,
@@ -123,7 +124,7 @@ async def execute_rest_mutation(path: str, method: str, json: dict, prefer: str,
 
 async def execute_rest_rpc(path: str, payload: dict) -> dict:
     url = build_rest_url(path, rpc=True)
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with supabase_http_client() as client:
         response = await client.post(
             url,
             headers=build_service_headers(),

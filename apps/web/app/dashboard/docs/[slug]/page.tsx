@@ -15,5 +15,5 @@ export default async function DashboardDocsDetailPage({ params }: { params: Prom
     notFound();
   }
 
-  return <DocsPageContent page={page} />;
+  return <DocsPageContent page={page} basePath="/dashboard/docs" />;
 }

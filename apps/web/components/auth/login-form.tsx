@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { ensureAccountReady, safeDashboardPath } from "@/lib/auth";
+import { accountSetupPath, ensureAccountReady, safeDashboardPath } from "@/lib/auth";
 
 type LoginFormProps = {
   nextPath: string;
@@ -15,6 +15,7 @@ export function LoginForm({ nextPath, initialError }: LoginFormProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(initialError ?? null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState("Signing in...");
   const submitting = useRef(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -24,6 +25,7 @@ export function LoginForm({ nextPath, initialError }: LoginFormProps) {
     const form = new FormData(event.currentTarget);
     submitting.current = true;
     setLoading(true);
+    setProgress("Signing in...");
     setError(null);
 
     let navigating = false;
@@ -45,9 +47,17 @@ export function LoginForm({ nextPath, initialError }: LoginFormProps) {
         return;
       }
 
-      await ensureAccountReady(data.session.access_token);
+      setProgress("Setting up account...");
+      try {
+        await ensureAccountReady(data.session.access_token);
+      } catch {
+        window.location.assign(accountSetupPath(nextPath, true));
+        navigating = true;
+        return;
+      }
       // Begin one fresh server render with the persisted auth cookies. This also
       // avoids racing router.push with router.refresh against stale guest data.
+      setProgress("Opening dashboard...");
       window.location.assign(safeDashboardPath(nextPath));
       navigating = true;
     } catch {
@@ -102,7 +112,7 @@ export function LoginForm({ nextPath, initialError }: LoginFormProps) {
         type="submit"
         disabled={loading}
       >
-        {loading ? "Signing in..." : "Log in"}
+        {loading ? progress : "Log in"}
       </button>
 
     </form>

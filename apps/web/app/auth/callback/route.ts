@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ensureAccountReady, safeDashboardPath } from "@/lib/auth";
+import { accountSetupPath, safeDashboardPath } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -29,15 +29,9 @@ export async function GET(request: Request) {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error || !data.session) return failure(google ? "oauth_failed" : "confirmation_failed");
-    try {
-      // OAuth identities live in Supabase Auth. Reuse the same authenticated
-      // profile/wallet bootstrap as password accounts before any deep link.
-      await ensureAccountReady(data.session.access_token);
-    } catch {
-      // Dashboard retries the idempotent setup; never discard a valid session.
-      return redirect(new URL("/dashboard", requestUrl.origin));
-    }
-    return redirect(new URL(next, requestUrl.origin));
+    // Commit the session cookies immediately. Account setup happens on a visible
+    // page with a retry action, before loading any dashboard data or deep link.
+    return redirect(new URL(accountSetupPath(next), requestUrl.origin));
   } catch {
     return failure(google ? "oauth_failed" : "confirmation_failed");
   }

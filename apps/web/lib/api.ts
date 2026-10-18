@@ -17,6 +17,7 @@ export async function apiGet<T>(path: string, options: ApiOptions): Promise<T> {
       "Content-Type": "application/json",
     },
     cache: options.cache ?? "no-store",
+    signal: AbortSignal.timeout(15_000),
   });
 
   if (!response.ok) {

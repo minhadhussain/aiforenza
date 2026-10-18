@@ -59,6 +59,54 @@ test("authenticated dashboard navigation preserves refreshed session cookies", a
   assert.equal(response.cookies.get("sb-fixture-auth-token").value, "refreshed-session");
 });
 
+test("temporary session failures recover outside the dashboard without losing the return path", async () => {
+  const { NextRequest, NextResponse } = require("next/server");
+  for (const throws of [false, true]) {
+    const refreshed = NextResponse.next();
+    refreshed.cookies.set("sb-fixture-auth-token", "refreshed-session");
+    const { middleware } = load("middleware.ts", {
+      "@/lib/supabase/middleware": {
+        refreshAuthSession: async () => {
+          if (throws) throw new DOMException("Timeout", "TimeoutError");
+          return { response: refreshed, user: null, error: { name: "AuthRetryableFetchError", status: 0 } };
+        },
+      },
+    });
+    const result = await middleware(new NextRequest("http://localhost:3000/dashboard/api-keys?tab=active"));
+    const target = new URL(result.headers.get("Location"));
+    assert.equal(target.pathname, "/auth/complete");
+    assert.equal(target.searchParams.get("next"), "/dashboard/api-keys?tab=active");
+    assert.equal(target.searchParams.get("retry"), "1");
+    assert.match(result.headers.get("Cache-Control"), /no-store/);
+    if (!throws) assert.equal(result.cookies.get("sb-fixture-auth-token").value, "refreshed-session");
+  }
+});
+
+test("the recovery page stays reachable when the session service is down", async () => {
+  const { NextRequest } = require("next/server");
+  const { middleware } = load("middleware.ts", {
+    "@/lib/supabase/middleware": { refreshAuthSession: async () => { throw new Error("Must not check session"); } },
+  });
+  const result = await middleware(new NextRequest("http://localhost:3000/auth/complete?retry=1"));
+  assert.equal(result.status, 200);
+  assert.equal(result.headers.get("Location"), null);
+});
+
+test("auth requests get a deadline while retaining caller cancellation", async () => {
+  let signal;
+  const { authFetch } = load("lib/supabase/fetch.ts", {}, async (_url, options) => {
+    signal = options.signal;
+    return new Response(null);
+  });
+  await authFetch("https://fixture.supabase.co/auth/v1/user");
+  assert.ok(signal instanceof AbortSignal);
+  const caller = new AbortController();
+  await authFetch(new Request("https://fixture.supabase.co/auth/v1/user", { signal: caller.signal }));
+  assert.notEqual(signal, caller.signal);
+  caller.abort();
+  assert.equal(signal.aborted, true);
+});
+
 test("the actual Supabase SSR SDK creates a PKCE challenge and verifier cookie", async () => {
   const { createServerClient } = require("@supabase/ssr");
   const cookies = new Map();
@@ -160,15 +208,18 @@ function callback(exchange, setup = async () => {}) {
   });
 }
 
-test("OAuth callback exchanges the code then bootstraps the verified session", async () => {
+test("OAuth callback commits the session then opens visible setup before a dashboard deep link", async () => {
   const calls = [];
   const route = callback(async (code) => {
     calls.push(code);
     return { data: { session: { access_token: "session-fixture" } }, error: null };
   }, async (token) => calls.push(token));
   const response = await route.GET(new Request("http://localhost:3000/auth/callback?provider=google&code=code-fixture&next=/dashboard/api-keys"));
-  assert.deepEqual(calls, ["code-fixture", "session-fixture"]);
-  assert.equal(response.headers.get("Location"), "http://localhost:3000/dashboard/api-keys");
+  assert.deepEqual(calls, ["code-fixture"]);
+  const target = new URL(response.headers.get("Location"));
+  assert.equal(target.pathname, "/auth/complete");
+  assert.equal(target.searchParams.get("next"), "/dashboard/api-keys");
+  assert.ok(!target.toString().includes("session-fixture"));
   assert.equal(response.headers.get("Cache-Control"), "no-store");
 });
 
@@ -190,8 +241,41 @@ test("bad OAuth codes return safe errors and reject external return URLs", async
   assert.equal(target.searchParams.get("next"), "/dashboard");
 });
 
-test("valid sessions retry account setup through dashboard after a backend outage", async () => {
+test("a backend outage cannot block the successful OAuth redirect", async () => {
   const route = callback(async () => ({ data: { session: { access_token: "fixture" } }, error: null }), async () => { throw new Error("Unavailable"); });
   const response = await route.GET(new Request("http://localhost:3000/auth/callback?code=fixture&next=/dashboard/api-keys"));
-  assert.equal(response.headers.get("Location"), "http://localhost:3000/dashboard");
+  const target = new URL(response.headers.get("Location"));
+  assert.equal(target.pathname, "/auth/complete");
+  assert.equal(target.searchParams.get("next"), "/dashboard/api-keys");
+});
+
+test("a new provider session persists chunked SSR cookies through the OAuth callback", async () => {
+  const { createServerClient } = require("@supabase/ssr");
+  const cookies = new Map();
+  const session = {
+    access_token: "access-token-fixture",
+    refresh_token: "refresh-token-fixture",
+    provider_token: "provider-token-fixture".repeat(200),
+    token_type: "bearer",
+    expires_in: 3600,
+    user: { id: "user-fixture", email: "fixture@example.invalid", user_metadata: { full_name: "New User" } },
+  };
+  const client = createServerClient("https://fixture.supabase.co", "public-fixture-key", {
+    global: { fetch: async () => Response.json(session) },
+    cookies: {
+      getAll: () => [...cookies].map(([name, value]) => ({ name, value })),
+      setAll: updates => updates.forEach(({ name, value, options }) => {
+        if (options.maxAge === 0) cookies.delete(name);
+        else cookies.set(name, value);
+      }),
+    },
+  });
+  await client.auth.signInWithOAuth({ provider: "google", options: { skipBrowserRedirect: true } });
+  const route = load("app/auth/callback/route.ts", {
+    "@/lib/supabase/server": { createSupabaseServerClient: async () => client },
+  });
+  const response = await route.GET(new Request("http://localhost:3000/auth/callback?provider=google&intent=signup&code=fixture"));
+  assert.equal(new URL(response.headers.get("Location")).pathname, "/auth/complete");
+  assert.ok([...cookies.keys()].filter(name => /auth-token\.\d+$/.test(name)).length > 1);
+  assert.equal([...cookies.keys()].some(name => name.includes("code-verifier")), false);
 });

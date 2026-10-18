@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,6 +10,13 @@ from app.services.observability import init_posthog
 from app.services.observability import init_sentry
 from app.services.observability import init_provider_logging
 from app.middleware.request_safety import RequestSafetyMiddleware
+from app.services.supabase_http import supabase_http_lifespan
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    async with supabase_http_lifespan():
+        yield
 
 
 app = FastAPI(
@@ -15,6 +24,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 app.add_middleware(RequestSafetyMiddleware)

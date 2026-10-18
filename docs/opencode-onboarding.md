@@ -1,18 +1,77 @@
 # OpenCode customer setup and effort selection
 
-The customer-facing guide is available at `/docs/opencode` and `/dashboard/docs/opencode`. It includes a live model/effort table, copyable configuration, a download button, and troubleshooting instructions.
+The customer-facing guide is available at `/docs/opencode` and `/dashboard/docs/opencode`. Start with **Copy setup command**: Windows PowerShell and macOS/Linux commands create the required JSON automatically. An assistant setup prompt handles existing configurations. The guide also includes a live model/effort table, copyable configuration, a download button, and troubleshooting instructions. Newly generated personal and hackathon keys link directly to quick setup in a new tab, keeping the one-time key visible in the original tab.
 
 ## Customer steps
 
 1. Sign up/sign in to AI Forenza. Generate a personal API key in **API Keys**, or claim your organizer-issued Team ID in **Hackathon** and save the shared promotional key. A teammate with an existing shared key can use that credential directly.
-2. Install OpenCode (`npm install -g opencode-ai`) and run `opencode`.
-3. Enter `/connect`, select **Other**, enter **aiforenza** as the provider ID, and paste the key. This stores the credential in OpenCode's native auth store.
-4. Open the OpenCode guide in AI Forenza's Docs and download `opencode.json`. Save it at `%USERPROFILE%\.config\opencode\opencode.json` on Windows, or `~/.config/opencode/opencode.json` on macOS/Linux. For an existing configuration, merge the provider and review defaults rather than replacing unrelated settings.
-5. Quit and restart OpenCode, then use `/models` to select **AI Forenza → GPT-6 Astra** (or another listed model).
+2. Install the current OpenCode CLI (`npm install -g @opencode/cli`). Quit existing OpenCode clients before setup.
+3. Open **Set up OpenCode** beside your generated key, or visit **Docs → OpenCode**. Choose **Windows PowerShell** or **macOS / Linux**, click **Copy setup command**, and paste the whole block into that terminal. It downloads the current configuration and creates the global `opencode.json`. If you already have a configuration, use **Copy setup prompt** to merge it with a file-editing assistant instead.
+4. Run `opencode`, enter `/connect`, select **AI Forenza**, and paste the full key. Older clients offer **Other**, where you enter **aiforenza** as the provider ID. This stores the credential in OpenCode's native auth store.
+5. Use `/models` to select **AI Forenza → GPT-6 Astra** (or another listed model).
 6. Use the effort selector / default **Ctrl+T** shortcut. The selected effort is shown beside the model in the prompt footer. GPT-5.4 offers **none, low, medium, high, xhigh** (default **none**); Sol adds **max** (default **medium**); Astra offers **low, medium, high, xhigh, max** (default **medium**). Grok currently has no advertised effort variants.
 7. Send a short prompt, then ask OpenCode to read a project file. Inspect **Dashboard → Usage** for its request/charge. A hackathon key spends only its promotional grant.
 
 The download intentionally contains no `options.apiKey`. An old literal key or environment placeholder can override `/connect` credentials; remove that override when using native credential storage. Project configuration can override the global file, so inspect the actual project directory if models/efforts differ after restart.
+
+### One-paste configuration setup
+
+The live guide inserts this deployment's configuration URL directly into the copied command. There is no host or API-key placeholder to replace. The macOS/Linux command uses `curl`; PowerShell uses `Invoke-WebRequest`.
+
+Both commands:
+
+- Locate the global directory with `opencode debug paths config`, respecting OpenCode's configured path, and create it when missing.
+- Download the public configuration to a temporary file with a timeout, parse the JSON, then create `opencode.json` only after the download succeeds.
+- Keep an existing `opencode.json` or `opencode.jsonc` and direct the user to the merge prompt.
+- Print the saved path and the next step: `opencode` → `/connect` → **AI Forenza**.
+
+The global default is `~/.config/opencode/opencode.json` (`%USERPROFILE%\.config\opencode\opencode.json` on Windows). A project/custom configuration can override it; use the assistant prompt for those installations. The Unix command requires Node.js, already available with the npm installation in step 2. The commands fetch JSON only; authentication happens afterward in OpenCode.
+
+For integrations that only need to retrieve the JSON, the public endpoint is:
+
+```bash
+curl --fail --show-error --location "https://YOUR_API_HOST/v1/public/opencode-config"
+```
+
+Replace `YOUR_API_HOST` with the deployed API host for this manual example. Customers should use **Copy setup command** in the live guide for the ready-filled URL and automatic file placement.
+
+### Repository example for local use
+
+`docs/opencode.example.json` uses the verified local base URL `http://127.0.0.1:8000/v1`, selects **GPT-6 Astra** as the main model with its **medium** default effort, and retains GPT-5.4 for lightweight tasks. Its models, efforts, timeouts, and token limits match the current catalog. Save or merge it as an actual `opencode.json` in the project/global location above, fully quit and restart OpenCode, then enter the full key with `/connect → AI Forenza` (V1: **Other → aiforenza**). The `.example.json` file is not automatically loaded just because it exists in `docs/`. For a hosted installation, use the current download's public API URL instead of this loopback address.
+
+Validated with the installed **OpenCode v2.0.28** in an isolated profile: all four configured models were discovered, the full test key was saved through `auth login`, and a real request returned `OK` using the example's default Astra model with no command-line model override. V2 stores native credentials in its database; copying a legacy `auth.json` is not a substitute for connecting the custom provider through the client.
+
+After saving the example as your active config, the V2 CLI commands are:
+
+```text
+opencode auth login aiforenza --method key --standalone
+opencode models --standalone
+opencode run --standalone "Reply with exactly OK."
+opencode run --standalone --model "aiforenza/gpt-6-astra#high" "Read README.md and summarize this project."
+```
+
+The first command securely prompts for the full key. V1 uses `opencode models aiforenza` and `--variant high` for explicit effort selection.
+
+## Copyable configuration-update prompt
+
+Step 3 also displays **Copy setup prompt** and **Preview setup prompt** for existing configurations on both public and dashboard docs. Paste it into a file-editing assistant; in OpenCode, use **Build** mode with an already-working model. The prompt embeds the same current, credential-free JSON as the download, so the assistant can work without a separate web fetch or a hard-coded model list.
+
+The prompt directs the assistant to:
+
+- Locate the applicable project, custom, or global JSON/JSONC config and identify overrides.
+- Back up the file and preserve JSONC comments, unrelated providers, agents, MCP servers, plugins, permissions, and defaults.
+- Refresh AI Forenza's provider/model definitions using the included catalog, preserving stricter valid limits and supported explicit effort defaults.
+- Use native `/connect` authentication and remove only stale AI Forenza credential overrides; the key belongs in the secure connection prompt, not the chat or config.
+- Preserve existing model/compaction preferences, fill missing defaults, and include AI Forenza in provider enablement lists when needed.
+- Validate the saved file, run `opencode models aiforenza` when available, and report the edited path and restart instructions.
+
+The prompt becomes available after the current configuration loads. If clipboard access fails, users can copy the complete text from the preview. A local development API URL still only works on the machine running the service; the prompt includes the same URL shown in the guide.
+
+### Validate the full key with curl
+
+The live setup widget also provides **Validate GPT-6 Astra with curl (Bash / Git Bash)** when Astra is in the current catalog. Its commands use the advertised API base URL, read the full API key through a hidden terminal prompt, call `/models`, and send one bounded `/chat/completions` request using `gpt-6-astra`, medium effort, and a 1,024-token output cap. The example clears its key variable afterward. The masked dashboard key is not a usable credential; `/connect` does not populate this shell variable.
+
+A local verification on 2026-10-13 used actual `curl.exe` with the stored test credential, passed privately through curl's standard-input configuration. `http://127.0.0.1:8000/v1/models` returned 200 and advertised Astra. The Astra completion returned 200, `OK`, and `finish_reason=stop`, with 11 prompt tokens and 4 completion tokens. Request ID: `req_763791fdcae44ecf90db995bda521338`. This verifies that test credential and local deployment; each customer validates their own full key against the hosted URL.
 
 ## Existing installation: selector missing
 

@@ -1,6 +1,5 @@
-import httpx
-
 from app.core.config import settings
+from app.services.supabase_http import supabase_http_client
 
 
 class SupabaseAuthError(Exception):
@@ -17,7 +16,7 @@ async def fetch_user_for_token(access_token: str) -> dict:
 
     url = f"{settings.supabase_url.rstrip('/')}/auth/v1/user"
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with supabase_http_client() as client:
         response = await client.get(
             url,
             headers={

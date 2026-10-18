@@ -12,7 +12,12 @@ function load(relative, imports = {}, fetch = async () => new Response(null, { s
   const module = { exports: {} };
   vm.runInNewContext(compiled, {
     module, exports: module.exports,
-    require: (name) => imports[name] ?? (name === "@/lib/security-headers" ? load("lib/security-headers.ts") : require(name)),
+    require: (name) => {
+      if (name in imports) return imports[name];
+      if (name.startsWith("@/")) return load(name.slice(2) + ".ts", imports, fetch);
+      if (name.startsWith(".")) return load(path.join(path.dirname(relative), name) + ".ts", imports, fetch);
+      return require(name);
+    },
     URL, URLSearchParams, Request, Response, Headers, AbortSignal, fetch, btoa,
     crypto: require("node:crypto").webcrypto,
     process: { env: { NEXT_PUBLIC_API_BASE_URL: "http://api.fixture/v1" } },
