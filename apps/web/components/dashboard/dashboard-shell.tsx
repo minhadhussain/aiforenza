@@ -15,7 +15,7 @@ const navItems = [
   ["API Keys", "/dashboard/api-keys"],
   ["Usage", "/dashboard/usage"],
   ["Billing", "/dashboard/billing"],
-  ["Hackathon", "/dashboard/hackathon"],
+  ["BUILD 2026", "/dashboard/build-2026"],
   ["Docs", "/dashboard/docs"],
 ] as const;
 
@@ -32,14 +32,14 @@ function NavList({ pathname, closeMenu }: { pathname: string; closeMenu?: () => 
             onClick={closeMenu}
             className={`flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm transition ${
               active
-                ? "border-white/12 bg-white/[0.06] text-white"
+                ? label === "BUILD 2026" ? "border-[#2c3647] bg-[#285be0]/20 text-[#9cbdff]" : "border-white/12 bg-white/[0.06] text-white"
                 : "text-[var(--muted)] hover:border-white/8 hover:bg-white/[0.03] hover:text-white"
             }`}
           >
             <span className="inline-flex h-4 w-4 items-center justify-center border border-white/12 text-[10px] text-white/70">
               ▢
             </span>
-            <span>{label}</span>
+              <span>{label}</span>
           </Link>
         );
       })}
@@ -75,7 +75,7 @@ export function DashboardShell({ email, children }: DashboardShellProps) {
 
               <div className="mt-5 border-t border-white/10 pt-4">
                 <div className="px-3 pb-4 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Signed in</div>
-                <div className="px-3 text-sm text-white">{email}</div>
+                <div className="break-all px-3 text-sm text-white">{email}</div>
                 <form action="/logout" method="post" className="mt-4 px-3">
                   <button className="w-full border border-white/10 px-4 py-2.5 text-left text-sm text-[var(--muted)] transition hover:border-white/18 hover:text-white">
                     Log out
@@ -127,7 +127,7 @@ export function DashboardShell({ email, children }: DashboardShellProps) {
 
                   <div className="mt-5 border-t border-white/10 pt-4">
                     <div className="px-3 pb-4 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Signed in</div>
-                    <div className="px-3 text-sm text-white">{email}</div>
+                    <div className="break-all px-3 text-sm text-white">{email}</div>
                     <form action="/logout" method="post" className="mt-4 px-3">
                       <button className="w-full border border-white/10 px-4 py-2.5 text-left text-sm text-[var(--muted)] transition hover:border-white/18 hover:text-white">
                         Log out

@@ -72,10 +72,10 @@ export const docsPages: DocPage[] = [
       {
         heading: "1. Generate your API key",
         body:
-          "Open API Keys and generate a personal key, or claim your organizer-issued Team ID in Hackathon for a shared promotional key. Copy and save the full key when it appears; it is shown only once. Already have a key? Continue to step 2.",
+          "Open API Keys and generate a personal key, or open BUILD 2026 and claim your organizer-issued Team ID for your project's shared promotional key. Copy and save the full key when it appears; it is shown only once. Already have a key? Continue to step 2.",
         links: [
           { label: "Generate an API key", href: "/dashboard/api-keys" },
-          { label: "Claim a hackathon key", href: "/dashboard/hackathon" },
+          { label: "Claim BUILD 2026 credits", href: "/dashboard/build-2026" },
         ],
       },
       {
@@ -298,7 +298,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "1. Get your AI Forenza key",
         body:
-          "Sign up or log in to AI Forenza. Open API Keys and generate a personal key, or open Hackathon and claim your organizer-issued Team ID to receive a shared promotional key. Save the full secret when it is first shown. If your team already shared its key with you, you can use that credential directly. No dashboard model activation is required.",
+          "Sign up or log in to AI Forenza. Open API Keys and generate a personal key, or open BUILD 2026 and claim your organizer-issued Team ID to receive your project's shared promotional key. Save the full secret when it is first shown. If your team already shared its key with you, you can use that credential directly. No dashboard model activation is required.",
       },
       {
         heading: "2. Install OpenCode",
@@ -328,7 +328,7 @@ export const docsPages: DocPage[] = [
       },
       {
         heading: "7. Understand effort, output limits, and billing",
-        body: "The selected effort reaches the provider unchanged. AI Forenza accepts OpenCode's reasoning_effort and performs any model-specific provider translation behind the same public Chat Completions API. Higher effort can take longer and consume more reasoning/output tokens. Actual provider usage sets the bill; there is no fixed price per effort. Paid keys retain the 40% discount; hackathon keys spend promotional credit at reference price and never fall back to a personal wallet. Check the corresponding account's Usage page and the Hackathon balance for shared-key usage.",
+        body: "The selected effort reaches the provider unchanged. AI Forenza accepts OpenCode's reasoning_effort and performs any model-specific provider translation behind the same public Chat Completions API. Higher effort can take longer and consume more reasoning/output tokens. Actual provider usage sets the bill; there is no fixed price per effort. Paid keys retain the 40% discount; BUILD 2026 shared keys spend promotional credit at reference price and never fall back to a personal wallet. Check the corresponding account's Usage page and the BUILD 2026 balance for shared-key usage.",
         bullets: [
           "Preflight reserves against the requested maximum output; choosing high or max does not add an effort multiplier.",
           "Reasoning tokens are already included in provider output usage. A small output cap can be consumed by reasoning before visible text; finish_reason=length indicates the cap was reached.",
@@ -344,7 +344,7 @@ export const docsPages: DocPage[] = [
           "Effort selector missing: choose an AI Forenza GPT model using /models, replace its stale definition with the current download, fully quit/restart OpenCode, then press Ctrl+T. Already running terminal/desktop/server instances cache model definitions. Project files and OPENCODE_CONFIG/OPENCODE_CONFIG_CONTENT can override global settings. Astra must not offer none/minimal; none is valid for GPT-5.4 and Sol.",
           "Astra keeps starting on Low: OpenCode remembers the last explicit effort per provider/model, and that choice overrides the configuration's Medium default. Choose Medium with Ctrl+T, or cycle back to Default to use the configured value. Selecting another model and returning preserves an explicit choice; downloading a config alone does not clear it.",
           "401: re-enter the correct AI Forenza key through /connect. Remove an old options.apiKey entry when using the saved credential; an environment placeholder or literal key can override it.",
-          "402: check available funds for that key, including outstanding holds and its output allowance. A hackathon key can spend only its grant.",
+          "402: check available funds for that key, including outstanding holds and its output allowance. A BUILD 2026 shared key can spend only its grant.",
           "Connection refused: localhost refers to your own computer. A remote customer needs the administrator's public HTTPS API URL ending in /v1, not the website's login URL or an Azure endpoint.",
           "400 unsupported_reasoning_effort: use an advertised variant. provider_reasoning_unavailable means the configured deployment rejected it; the server does not silently downgrade.",
           "429: back off. 502/503 or interrupted streams: inspect Usage before retrying because inference may have started.",
@@ -448,7 +448,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Wallet model",
         body:
-          "Personal API keys share their owner's paid USD-cent wallet. Each hackathon shared key resolves only to its promotional grant wallet. Total is the ledger balance; reserved is outstanding request capacity; available is total minus reserved. API authorization and dashboard balances use the same database logic. Never release an uncertain hold merely because it is old.",
+          "Personal API keys share their owner's paid USD-cent wallet. Each BUILD 2026 shared key resolves only to its promotional grant wallet. Total is the ledger balance; reserved is outstanding request capacity; available is total minus reserved. API authorization and dashboard balances use the same database logic. Never release an uncertain hold merely because it is old.",
       },
       {
         heading: "Ledger and usage records",
@@ -476,7 +476,7 @@ export const docsPages: DocPage[] = [
       {
         heading: "Pricing",
         body:
-          "Paid usage applies the current 40% discount: customer = reference × 0.60 before rounding. Hackathon PROMOTIONAL usage is charged at reference price, with no discount or paid-wallet fallback. Input, output and cached-input rates are model-specific; cached input is a subset of total input and billed once. Totals round upward once per request to integer cents. The upfront hold is not the final bill, and effort selection never replaces actual-token billing.",
+          "Paid usage applies the current 40% discount: customer = reference × 0.60 before rounding. BUILD 2026 promotional usage is charged at reference price, with no discount or paid-wallet fallback. Input, output and cached-input rates are model-specific; cached input is a subset of total input and billed once. Totals round upward once per request to integer cents. The upfront hold is not the final bill, and effort selection never replaces actual-token billing.",
       },
       {
         heading: "Top-ups",

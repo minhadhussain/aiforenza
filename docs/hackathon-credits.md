@@ -1,4 +1,6 @@
-# Hackathon $100 promotional credits
+# BUILD 2026 — $100 promotional credits
+
+The participant page is **BUILD 2026** at `/dashboard/build-2026`. The former `/dashboard/hackathon` URL redirects there. See [event branding and content sources](build-2026.md). The API and database retain their existing `hackathon` identifiers.
 
 ## Architecture
 
@@ -14,9 +16,13 @@ Existing integration points:
 | Pricing / preflight / settlement | `services/pricing.py`, `services/usage_records.py`, `services/chat_completions.py` |
 | Immutable activity | `transactions`, `usage_records`, existing dashboard activity RPC |
 | Dashboard authentication | Supabase JWT validation through `get_current_dashboard_user` |
-| Dashboard UI | `/dashboard/hackathon`, existing shell, API-key list, and usage activity |
+| Dashboard UI | `/dashboard/build-2026`, existing shell, API-key list, and usage activity |
 
 ### Claim transaction and database constraints
+
+Claim state is stored in PostgreSQL, not in cookies, browser cache, local storage, or an IP-based flag. Repeating a claimed Team ID from a refreshed page, a new device, a different authenticated account, or a VPN still returns **409 `team_already_claimed`**. Case/outer whitespace variations normalize to the same ID. Concurrent requests compete for the same row lock; only one can commit. Depleting the balance, revoking the key, or reopening the same campaign never resets eligibility.
+
+The existing per-account Redis limit also throttles repeated submissions and fails closed if its access checks are unavailable. Its counters are separate from the durable once-only grant rule. See the [repeat-claim verification](security-review.md#build-2026-repeat-claim-review--20-october-2026) for deployed database checks and the 40-attempt HTTP/database regression.
 
 `claim_hackathon_team` locks the active campaign for share and the eligible Team ID for update. The winner creates one wallet, one key hash, and one `PROMO_GRANT` credit of **10,000 cents**, and marks the Team ID claimed in the same transaction. A waiting concurrent claimant sees the committed claim and receives `team_already_claimed` (HTTP 409). Any insertion failure rolls back all effects.
 
@@ -70,13 +76,13 @@ python -m pip install -e 'apps/api[dev]'
 Preload `HACK-001` through `HACK-050` and open claims:
 
 ```powershell
-python tools/hackathon_admin.py seed --name "Hackathon 2026" --count 50 --prefix HACK --activate
+python tools/hackathon_admin.py seed --name "BUILD 2026" --count 50 --prefix HACK --activate
 ```
 
 Or supply organizer-issued IDs, one per line:
 
 ```powershell
-python tools/hackathon_admin.py seed --name "Hackathon 2026" --team-ids-file private-team-ids.txt --activate
+python tools/hackathon_admin.py seed --name "BUILD 2026" --team-ids-file private-team-ids.txt --activate
 ```
 
 The tool uses private `DATABASE_URL` configuration (process environment or root `.env`) and parameterized SQL. Repeated seeding is idempotent and does not reset claims, create wallets, or issue money. Activating a second campaign fails rather than silently closing the first. IDs normalize to uppercase and allow 3–64 ASCII letters/digits/underscores/hyphens, starting with a letter or digit.
@@ -84,7 +90,7 @@ The tool uses private `DATABASE_URL` configuration (process environment or root 
 Close new claims:
 
 ```powershell
-python tools/hackathon_admin.py close --name "Hackathon 2026"
+python tools/hackathon_admin.py close --name "BUILD 2026"
 ```
 
 **Campaign closure stops new claims; existing grants remain usable.** The claimant may permanently revoke the shared key through the existing API Keys dashboard. An operator can disable a specific grant for incident handling. Neither operation makes its Team ID claimable again.
@@ -107,7 +113,7 @@ Only `team_id` is accepted. The backend chooses the campaign, claimant, amount, 
 {
   "grant": {
     "team_id": "HACK-042",
-    "campaign_name": "Hackathon 2026",
+    "campaign_name": "BUILD 2026",
     "status": "ACTIVE",
     "promo_balance_cents": 10000,
     "reserved_cents": 0,
@@ -193,6 +199,6 @@ It requires no active organizer campaign, creates a dedicated test campaign/acco
 - Repositories: `apps/api/app/repositories/{hackathon,api_keys,dashboard,wallets}.py`.
 - Services: `apps/api/app/services/{api_keys,access_control,pricing,usage_records,chat_completions,observability}.py`.
 - Backend test setup: `apps/api/pyproject.toml`, `apps/api/tests/{test_hackathon,test_hackathon_database,test_wallet_database}.py`.
-- UI: `apps/web/app/dashboard/hackathon/page.tsx`, `apps/web/components/dashboard/{hackathon-panel,dashboard-shell,api-key-panel,usage-activity}.tsx`, `apps/web/lib/{hackathon,api-keys,activity}.ts`.
+- UI: `apps/web/app/dashboard/build-2026/page.tsx`, `apps/web/components/dashboard/{build-2026-panel,dashboard-shell,api-key-panel,usage-activity}.tsx`, `apps/web/lib/{hackathon,api-keys,activity}.ts`.
 - Tools: `tools/{hackathon_admin,verify_hackathon_e2e,apply_reservations}.py`.
 - Documentation: `README.md`, this runbook.

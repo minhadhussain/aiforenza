@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DeveloperTabs } from "@/components/home/developer-tabs";
 import { MobileNav } from "@/components/home/mobile-nav";
+import { Build2026Promotion } from "@/components/home/build-2026-promotion";
 
 const trustModels = ["GPT", "Claude", "Gemini", "Grok", "DeepSeek", "Kimi"];
 
@@ -47,6 +48,9 @@ export default function HomePage() {
               <Link className="transition hover:text-white" href="/docs">
                 Docs
               </Link>
+              <a className="text-[#9cbdff] transition hover:text-white" href="#build-2026">
+                BUILD 2026
+              </a>
               <a className="transition hover:text-white" href="#about">
                 About
               </a>
@@ -79,6 +83,9 @@ export default function HomePage() {
         </div>
 
         <div className="relative z-10 flex max-w-4xl flex-col items-center">
+          <a href="#build-2026" className="mb-7 inline-flex max-w-full items-center gap-3 rounded-full border border-[#2b5ce4]/50 bg-[#285be0]/10 px-4 py-2 text-xs leading-5 text-[#9cbdff] transition hover:border-[#9cbdff] sm:text-sm">
+            <span><strong className="font-semibold">BUILD 2026</strong> · $100 AI credits per selected project</span><span aria-hidden="true">↗</span>
+          </a>
           <h1 className="max-w-4xl font-[family-name:var(--font-heading)] text-[3rem] leading-[0.95] tracking-[-0.05em] text-white sm:text-[4.5rem] lg:text-[6.25rem]">
             One API.
             <br />
@@ -116,6 +123,8 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      <Build2026Promotion />
 
       <section id="about" className="mt-24 grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
         <div className="max-w-xl">
@@ -225,6 +234,7 @@ export default function HomePage() {
             ["Models", "/models"],
             ["Pricing", "/pricing"],
             ["Docs", "/docs"],
+            ["BUILD 2026", "/#build-2026"],
             ["API", "/docs"],
             ["Status", "/status"],
             ["Terms", "/terms"],

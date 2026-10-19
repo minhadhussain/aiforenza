@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 from uuid import uuid4
 import hashlib
 
@@ -171,6 +172,107 @@ def test_atomic_claim_and_one_key_wallet_ledger(database):
             "update SCHEMA.hackathon_team_grants set status='UNCLAIMED',claimed_by_user_id=null,claimed_at=null,wallet_id=null,api_key_id=null where id=%s",
             (gid,),
         )
+
+
+def test_http_replays_from_fresh_clients_and_different_accounts_share_one_claim(database, monkeypatch):
+    """Exercise the actual route and SQL transaction, independent of browser/IP state."""
+    import asyncio
+    from unittest.mock import AsyncMock
+
+    import psycopg2
+    from fastapi import Header, HTTPException
+    from fastapi.testclient import TestClient
+
+    from app.api.deps.auth import get_current_dashboard_user
+    from app.api.routes import hackathon
+    from app.main import app
+    from app.repositories.supabase_rest import SupabaseRepositoryError
+
+    campaign, user, other, model = fixtures(database)
+    users = {"Bearer fixture-session-one": user, "Bearer fixture-session-two": other}
+
+    def verified_identity(authorization: str | None = Header(default=None)):
+        if authorization not in users:
+            raise HTTPException(status_code=401)
+        return {"id": users[authorization], "email": "fixture@example.invalid"}
+
+    async def sql_claim(owner, team, key_hash, prefix):
+        try:
+            rows = await asyncio.to_thread(
+                query, database,
+                "select SCHEMA.claim_hackathon_team(%s,%s,%s,%s)",
+                (owner, team, key_hash, prefix),
+            )
+            return rows[0][0]
+        except psycopg2.Error as exc:
+            raise SupabaseRepositoryError(exc.diag.message_primary) from None
+
+    monkeypatch.setattr(hackathon, "claim_team", sql_claim)
+    monkeypatch.setattr(hackathon, "fetch_profile", AsyncMock(return_value={"exists": True}))
+    # Even without the Redis throttle, the database must never duplicate credit.
+    monkeypatch.setattr(hackathon, "check_api_rate_limit", lambda **_: None)
+    monkeypatch.setitem(app.dependency_overrides, get_current_dashboard_user, verified_identity)
+    start = Barrier(8)
+    variants = ["HACK-001", "hack-001", "  Hack-001  ", "hAcK-001"]
+    sessions = list(users)
+
+    def attempt(index, concurrent=False):
+        if concurrent and index < 8:
+            start.wait(timeout=30)
+        # A new client for every request models empty cookies/cache, a new session,
+        # another device, and changed/untrusted forwarding headers.
+        with TestClient(app) as client:
+            response = client.post(
+                "/v1/hackathon/claim",
+                headers={
+                    "Authorization": sessions[index % 2],
+                    "X-Forwarded-For": f"198.51.100.{index + 1}",
+                    "X-Real-IP": f"203.0.113.{index + 1}",
+                    "User-Agent": f"Fresh-client-{index}",
+                    "Cache-Control": "no-cache",
+                    "Cookie": f"browser-reset={index}",
+                },
+                json={"team_id": variants[index % len(variants)]},
+            )
+            # Do not keep the one-time test credential in assertion output.
+            body = response.json()
+            if response.status_code == 201:
+                assert body.pop("plaintext_key", None)
+            else:
+                assert "plaintext_key" not in body
+            assert response.headers["cache-control"] == "no-store"
+            return response.status_code, body
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(lambda index: attempt(index, concurrent=True), range(32)))
+    assert sum(status == 201 for status, _ in results) == 1
+    assert all(
+        status == 201 or (status == 409 and body["detail"]["code"] == "team_already_claimed")
+        for status, body in results
+    )
+    gid, key, wallet, owner, claimed_at = query(
+        database,
+        "select id,api_key_id,wallet_id,claimed_by_user_id,claimed_at from SCHEMA.hackathon_team_grants where campaign_id=%s and team_id='HACK-001'",
+        (campaign,),
+    )[0]
+    # Spending all the credit, revocation, and closing/reopening claims must not reset it.
+    request = reserve(database, str(owner), key, model, 10000)
+    settle(database, str(owner), key, model, request, 10000)
+    query(database, "update SCHEMA.api_keys set revoked_at=now() where id=%s", (key,))
+    query(database, "update SCHEMA.hackathon_team_grants set status='DISABLED' where id=%s", (gid,))
+    query(database, "update SCHEMA.hackathon_campaigns set status='INACTIVE' where id=%s", (campaign,))
+    query(database, "update SCHEMA.hackathon_campaigns set status='ACTIVE' where id=%s", (campaign,))
+    for index in range(32, 40):
+        status, body = attempt(index)
+        assert status == 409 and body["detail"]["code"] == "team_already_claimed"
+    assert query(
+        database,
+        "select api_key_id,wallet_id,claimed_by_user_id,claimed_at,status from SCHEMA.hackathon_team_grants where id=%s",
+        (gid,),
+    ) == [(key, wallet, owner, claimed_at, "DISABLED")]
+    assert query(database, "select count(*),sum(balance_cents) from SCHEMA.wallets where hackathon_grant_id=%s", (gid,)) == [(1, 0)]
+    assert query(database, "select count(*) from SCHEMA.api_keys where hackathon_grant_id=%s", (gid,)) == [(1,)]
+    assert query(database, "select count(*),sum(amount_cents) from SCHEMA.transactions where hackathon_grant_id=%s and type='PROMO_GRANT'", (gid,)) == [(1, 10000)]
 
 
 def test_promo_reservation_settlement_release_and_no_paid_fallback(database):

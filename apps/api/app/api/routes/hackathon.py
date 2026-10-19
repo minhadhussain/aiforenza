@@ -33,7 +33,7 @@ def safe_error(exc):
         (
             "team_already_claimed",
             409,
-            "This Team ID has already claimed its hackathon credit. Only one $100 promotional grant is allowed per Team ID.",
+            "This Team ID has already claimed its $100 BUILD 2026 credit allocation. Ask the teammate who claimed it for the shared API key; another claim cannot issue more credit or a new key.",
         ),
         (
             "invalid_team_id",

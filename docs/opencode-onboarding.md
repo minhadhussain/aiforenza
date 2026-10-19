@@ -4,7 +4,7 @@ The customer-facing guide is available at `/docs/opencode` and `/dashboard/docs/
 
 ## Customer steps
 
-1. Sign up/sign in to AI Forenza. Generate a personal API key in **API Keys**, or claim your organizer-issued Team ID in **Hackathon** and save the shared promotional key. A teammate with an existing shared key can use that credential directly.
+1. Sign up/sign in to AI Forenza. Generate a personal API key in **API Keys**, or claim your organizer-issued Team ID in **BUILD 2026** and save the shared promotional key. A teammate with an existing shared key can use that credential directly.
 2. Install the current OpenCode CLI (`npm install -g @opencode/cli`). Quit existing OpenCode clients before setup.
 3. Open **Set up OpenCode** beside your generated key, or visit **Docs → OpenCode**. Choose **Windows PowerShell** or **macOS / Linux**, click **Copy setup command**, and paste the whole block into that terminal. It downloads the current configuration and creates the global `opencode.json`. If you already have a configuration, use **Copy setup prompt** to merge it with a file-editing assistant instead.
 4. Run `opencode`, enter `/connect`, select **AI Forenza**, and paste the full key. Older clients offer **Other**, where you enter **aiforenza** as the provider ID. This stores the credential in OpenCode's native auth store.

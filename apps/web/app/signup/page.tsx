@@ -15,7 +15,7 @@ export default async function SignupPage({ searchParams }: { searchParams?: Prom
       copy="Sign up with Google or email to start building with AI Forenza. Your account and sign-in details are securely managed by Supabase."
       footer={
         <>
-          Already have an account? <Link className="font-semibold text-[var(--accent-strong)]" href="/login">Log in</Link>
+          Already have an account? <Link className="font-semibold text-[var(--accent-strong)]" href={nextPath === "/dashboard" ? "/login" : `/login?${new URLSearchParams({ next: nextPath })}`}>Log in</Link>
         </>
       }
     >

@@ -110,6 +110,25 @@ def test_uncertain_claim_never_reissues_or_exposes_secret(claimant):
     rpc.assert_awaited_once()
 
 
+@pytest.mark.parametrize("status", [429, 503])
+def test_claim_throttle_fails_closed_before_creating_any_key_or_grant(claimant, monkeypatch, status):
+    from app.core.errors import OpenAIAPIError
+
+    client, rpc = claimant
+    monkeypatch.setattr(hackathon, "check_api_rate_limit", Mock(side_effect=OpenAIAPIError(
+        "Claim access temporarily unavailable.", error_type="rate_limit_error" if status == 429 else "api_error",
+        code="rate_limit_exceeded" if status == 429 else "access_unavailable", status_code=status,
+    )))
+    generate = Mock()
+    monkeypatch.setattr(hackathon, "generate_api_key", generate)
+    response = client.post("/v1/hackathon/claim", json={"team_id": "HACK-042"})
+    assert response.status_code == status
+    assert "plaintext_key" not in response.text
+    rpc.assert_not_called()
+    generate.assert_not_called()
+    hackathon.fetch_profile.assert_not_called()
+
+
 def test_key_generation_preserves_paid_format_and_strong_shared_credentials():
     paid = api_keys.generate_api_key()
     shared = {api_keys.generate_api_key(billing_source="PROMOTIONAL") for _ in range(50)}

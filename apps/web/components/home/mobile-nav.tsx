@@ -8,6 +8,7 @@ const navItems = [
   ["Models", "/models"],
   ["Pricing", "/pricing"],
   ["Docs", "/docs"],
+  ["BUILD 2026", "/#build-2026"],
   ["About", "/#about"],
 ] as const;
 
@@ -49,7 +50,7 @@ export function MobileNav() {
         aria-expanded={open}
         aria-label="Open navigation menu"
         onClick={handleOpen}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white transition hover:border-white/20 hover:bg-white/[0.06] sm:hidden"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white transition hover:border-white/20 hover:bg-white/[0.06] lg:hidden"
       >
         <span className="flex flex-col gap-1">
           <span className="block h-px w-4 bg-current" />
@@ -59,7 +60,7 @@ export function MobileNav() {
       </button>
 
       {renderMenu ? (
-        <div className={`fixed inset-0 z-50 bg-[#050607]/98 px-5 py-5 sm:hidden ${open ? "animate-[fadeIn_180ms_ease-out_forwards]" : "animate-[fadeOut_180ms_ease-in_forwards]"}`}>
+        <div className={`fixed inset-0 z-50 bg-[#050607]/98 px-5 py-5 lg:hidden ${open ? "animate-[fadeIn_180ms_ease-out_forwards]" : "animate-[fadeOut_180ms_ease-in_forwards]"}`}>
           <div className={`mx-auto flex h-full w-full max-w-lg flex-col rounded-[2rem] border border-white/8 bg-[#090b0d] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.6)] ${open ? "animate-[panelIn_220ms_cubic-bezier(0.22,1,0.36,1)_forwards]" : "animate-[panelOut_180ms_cubic-bezier(0.55,0.06,0.68,0.19)_forwards]"}`}>
             <div className="flex items-center justify-between gap-4 border-b border-white/8 pb-4">
               <Link href="/" onClick={handleClose} className="font-[family-name:var(--font-heading)] text-base tracking-[0.14em] text-white">
