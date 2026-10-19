@@ -3,8 +3,17 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    env_file:
-      - .env
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-${SUPABASE_URL}}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-${SUPABASE_ANON_KEY}}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/v1}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-${SUPABASE_URL}}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-${SUPABASE_ANON_KEY}}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/v1}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      API_INTERNAL_BASE_URL: http://api:8000/v1
     ports:
       - "3000:3000"
     depends_on:
@@ -31,13 +40,22 @@ services:
 
   litellm:
     image: ghcr.io/berriai/litellm:main-latest
-    env_file:
-      - .env
-    command: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "2"]
+    environment:
+      AZURE_API_KEY: ${AZURE_API_KEY:-}
+      AZURE_ENDPOINT: ${AZURE_ENDPOINT:-}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        if [ -z "$$LITELLM_MASTER_KEY" ]; then
+          echo "Configure a private LITELLM_MASTER_KEY before starting the proxy." >&2
+          exit 1
+        fi
+        exec litellm --config /app/config.yaml --port 4000 --num_workers 2
     volumes:
       - ./infra/docker/litellm.config.yaml:/app/config.yaml:ro
-    ports:
-      - "4000:4000"
+    expose:
+      - "4000"
 
   reverse-proxy:
     image: caddy:2.9-alpine

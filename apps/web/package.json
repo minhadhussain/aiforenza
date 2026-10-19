@@ -7,7 +7,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:auth": "node --test tests/auth-routes.test.cjs",
-    "test:security": "node --test tests/injection-prevention.test.cjs"
+    "test:security": "node --test tests/injection-prevention.test.cjs tests/public-environment.test.cjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.5.2",

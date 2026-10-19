@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { assertPublicEnvironment } from "./lib/public-environment";
+
+assertPublicEnvironment(process.env);
 
 const nextConfig: NextConfig = {
   output: "standalone",

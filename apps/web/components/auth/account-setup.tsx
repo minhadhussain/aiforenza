@@ -12,7 +12,7 @@ export function AccountSetup({ nextPath, retryRequired = false }: { nextPath: st
   const [error, setError] = useState<string | null>(retryRequired ? retryMessage : null);
   const [progress, setProgress] = useState("Checking your session…");
   // Strict Mode may re-run effects. Share the in-flight setup within this mount.
-  const pending = useRef<Promise<"ready" | "sign-in"> | null>(null);
+  const pending = useRef<Promise<"ready" | "sign-in" | "verify-email"> | null>(null);
 
   useEffect(() => {
     if (retryRequired && attempt === 0) return;
@@ -28,6 +28,7 @@ export function AccountSetup({ nextPath, retryRequired = false }: { nextPath: st
           return "sign-in" as const;
         }
         if (!user) return "sign-in" as const;
+        if (!user.email_confirmed_at) return "verify-email" as const;
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
         if (!session?.access_token) return "sign-in" as const;
@@ -37,6 +38,11 @@ export function AccountSetup({ nextPath, retryRequired = false }: { nextPath: st
     }
     void pending.current.then((result) => {
       if (!active) return;
+      if (result === "verify-email") {
+        pending.current = null;
+        setError("Verify your email using the confirmation link before claiming credits or creating API keys. Then retry account setup.");
+        return;
+      }
       if (result === "sign-in") {
         window.location.replace(`/login?${new URLSearchParams({ next: safeDashboardPath(nextPath) })}`);
         return;

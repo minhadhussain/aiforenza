@@ -37,7 +37,8 @@ export function authErrorMessage(code?: string | string[]): string | undefined {
 }
 
 export async function ensureAccountReady(accessToken: string): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
+  const publicBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/v1";
+  const baseUrl = typeof window === "undefined" ? process.env.API_INTERNAL_BASE_URL || publicBase : publicBase;
   const response = await fetch(`${baseUrl}/account/bootstrap`, {
     method: "POST",
     headers: { Authorization: `Bearer ${accessToken}` },

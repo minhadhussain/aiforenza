@@ -36,10 +36,10 @@ class Settings(BaseSettings):
     )
     api_max_messages: int = Field(default=100, alias="API_MAX_MESSAGES")
     api_requests_per_minute_per_key: int = Field(
-        default=60, alias="API_REQUESTS_PER_MINUTE_PER_KEY"
+        default=20, ge=1, le=10000, alias="API_REQUESTS_PER_MINUTE_PER_KEY"
     )
     api_requests_per_minute_per_user: int = Field(
-        default=60, alias="API_REQUESTS_PER_MINUTE_PER_USER"
+        default=20, ge=1, le=10000, alias="API_REQUESTS_PER_MINUTE_PER_USER"
     )
     api_max_concurrent_requests: int = Field(
         default=10, alias="API_MAX_CONCURRENT_REQUESTS"

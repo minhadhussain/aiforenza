@@ -56,6 +56,8 @@ Phase 1 through Phase 10 foundations are in place:
 
 ## Security Review Skills
 
+See [paid API credentials and cost controls](docs/paid-api-safety.md) for environment separation, Docker proxy isolation, email verification, request limits, and provider-side billing settings.
+
 Project-local OpenCode skills cover FastAPI/Next.js security, threat modeling, Supabase RLS/privileges, and property-based testing. Restart OpenCode in this repository and run `/security-review` for an evidence-based system review. Add explicit instructions to implement confirmed fixes when that is the intended scope.
 
 See [.opencode/skills/README.md](.opencode/skills/README.md) for usage, publisher attribution, and pinned revisions. `python tools/verify_security_skills.py` verifies the downloaded contents and checks actual OpenCode discovery. Installing the skills does not itself perform an audit or apply application security fixes.
@@ -64,11 +66,11 @@ Database access uses bound SQL/RPC values, encoded mutation filters, validated r
 
 The web app enforces a nonce-based Content Security Policy in production, blocks style attributes, and renders user-controlled content as text. See [CSS/SQL injection hardening](docs/security-review.md) for the policy, development exceptions, query allowlists, and verification commands.
 
-## Hackathon Promotional Credits
+## BUILD 2026 Promotional Credits
 
-The dashboard's **Hackathon** section claims one $100 shared-key grant per organizer-issued Team ID. Promotional usage is billed at reference price through the existing wallet, reservation, and ledger infrastructure. Paid keys retain normal customer pricing.
+The dashboard's **BUILD 2026** section at `/dashboard/build-2026` provides one $100 shared-key grant per selected project using an organizer-issued Team ID. Its event branding and participant details follow [Hackyard BUILD 2026](https://hackyard.org/build2026). Promotional usage is billed at reference price through the existing wallet, reservation, and ledger infrastructure. Paid keys retain normal customer pricing.
 
-See [Hackathon setup and verification](docs/hackathon-credits.md) for the migration, organizer commands, API contract, security behavior, and test evidence.
+See [BUILD 2026 design and content](docs/build-2026.md) and [credit setup and verification](docs/hackathon-credits.md) for branding sources, organizer commands, the API contract, and test evidence.
 
 ## OpenCode Astra Reasoning
 

@@ -5,6 +5,19 @@ from app.models.catalog import CatalogModel
 from app.models.openai import ChatCompletionRequest
 
 
+# Only metered Chat Completions controls may reach the paid provider. In
+# particular, SDK extras cannot supply upstream credentials, URLs, hosted tools,
+# audio output, previous server-side conversations, or unpriced search requests.
+CHAT_FIELDS = {
+    "model", "messages", "temperature", "top_p", "max_tokens", "max_completion_tokens",
+    "stream", "stream_options", "tools", "tool_choice", "parallel_tool_calls",
+    "functions", "function_call", "response_format", "n", "stop", "seed",
+    "presence_penalty", "frequency_penalty", "logit_bias", "logprobs", "top_logprobs",
+    "user", "verbosity", "service_tier", "reasoning_effort", "reasoningEffort", "reasoning",
+}
+MESSAGE_FIELDS = {"role", "content", "name", "tool_calls", "tool_call_id", "function_call"}
+
+
 def invalid_option(message: str, code: str = "unsupported_reasoning_effort"):
     return OpenAIAPIError(message, error_type="invalid_request_error", code=code, status_code=400)
 
@@ -34,9 +47,15 @@ def reasoning_effort(request: ChatCompletionRequest, model: CatalogModel) -> str
 
 
 def normalize_model_payload(request: ChatCompletionRequest, model: CatalogModel) -> dict:
-    payload = request.model_dump(exclude_none=True)
+    payload = {key: value for key, value in request.model_dump(exclude_none=True).items() if key in CHAT_FIELDS}
+    payload["messages"] = [{key: value for key, value in message.items() if key in MESSAGE_FIELDS} for message in payload["messages"]]
+    tools = payload.get("tools", [])
+    if not isinstance(tools, list) or any(not isinstance(tool, dict) or tool.get("type") != "function" or not isinstance(tool.get("function"), dict) for tool in tools):
+        raise invalid_option("Only client-executed function tools are supported.", "unsupported_tool_format")
     effort = reasoning_effort(request, model)
     if effort is None:
+        for field in ("reasoning", "reasoningEffort", "reasoning_effort"):
+            payload.pop(field, None)
         return payload
     if not model.capabilities.strict_chat_parameters:
         # Add canonical effort validation without narrowing the established GPT-5

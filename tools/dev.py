@@ -118,11 +118,14 @@ def main():
             if key.startswith(
                 (
                     "AZURE_",
+                    "OPENAI_",
+                    "ANTHROPIC_",
                     "STRIPE_",
                     "DATABASE_",
                     "API_KEY_",
                     "LITELLM_",
                     "SUPABASE_SERVICE_",
+                    "SUPABASE_SECRET_",
                 )
             ):
                 env.pop(key)

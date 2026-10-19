@@ -18,6 +18,7 @@ def test_account_returns_authenticated_user(monkeypatch) -> None:
         return {
             "id": "user-123",
             "email": "user@example.com",
+            "email_confirmed_at": "2026-09-07T00:00:00Z",
             "app_metadata": {"provider": "email"},
             "user_metadata": {"name": "User"},
         }
@@ -39,6 +40,7 @@ def test_dashboard_overview_bootstraps_wallet(monkeypatch) -> None:
         return {
             "id": "user-123",
             "email": "user@example.com",
+            "email_confirmed_at": "2026-09-07T00:00:00Z",
         }
 
     async def fake_bootstrap_user_account(user_id: str, email: str) -> dict:
@@ -107,7 +109,7 @@ def test_dashboard_overview_bootstraps_wallet(monkeypatch) -> None:
 
 def test_dashboard_transactions_returns_ledger_rows(monkeypatch) -> None:
     async def fake_fetch_user_for_token(access_token: str) -> dict:
-        return {"id": "user-123", "email": "user@example.com"}
+        return {"id": "user-123", "email": "user@example.com", "email_confirmed_at": "2026-09-07T00:00:00Z"}
 
     async def fake_fetch_transactions(user_id: str, limit: int = 50) -> list[dict]:
         assert user_id == "user-123"
@@ -137,7 +139,7 @@ def test_dashboard_transactions_returns_ledger_rows(monkeypatch) -> None:
 
 def test_dashboard_usage_returns_usage_rows(monkeypatch) -> None:
     async def fake_fetch_user_for_token(access_token: str) -> dict:
-        return {"id": "user-123", "email": "user@example.com"}
+        return {"id": "user-123", "email": "user@example.com", "email_confirmed_at": "2026-09-07T00:00:00Z"}
 
     async def fake_fetch_usage_records(user_id: str, limit: int = 50) -> list[dict]:
         assert user_id == "user-123"
@@ -170,7 +172,7 @@ def test_dashboard_usage_returns_usage_rows(monkeypatch) -> None:
 def test_dashboard_models_returns_customer_pricing(monkeypatch) -> None:
     from app.models.catalog import ModelCapabilities
     async def fake_fetch_user_for_token(access_token: str) -> dict:
-        return {"id": "user-123", "email": "user@example.com"}
+        return {"id": "user-123", "email": "user@example.com", "email_confirmed_at": "2026-09-07T00:00:00Z"}
 
     class Model:
         capabilities = ModelCapabilities()
