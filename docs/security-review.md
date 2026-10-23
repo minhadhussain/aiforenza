@@ -128,3 +128,24 @@ Scope: the user's credential-exposure, paid-proxy authorization, request-budget,
 - TypeScript no-emit validation passed. `npm audit --omit=dev` reported zero production dependency vulnerabilities. The full Docker build remains unverified: the first attempt failed in Google's font loader; the Node 22 retry reached the build step but exceeded the 300-second command timeout. Node 22 also meets the installed Supabase storage package's runtime requirement.
 
 Provider billing alerts, hard spending limits, prepaid auto-recharge, unknown historic credentials, and multi-account identity uniqueness remain external/operational controls. No provider billing configuration was changed, no provider credit was spent for verification, and no key rotation was necessary based on the configured-secret checks.
+
+## Next.js security patch — 24 October 2026
+
+Upgraded the web workspace and lockfile from **Next.js 15.5.27 to 15.5.28**, including the matching `@next/env` and platform SWC packages.
+
+The upstream advisories identify 15.5.28 as the patched 15.x release:
+
+- [GHSA-2464-fhr4-w9xw](https://github.com/advisories/GHSA-2464-fhr4-w9xw): image-optimization RCE affecting glibc-based Linux. The repository already pinned Sharp 0.35.5, which the advisory lists as a workaround; the upgrade also clears the version-based Next.js advisory.
+- [GHSA-p3m5-59mp-jv5r](https://github.com/advisories/GHSA-p3m5-59mp-jv5r): App Router denial of service in applications with Server Actions.
+
+Verified dependency resolution includes **Sharp 0.35.5** and **PostCSS 8.5.29**. An initial npm resolution selected an older nested PostCSS; refreshing the Next/PostCSS resolution restored the existing override. A clean `npm ci --ignore-scripts --prefer-offline` confirmed the final lockfile installs correctly.
+
+Verification:
+
+- `npm audit --omit=dev`: **zero known production vulnerabilities**.
+- **18 auth tests** and **9 security tests** passed after the clean install.
+- Production build/type checking passed on Next.js **15.5.28**.
+- `python tools/verify_injection_prevention.py --url http://localhost:3100`: seven production pages, hydration/navigation, model search, escaped hostile API data, script/style nonce enforcement, and blocked CSS exfiltration passed with zero browser runtime errors.
+- The browser verifier now supplies the Quickstart configuration fixture and checks that decorative Next/Image assets load despite their exact `color:transparent` attributes being blocked by `style-src-attr 'none'`.
+
+The earlier Docker verification completed successfully on 22 October for the pre-patch image, whose runtime contained no `.env` files. Deployments must rebuild/redeploy from the updated lockfile to run Next.js 15.5.28; this patch's production verification used the local Node build.

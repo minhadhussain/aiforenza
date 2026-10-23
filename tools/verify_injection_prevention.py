@@ -28,6 +28,15 @@ def verify(base_url):
         try:
             context = browser.new_context(viewport={"width": 1440, "height": 1000})
             context.route("**/v1/public/models", lambda route: route.fulfill(json={"data": [model]}))
+            # Quickstart now loads the OpenCode setup widget. Keep this browser
+            # check independent of a running API, just like the model fixture.
+            context.route("**/v1/public/opencode-config", lambda route: route.fulfill(json={
+                "provider": {"aiforenza": {
+                    "npm": "@ai-sdk/openai-compatible",
+                    "options": {"baseURL": "http://127.0.0.1:8000/v1"},
+                    "models": {"fixture-model": {"name": "Fixture model", "limit": {"context": 4096, "input": 2048, "output": 1024}}},
+                }},
+            }))
             outbound = []
 
             def unexpected_request(route):
@@ -52,7 +61,19 @@ def verify(base_url):
                 check(nonce and "'nonce-" + nonce + "'" in policy, "Framework nonce differs from response policy: " + path)
                 nonces.append(nonce)
                 expect(page.locator("main")).to_be_visible()
-                check(not page.evaluate("window.__cspViolations"), "Legitimate page hit a CSP violation: " + path)
+                violations = page.evaluate("window.__cspViolations")
+                if violations:
+                    # Next/Image emits color:transparent for decorative images.
+                    # The strict policy intentionally blocks that attribute; an
+                    # empty alt makes it unnecessary. Match only those exact
+                    # attributes and prove the images load instead of relaxing CSP.
+                    decorative = page.locator('img[alt=""][style="color:transparent"]')
+                    check(violations == ["style-src-attr"] * decorative.count(), "Unexpected page CSP violation: " + path)
+                    for image in decorative.all():
+                        image.scroll_into_view_if_needed()
+                        expect(image).to_be_visible()
+                        expect(image).to_have_js_property("complete", True, timeout=15000)
+                        check(image.evaluate("image => image.complete && image.naturalWidth > 0"), "Decorative image failed to load: " + path)
                 if path in ("/login", "/signup"):
                     expect(page.get_by_label("Email", exact=True)).to_be_visible()
                     expect(page.get_by_role("button", name="Continue with Google", exact=True)).to_be_visible()
