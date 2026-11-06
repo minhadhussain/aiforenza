@@ -48,6 +48,8 @@ The centralized model catalog continues to supply reference prices, cached-input
 
 Existing per-request integer-cent rounding is preserved: positive totals round up once, rather than per token. Provider costs remain recorded when known and nullable when the existing catalog has no verified provider cost; they are never invented or substituted with customer prices.
 
+All pricing helpers take the server-selected billing source. For team keys, model rates, estimated charges, reservations, and actual usage use a multiplier of **1.00**, even if the catalog's paid-key discount changes. A $1.00 reference request consumes $1.00 of team credit and records zero savings. Streaming and non-streaming requests follow the same rule; request-supplied discount or billing-source fields do not change it.
+
 The API key determines the source; client request fields cannot override it. Both streaming and non-streaming routes use the same preflight/pricing/settlement functions. PostgreSQL independently rejects discounted promotional settlements.
 
 Reservations lock the selected wallet and compare its balance against **that wallet's** outstanding holds. Settlement writes the ledger and usage row, deducts the actual charge, and consumes the hold atomically. `usage_records.reserved_amount_cents` and `reservation_created_at` retain the original hold after settlement. Released holds retain their existing audit record. All new activity records receive `billing_source` and `hackathon_grant_id` from the database key/wallet, with campaign attribution available through the grant.

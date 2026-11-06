@@ -25,7 +25,12 @@ def _cents(amount: Decimal) -> int:
     return int((amount * ONE_HUNDRED).quantize(Decimal("1"), rounding=ROUND_CEILING))
 
 
-def resolve_customer_multiplier(model: CatalogModel) -> Decimal:
+def resolve_customer_multiplier(model: CatalogModel, *, billing_source: str = "PAID") -> Decimal:
+    # The authenticated key selects this policy, never a request-body discount.
+    if billing_source == "PROMOTIONAL":
+        return Decimal("1")
+    if billing_source != "PAID":
+        raise ValueError("Unknown billing source")
     discount = _decimal(model.discount_percent)
     if discount > 100:
         raise ValueError("Discount must be between zero and 100")
@@ -45,7 +50,7 @@ def is_pricing_available(model: CatalogModel) -> bool:
     )
 
 
-def resolve_model_rates(model: CatalogModel) -> dict[str, Decimal]:
+def resolve_model_rates(model: CatalogModel, *, billing_source: str = "PAID") -> dict[str, Decimal]:
     if model.input_price_per_million is None or model.output_price_per_million is None:
         raise ValueError("Reference pricing is not configured")
     reference = {
@@ -57,7 +62,7 @@ def resolve_model_rates(model: CatalogModel) -> dict[str, Decimal]:
             else model.input_price_per_million
         ),
     }
-    multiplier = resolve_customer_multiplier(model)
+    multiplier = resolve_customer_multiplier(model, billing_source=billing_source)
     return {
         **{f"reference_{name}": rate for name, rate in reference.items()},
         **{f"customer_{name}": rate * multiplier for name, rate in reference.items()},
@@ -71,9 +76,7 @@ def calculate_pricing_breakdown(
     *,
     billing_source: str = "PAID",
 ) -> RequestChargeBreakdown:
-    if billing_source not in {"PAID", "PROMOTIONAL"}:
-        raise ValueError("Unknown billing source")
-    rates = resolve_model_rates(model)
+    rates = resolve_model_rates(model, billing_source=billing_source)
     reference_input_component = (
         rates["reference_input"]
         * (usage.input_tokens - usage.cached_input_tokens)
@@ -91,11 +94,7 @@ def calculate_pricing_breakdown(
         + reference_output_component
         + reference_cached_component
     )
-    multiplier = (
-        Decimal("1")
-        if billing_source == "PROMOTIONAL"
-        else resolve_customer_multiplier(model)
-    )
+    multiplier = resolve_customer_multiplier(model, billing_source=billing_source)
 
     customer_input_component = reference_input_component * multiplier
     customer_output_component = reference_output_component * multiplier
@@ -141,9 +140,9 @@ def calculate_pricing_breakdown(
 
 
 def estimate_customer_charge_cents(
-    request_max_usage: UsageMetrics, model: CatalogModel
+    request_max_usage: UsageMetrics, model: CatalogModel, *, billing_source: str = "PAID"
 ) -> int:
-    return calculate_pricing_breakdown(model, request_max_usage).customer_charge_cents
+    return calculate_pricing_breakdown(model, request_max_usage, billing_source=billing_source).customer_charge_cents
 
 
 def estimate_text_tokens(text: str) -> int:

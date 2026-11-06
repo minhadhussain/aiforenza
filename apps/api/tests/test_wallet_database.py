@@ -15,6 +15,36 @@ class RedactedDatabaseURL(str):
         return "'<redacted database URL>'"
 
 
+def connect_test_database(url):
+    """Prevent psycopg2's expanded credential-bearing DSN appearing in pytest."""
+    import psycopg2
+
+    error_kind = None
+    try:
+        return psycopg2.connect(url, connect_timeout=10, sslmode="require")
+    except psycopg2.Error as exc:
+        error_kind = type(exc).__name__
+    # Raise outside the exception handler so the driver traceback is not chained.
+    pytest.fail(
+        f"Database integration connection failed ({error_kind}). Check the Supabase project and DATABASE_URL; credentials omitted.",
+        pytrace=False,
+    )
+
+
+def test_connection_failures_do_not_expose_or_chain_credentials(monkeypatch):
+    import psycopg2
+
+    def rejected(*args, **kwargs):
+        raise psycopg2.OperationalError("dsn contains PRIVATE_FIXTURE_PASSWORD")
+
+    monkeypatch.setattr(psycopg2, "connect", rejected)
+    with pytest.raises(pytest.fail.Exception) as failure:
+        connect_test_database("postgresql://fixture:PRIVATE_FIXTURE_PASSWORD@invalid/db")
+    assert "PRIVATE_FIXTURE_PASSWORD" not in str(failure.value)
+    assert failure.value.__context__ is None
+    assert failure.value.pytrace is False
+
+
 def test_database_url_fixture_representation_is_redacted():
     value = RedactedDatabaseURL(
         "postgresql://fixture:PRIVATE_PASSWORD@example.invalid/db"
@@ -29,7 +59,7 @@ def database():
         pytest.skip(
             "Set RUN_DATABASE_TESTS=1 to test the configured database in an isolated schema"
         )
-    psycopg2 = pytest.importorskip("psycopg2")
+    pytest.importorskip("psycopg2")
     from dotenv import dotenv_values
 
     env = dotenv_values(Path(__file__).resolve().parents[3] / ".env")
@@ -37,7 +67,7 @@ def database():
     if not url:
         pytest.skip("DATABASE_URL not configured")
     schema = "verify_" + uuid4().hex
-    conn = psycopg2.connect(url, connect_timeout=10, sslmode="require")
+    conn = connect_test_database(url)
     sql = (
         Path(__file__).resolve().parents[3]
         / "supabase/migrations/202609090001_wallet_reservations.sql"

@@ -174,6 +174,26 @@ def test_reference_pricing_no_discount_cached_usage_and_provider_cost():
         calculate_pricing_breakdown(model, usage, billing_source="FAKE")
 
 
+@pytest.mark.parametrize("discount", ["0", "12.5", "40", "100"])
+def test_every_promotional_pricing_helper_uses_full_reference_rates(discount):
+    from app.services.pricing import estimate_customer_charge_cents, resolve_model_rates
+
+    model = build_model()
+    model.discount_percent = Decimal(discount)
+    model.input_price_per_million = Decimal("1000")
+    model.output_price_per_million = Decimal("2000")
+    model.cached_input_price_per_million = Decimal("100")
+    usage = UsageMetrics(input_tokens=1000, output_tokens=100, cached_input_tokens=200)
+    rates = resolve_model_rates(model, billing_source="PROMOTIONAL")
+    for kind in ("input", "output", "cached_input"):
+        assert rates[f"customer_{kind}"] == rates[f"reference_{kind}"]
+    promo = calculate_pricing_breakdown(model, usage, billing_source="PROMOTIONAL")
+    # 800 uncached input + 200 cached input + 100 output costs exactly $1.02.
+    assert promo.reference_charge_cents == promo.customer_charge_cents == 102
+    assert promo.customer_savings_cents == 0
+    assert estimate_customer_charge_cents(usage, model, billing_source="PROMOTIONAL") == 102
+
+
 @pytest.fixture
 def billing(monkeypatch):
     model = build_model()
@@ -259,6 +279,67 @@ def test_promo_key_reserves_and_settles_reference_not_personal_wallet(billing):
     )
     assert rpc.call_args.kwargs["customer_savings_cents"] == 0
     personal.assert_not_called()
+
+
+@pytest.mark.parametrize("stream", [False, True])
+def test_team_key_cannot_request_a_paid_discount_on_either_response_path(billing, monkeypatch, stream):
+    _, _, personal, reserve, rpc, _, response = billing
+
+    async def source():
+        yield ("data: " + json.dumps(response) + "\n\n").encode()
+        yield b"data: [DONE]\n\n"
+
+    monkeypatch.setattr(chat, "forward_chat_completion_stream", AsyncMock(return_value=source()))
+    result = TestClient(app).post("/v1/chat/completions", headers={"Authorization": "Bearer team-key"}, json={
+        "model": "gpt-5.4", "messages": [{"role": "user", "content": "Hi"}],
+        "max_completion_tokens": 1000, "stream": stream,
+        "billing_source": "PAID", "discount_percent": 100, "customer_charge_cents": 0,
+    })
+    assert result.status_code == 200
+    assert reserve.call_args.args[-1] == 100
+    assert rpc.call_args.kwargs["customer_charge_cents"] == 100
+    assert rpc.call_args.kwargs["reference_charge_cents"] == 100
+    assert rpc.call_args.kwargs["customer_savings_cents"] == 0
+    personal.assert_not_called()
+
+
+@pytest.mark.parametrize("stream", [False, True])
+def test_function_deadline_releases_concurrency_but_keeps_uncertain_team_hold(billing, monkeypatch, stream):
+    from app.core.config import settings
+
+    _, _, _, reserve, rpc, provider, _ = billing
+    monkeypatch.setattr(settings, "api_request_timeout_seconds", 0.1)
+    release_hold = AsyncMock()
+    monkeypatch.setattr(access_control, "release_unconsumed_usage", release_hold)
+    closed = []
+
+    async def delayed(*args, **kwargs):
+        try:
+            await asyncio.Event().wait()
+        finally:
+            closed.append(True)
+
+    async def source():
+        try:
+            yield b'data: {"choices":[{"delta":{"content":"Starting"}}]}\n\n'
+            await asyncio.Event().wait()
+        finally:
+            closed.append(True)
+
+    provider.side_effect = delayed
+    monkeypatch.setattr(chat, "forward_chat_completion_stream", AsyncMock(return_value=source()))
+    result = TestClient(app).post("/v1/chat/completions", headers={"Authorization": "Bearer team-key"}, json={
+        "model": "gpt-5.4", "messages": [{"role": "user", "content": "Hi"}],
+        "max_completion_tokens": 1000, "stream": stream,
+    })
+    assert result.status_code == (200 if stream else 504)
+    assert "request_timeout" in result.text
+    assert "[DONE]" not in result.text
+    assert closed == [True]
+    reserve.assert_awaited_once()
+    rpc.assert_not_called()
+    release_hold.assert_not_called()
+    access_control.release_concurrency_slot.assert_called_once_with(user_id="owner", api_key_id="key")
 
 
 def test_personal_key_keeps_discount_and_ignores_request_source(billing):

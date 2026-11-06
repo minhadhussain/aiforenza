@@ -40,6 +40,10 @@ Phase 1 through Phase 10 foundations are in place:
 4. Open `http://localhost:3000` for the web app
 5. Open `http://localhost:8000/docs` for the API docs
 
+## Deploy on Vercel
+
+Import this repository as two Vercel projects: **`apps/web`** (Next.js / Node 22) and **`apps/api`** (native FastAPI / Python 3.12). Both roots include Vercel configuration. Use hosted Supabase and Redis, configure each project's environment variables, and follow [Vercel deployment](docs/vercel-deployment.md) for domains, Google callbacks, Stripe webhooks, and streaming limits.
+
 ## Authentication Foundation
 
 - Web auth uses Supabase browser, server, and middleware clients.
@@ -69,6 +73,8 @@ The web app enforces a nonce-based Content Security Policy in production, blocks
 ## BUILD 2026 Promotional Credits
 
 The dashboard's **BUILD 2026** section at `/dashboard/build-2026` provides one $100 shared-key grant per selected project using an organizer-issued Team ID. Its event branding and participant details follow [Hackyard BUILD 2026](https://hackyard.org/build2026). Promotional usage is billed at reference price through the existing wallet, reservation, and ledger infrastructure. Paid keys retain normal customer pricing.
+
+**Team credits receive no discount:** $1.00 of reference usage deducts $1.00 from the project allocation. The key's stored billing source selects this rule for reservations and both streaming/non-streaming usage; clients cannot override it.
 
 See [BUILD 2026 design and content](docs/build-2026.md) and [credit setup and verification](docs/hackathon-credits.md) for branding sources, organizer commands, the API contract, and test evidence.
 

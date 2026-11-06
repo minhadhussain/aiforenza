@@ -1,4 +1,5 @@
 .git
+**/.vercel
 .opencode
 **/node_modules
 **/.next

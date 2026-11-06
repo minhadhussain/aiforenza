@@ -10,6 +10,7 @@ from app.services.observability import init_posthog
 from app.services.observability import init_sentry
 from app.services.observability import init_provider_logging
 from app.middleware.request_safety import RequestSafetyMiddleware
+from app.middleware.request_deadline import RequestDeadlineMiddleware
 from app.services.supabase_http import supabase_http_lifespan
 
 
@@ -27,6 +28,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(RequestDeadlineMiddleware)
 app.add_middleware(RequestSafetyMiddleware)
 app.add_middleware(
     CORSMiddleware,

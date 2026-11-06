@@ -1,4 +1,5 @@
 from functools import lru_cache
+import os
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -44,6 +45,9 @@ class Settings(BaseSettings):
     api_max_concurrent_requests: int = Field(
         default=10, alias="API_MAX_CONCURRENT_REQUESTS"
     )
+    api_request_timeout_seconds: float | None = Field(
+        default=None, gt=0, le=1700, alias="API_REQUEST_TIMEOUT_SECONDS"
+    )
     database_url: str = Field(default="", alias="DATABASE_URL")
     redis_url: str = Field(default="redis://redis:6379/0", alias="REDIS_URL")
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
@@ -69,6 +73,13 @@ class Settings(BaseSettings):
     sentry_dsn: str = Field(default="", alias="SENTRY_DSN")
     posthog_key: str = Field(default="", alias="POSTHOG_KEY")
     posthog_host: str = Field(default="", alias="POSTHOG_HOST")
+
+    @property
+    def request_timeout_seconds(self) -> float | None:
+        if self.api_request_timeout_seconds is not None:
+            return self.api_request_timeout_seconds
+        # Leave time for stream/resource cleanup before Vercel's 300s ceiling.
+        return 240.0 if os.getenv("VERCEL") == "1" else None
 
     @property
     def cors_origins(self) -> list[str]:

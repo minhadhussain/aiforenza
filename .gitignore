@@ -1,5 +1,6 @@
 .next/
 .next-dev/
+.vercel/
 *.log
 tools/stripe/
 docs/*.png

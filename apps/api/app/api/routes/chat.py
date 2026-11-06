@@ -79,8 +79,10 @@ async def post_chat_completions(
                     # uncertain inference retains its reservation for reconciliation.
                     yield ("data: " + json.dumps(openai_error_payload(str(exc), "api_error", exc.code)) + "\n\n").encode()
                 finally:
-                    await source.aclose()
-                    release_authorized_request(authz)
+                    try:
+                        await source.aclose()
+                    finally:
+                        release_authorized_request(authz)
 
             streaming = True
             return StreamingResponse(
